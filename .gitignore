@@ -47,3 +47,6 @@ fastlane/test_output
 
 # App Store
 itunesconnect.properties
+
+# AI agent instructions
+AGENTS.md

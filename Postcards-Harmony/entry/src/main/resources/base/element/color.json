@@ -1,0 +1,68 @@
+{
+  "color": [
+    {
+      "name": "start_window_background",
+      "value": "#FAF7EF"
+    },
+    {
+      "name": "stamp_red",
+      "value": "#B84A38"
+    },
+    {
+      "name": "travel_blue",
+      "value": "#0F5D49"
+    },
+    {
+      "name": "paper_beige",
+      "value": "#F4EFE2"
+    },
+    {
+      "name": "ink_black",
+      "value": "#1D2A25"
+    },
+    {
+      "name": "pencil_gray",
+      "value": "#6A675B"
+    },
+    {
+      "name": "stamp_gray",
+      "value": "#A49D8B"
+    },
+    {
+      "name": "dawn_yellow",
+      "value": "#D8BF7D"
+    },
+    {
+      "name": "forest_green",
+      "value": "#2E7D58"
+    },
+    {
+      "name": "sunset_orange",
+      "value": "#C48649"
+    },
+    {
+      "name": "page_background",
+      "value": "#FAF7EF"
+    },
+    {
+      "name": "card_background",
+      "value": "#FFFCF5"
+    },
+    {
+      "name": "line_sepia",
+      "value": "#D7CBB7"
+    },
+    {
+      "name": "postal_mint",
+      "value": "#E5EFE5"
+    },
+    {
+      "name": "postal_cream",
+      "value": "#FBF6EA"
+    },
+    {
+      "name": "ink_green",
+      "value": "#164E3E"
+    }
+  ]
+}
