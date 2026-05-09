@@ -205,6 +205,16 @@ struct RecordPage {
     }, 1500);
   }
 
+  private formatDateTime(d: Date): string {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  private formatDateOnly(d: Date): string {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
   private savePostcard() {
     const trimmedLocation = this.locationName.trim();
     const trimmedNote = this.note.trim();
@@ -343,7 +353,7 @@ struct RecordEditView {
         // Auto info
         Column({ space: 12 }) {
           InfoRow({ icon: '📍', color: Colors.stampRed, text: this.location.length === 0 ? '自动识别地点...' : this.location })
-          InfoRow({ icon: '🕐', color: Colors.pencilGray, text: new Date().toLocaleString() })
+          InfoRow({ icon: '🕐', color: Colors.pencilGray, text: this.formatDateTime(new Date()) })
           InfoRow({ icon: '☀', color: Colors.dawnYellow, text: '晴朗 24°C' })
         }
         .padding(16)
@@ -482,7 +492,7 @@ struct PostcardPreviewView {
             .letterSpacing(1)
         }
 
-        Text(new Date().toLocaleDateString())
+        Text(this.formatDateOnly(new Date()))
           .fontSize(12)
           .fontColor(Colors.pencilGray)
 
