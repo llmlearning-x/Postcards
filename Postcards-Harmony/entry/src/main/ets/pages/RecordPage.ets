@@ -145,7 +145,7 @@ struct RecordPage {
           this.currentStep = RecordStep.EDIT;
         }
       }
-    } catch (e) {
+    } catch (e: Error) {
       this.flowErrorMessage = '相机启动失败';
       this.showErrorDialog = true;
     }
@@ -171,7 +171,7 @@ struct RecordPage {
           this.currentStep = RecordStep.EDIT;
         }
       }
-    } catch (e) {
+    } catch (e: Error) {
       this.flowErrorMessage = '相册访问失败';
       this.showErrorDialog = true;
     }
@@ -188,7 +188,7 @@ struct RecordPage {
       fs.closeSync(srcFile);
 
       return fileUri.getUriFromPath(destPath);
-    } catch (e) {
+    } catch (e: Error) {
       console.error('Copy to sandbox failed', e);
       return null;
     }
