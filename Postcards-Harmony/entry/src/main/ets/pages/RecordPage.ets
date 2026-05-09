@@ -180,7 +180,8 @@ struct RecordPage {
   private async copyToSandbox(sourceUri: string): Promise<string | null> {
     try {
       const ctx = getContext(this) as common.UIAbilityContext;
-      const fileName = `img_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`;
+      const rand = Date.now() % 1000000;
+      const fileName = `img_${Date.now()}_${rand}.jpg`;
       const destPath = `${ctx.filesDir}/${fileName}`;
 
       const srcFile = fs.openSync(sourceUri, fs.OpenMode.READ_ONLY);
