@@ -3,5 +3,6 @@
   "version": "1.0.0",
   "description": "Postcards - Every trip sends you a postcard.",
   "license": "Apache-2.0",
+  "modelVersion": "6.0.2",
   "dependencies": {}
 }

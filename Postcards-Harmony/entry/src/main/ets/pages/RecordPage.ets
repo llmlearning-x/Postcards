@@ -1,6 +1,8 @@
 import router from '@ohos.router';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
-import { cameraPicker } from '@kit.CameraKit';
+import { cameraPicker, camera } from '@kit.CameraKit';
+import { fileIo as fs, fileUri } from '@kit.CoreFileKit';
+import { common } from '@kit.AbilityKit';
 import { DataManager } from '../model/DataManager';
 import { Travel } from '../model/Travel';
 import { Postcard } from '../model/Postcard';
@@ -128,16 +130,20 @@ struct RecordPage {
 
   private async openCamera() {
     try {
+      const pickerProfile: cameraPicker.PickerProfile = {
+        cameraPosition: camera.CameraPosition.CAMERA_POSITION_BACK
+      };
       const pickerResult = await cameraPicker.pick(
-        getContext(this),
-        ['photo'],
-        {
-          cameraPosition: cameraPicker.CameraPosition.CAMERA_POSITION_BACK
-        }
+        getContext(this) as common.UIAbilityContext,
+        [cameraPicker.PickerMediaType.PHOTO],
+        pickerProfile
       );
-      if (pickerResult && pickerResult.resultUri && pickerResult.resultUri.length > 0) {
-        this.selectedImages = pickerResult.resultUri;
-        this.currentStep = RecordStep.EDIT;
+      if (pickerResult && pickerResult.resultCode === 0 && pickerResult.resultUri) {
+        const sandboxUri = await this.copyToSandbox(pickerResult.resultUri);
+        if (sandboxUri) {
+          this.selectedImages = [sandboxUri];
+          this.currentStep = RecordStep.EDIT;
+        }
       }
     } catch (e) {
       this.flowErrorMessage = '相机启动失败';
@@ -153,12 +159,38 @@ struct RecordPage {
       const photoPicker = new photoAccessHelper.PhotoViewPicker();
       const result = await photoPicker.select(photoSelectOptions);
       if (result.photoUris && result.photoUris.length > 0) {
-        this.selectedImages = result.photoUris;
-        this.currentStep = RecordStep.EDIT;
+        const sandboxUris: string[] = [];
+        for (const uri of result.photoUris) {
+          const sandboxUri = await this.copyToSandbox(uri);
+          if (sandboxUri) {
+            sandboxUris.push(sandboxUri);
+          }
+        }
+        if (sandboxUris.length > 0) {
+          this.selectedImages = sandboxUris;
+          this.currentStep = RecordStep.EDIT;
+        }
       }
     } catch (e) {
       this.flowErrorMessage = '相册访问失败';
       this.showErrorDialog = true;
+    }
+  }
+
+  private async copyToSandbox(sourceUri: string): Promise<string | null> {
+    try {
+      const ctx = getContext(this) as common.UIAbilityContext;
+      const fileName = `img_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`;
+      const destPath = `${ctx.filesDir}/${fileName}`;
+
+      const srcFile = fs.openSync(sourceUri, fs.OpenMode.READ_ONLY);
+      fs.copyFileSync(srcFile.fd, destPath);
+      fs.closeSync(srcFile);
+
+      return fileUri.getUriFromPath(destPath);
+    } catch (e) {
+      console.error('Copy to sandbox failed', e);
+      return null;
     }
   }
 
