@@ -50,3 +50,13 @@ itunesconnect.properties
 
 # AI agent instructions
 AGENTS.md
+
+# HarmonyOS / DevEco Studio
+Postcards-Harmony/.hvigor/
+Postcards-Harmony/.idea/
+Postcards-Harmony/oh_modules/
+Postcards-Harmony/entry/oh_modules/
+Postcards-Harmony/entry/build/
+Postcards-Harmony/entry/.preview/
+Postcards-Harmony/build/
+Postcards-Harmony/.externalNativeBuild/
