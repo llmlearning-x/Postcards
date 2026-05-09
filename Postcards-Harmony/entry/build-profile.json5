@@ -1,0 +1,49 @@
+{
+  "apiType": "stageMode",
+  "buildOption": {},
+  "buildOptionSet": [
+    {
+      "name": "debug",
+      "debuggable": true
+    },
+    {
+      "name": "release",
+      "arkOptions": {
+        "obfuscation": {
+          "ruleOptions": {
+            "enable": true,
+            "files": [
+              "./obfuscation-rules.txt"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "buildModeBinder": [
+    {
+      "buildModeName": "debug",
+      "mappings": [
+        {
+          "buildOptionName": "debug",
+          "targetName": "default"
+        }
+      ]
+    },
+    {
+      "buildModeName": "release",
+      "mappings": [
+        {
+          "buildOptionName": "release",
+          "targetName": "default"
+        }
+      ]
+    }
+  ],
+  "targets": [
+    {
+      "name": "default",
+      "runtimeOS": "HarmonyOS"
+    }
+  ]
+}

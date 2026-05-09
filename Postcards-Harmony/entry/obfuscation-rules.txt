@@ -1,0 +1,4 @@
+# Obfuscation rules for HarmonyOS application
+# Add rules here to keep specific classes, methods, or fields from being obfuscated
+# Example:
+# -keep class com.example.myapp.** { *; }
