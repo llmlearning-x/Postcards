@@ -35,6 +35,14 @@
     {
       "name": "tab_profile",
       "value": "我的"
+    },
+    {
+      "name": "location_permission_reason",
+      "value": "用于记录旅行时的地理位置信息"
+    },
+    {
+      "name": "camera_permission_reason",
+      "value": "用于拍摄旅行明信片照片"
     }
   ]
 }
