@@ -1,0 +1,113 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "远方邮政"
+      }
+    },
+    {
+      "path": "pages/home/home",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "首页"
+      }
+    },
+    {
+      "path": "pages/timeline/timeline",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "时间轴"
+      }
+    },
+    {
+      "path": "pages/map/map",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "地图"
+      }
+    },
+    {
+      "path": "pages/collection/collection",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "收藏"
+      }
+    },
+    {
+      "path": "pages/profile/profile",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/record/record",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "记录"
+      }
+    },
+    {
+      "path": "pages/detail/detail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "明信片详情"
+      }
+    },
+    {
+      "path": "pages/edit/edit",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "编辑明信片"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "远方邮政",
+    "navigationBarBackgroundColor": "#2E7D58",
+    "backgroundColor": "#FAF7F2",
+    "backgroundColorTop": "#FAF7F2",
+    "backgroundColorBottom": "#FAF7F2"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#2E7D58",
+    "borderStyle": "white",
+    "backgroundColor": "#FFFFFF",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "首页",
+        "iconPath": "static/tabbar/home-normal.png",
+        "selectedIconPath": "static/tabbar/home-selected.png"
+      },
+      {
+        "pagePath": "pages/timeline/timeline",
+        "text": "时间轴",
+        "iconPath": "static/tabbar/timeline-normal.png",
+        "selectedIconPath": "static/tabbar/timeline-selected.png"
+      },
+      {
+        "pagePath": "pages/record/record",
+        "text": "记录",
+        "iconPath": "static/tabbar/record-normal.png",
+        "selectedIconPath": "static/tabbar/record-selected.png"
+      },
+      {
+        "pagePath": "pages/map/map",
+        "text": "地图",
+        "iconPath": "static/tabbar/map-normal.png",
+        "selectedIconPath": "static/tabbar/map-selected.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "static/tabbar/profile-normal.png",
+        "selectedIconPath": "static/tabbar/profile-selected.png"
+      }
+    ]
+  }
+}

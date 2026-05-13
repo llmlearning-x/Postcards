@@ -13,6 +13,18 @@ import {
 import { PostcardCard } from '../components/PostcardCard';
 import { TravelFilterChips } from '../components/TravelFilterChips';
 
+interface YearAlbum {
+  year: number;
+  count: number;
+  countryCount: number;
+}
+
+interface SampleCard {
+  title: string;
+  date: string;
+  color: string;
+}
+
 @Component
 export struct CollectionView {
   @State travels: Travel[] = [];
@@ -22,6 +34,11 @@ export struct CollectionView {
 
   aboutToAppear() {
     this.refreshData();
+    DataManager.addListener(this.onDataChanged.bind(this));
+  }
+
+  aboutToDisappear() {
+    DataManager.removeListener(this.onDataChanged.bind(this));
   }
 
   onPageShow() {
@@ -33,7 +50,11 @@ export struct CollectionView {
     this.postcards = DataManager.sortedPostcards;
   }
 
-  private get scopedPostcards(): Postcard[] {
+  private onDataChanged() {
+    this.refreshData();
+  }
+
+  private getScopedPostcards(): Postcard[] {
     let list = this.postcards;
     if (this.selectedTravelID) {
       list = list.filter(p => p.travelID === this.selectedTravelID);
@@ -44,7 +65,7 @@ export struct CollectionView {
     return list;
   }
 
-  private get albums(): { year: number; count: number; countryCount: number }[] {
+  private getAlbums(): YearAlbum[] {
     const map = new Map<number, Postcard[]>();
     let source = this.postcards;
     if (this.selectedTravelID) {
@@ -57,15 +78,19 @@ export struct CollectionView {
     }
     return Array.from(map.entries())
       .sort((a, b) => b[0] - a[0])
-      .map(([year, items]) => ({
-        year,
-        count: items.length,
-        countryCount: new Set(items.map(p => p.country).filter(c => c)).size
-      }));
+      .map((entry: [number, Postcard[]]) => {
+        const year = entry[0];
+        const items = entry[1];
+        return {
+          year: year,
+          count: items.length,
+          countryCount: new Set(items.map((p: Postcard) => p.country).filter(c => c)).size
+        } as YearAlbum;
+      });
   }
 
-  private get favoritePostcards(): Postcard[] {
-    return this.scopedPostcards.filter(p => p.isFavorite);
+  private getFavoritePostcards(): Postcard[] {
+    return this.getScopedPostcards().filter(p => p.isFavorite);
   }
 
   build() {
@@ -86,13 +111,11 @@ export struct CollectionView {
                 .fontSize(30)
               Text('收藏')
                 .fontSize(30)
-                .fontWeight(FontWeight.Heavy)
+                .fontWeight(FontWeight.Bold)
                 .fontFamily('serif')
-                .fontColor(Colors.travelBlue)
             }
             Text('集邮册 · 收藏每一段旅程的印记')
               .fontSize(14)
-              .fontColor(Colors.pencilGray)
           }
           .alignItems(HorizontalAlign.Start)
           .layoutWeight(1)
@@ -100,20 +123,19 @@ export struct CollectionView {
           Column({ space: 2 }) {
             Text('已陪伴您')
               .fontSize(12)
-            Text(`${Math.max(this.albums.length, 1) * 118}`)
+            Text(`${Math.max(this.getAlbums().length, 1) * 118}`)
               .fontSize(26)
               .fontWeight(FontWeight.Bold)
               .fontFamily('serif')
             Text('天')
               .fontSize(12)
           }
-          .fontColor(Colors.inkBlack)
           .padding({ left: 18, right: 18, top: 10, bottom: 10 })
           .backgroundColor(Colors.cardBackground)
           .borderRadius(5)
           .border({ width: 1, color: Colors.lineSepia })
           .shadow({ radius: 10, color: 'rgba(0,0,0,0.09)', offsetY: 4 })
-          .overlay(StampPerforation({ cornerRadius: 5, color: Colors.pageBackground }))
+          
           .width(112)
         }
         .padding({ left: 16, right: 16 })
@@ -132,7 +154,7 @@ export struct CollectionView {
           PostalSectionHeader({ title: '年邮册' })
             .padding({ left: 16, right: 16 })
 
-          if (this.albums.length === 0) {
+          if (this.getAlbums().length === 0) {
             Row({ space: 16 }) {
               YearAlbumCard({ year: 2024, count: 128, countryCount: 1, isSelected: false, onSelect: () => {} })
               YearAlbumCard({ year: 2023, count: 86, countryCount: 1, isSelected: false, onSelect: () => {} })
@@ -140,7 +162,7 @@ export struct CollectionView {
             .padding({ left: 16, right: 16 })
           } else {
             Row({ space: 16 }) {
-              ForEach(this.albums.slice(0, 2), (album) => {
+              ForEach(this.getAlbums().slice(0, 2), (album: YearAlbum) => {
                 YearAlbumCard({
                   year: album.year,
                   count: album.count,
@@ -164,19 +186,18 @@ export struct CollectionView {
             if (this.selectedYear != null) {
               Button('查看全部')
                 .fontSize(14)
-                .fontColor(Colors.travelBlue)
                 .backgroundColor('transparent')
                 .onClick(() => { this.selectedYear = null; })
             }
           }
           .padding({ left: 16, right: 16 })
 
-          if (this.favoritePostcards.length === 0) {
+          if (this.getFavoritePostcards().length === 0) {
             this.SamplePostcardStrip()
           } else {
             Scroll() {
               Row({ space: 12 }) {
-                ForEach(this.favoritePostcards, (postcard: Postcard) => {
+                ForEach(this.getFavoritePostcards(), (postcard: Postcard) => {
                   PostcardCard({ postcard: postcard })
                     .width(220)
                 })
@@ -190,13 +211,12 @@ export struct CollectionView {
 
         // Topics
         this.TopicsSection()
-          .padding({ left: 16, right: 16 })
 
         PostalStatsTicket({
           items: [
-            new PostalStatItem('📮', '明信片收藏', `${Math.max(this.postcards.length, 128)}`, '张'),
-            new PostalStatItem('🏷', '邮票收藏', `${Math.max(this.favoritePostcards.length, 86)}`, '枚'),
-            new PostalStatItem('📍', '足迹城市', `${Math.max(new Set(this.postcards.map(p => p.city).filter(c => c)).size, 42)}`, '座')
+            new PostalStatItem('📮', '明信片收藏', `${this.postcards.length}`, '张'),
+            new PostalStatItem('🏷', '邮票收藏', `${this.getFavoritePostcards().length}`, '枚'),
+            new PostalStatItem('📍', '足迹城市', `${new Set(this.postcards.map(p => p.city).filter(c => c)).size}`, '座')
           ],
           compact: true
         })
@@ -218,10 +238,10 @@ export struct CollectionView {
           { title: '陆家嘴夜景', date: '2024.02.11', color: '#243C63' },
           { title: '日月湾海岸', date: '2024.01.27', color: '#89C5D5' },
           { title: '云雾梯田', date: '2023.10.09', color: '#E6B06A' }
-        ], (card) => {
+        ] as SampleCard[], (card: SampleCard) => {
           Column({ space: 8 }) {
             Stack({ alignContent: Alignment.TopEnd }) {
-              LinearGradient({ angle: 45, colors: [card.color, '#2E7D58'] })
+              Stack()
                 .width(174)
                 .height(124)
                 .borderRadius(6)
@@ -232,11 +252,9 @@ export struct CollectionView {
             Row() {
               Text(card.title)
                 .fontSize(14)
-                .fontWeight(FontWeight.Medium)
-                .fontColor(Colors.inkBlack)
+                .fontWeight(FontWeight.Normal)
               Blank()
               Text('♡')
-                .fontColor(Colors.travelBlue)
             }
             .width('100%')
           }
@@ -244,7 +262,7 @@ export struct CollectionView {
           .backgroundColor(Colors.overlayBackground)
           .borderRadius(8)
           .border({ width: 1, color: Colors.lineSepia })
-          .overlay(StampPerforation({ cornerRadius: 8, color: Colors.pageBackground }))
+          
           .width(200)
         })
       }
@@ -272,20 +290,19 @@ export struct CollectionView {
   TopicCard(title: string, subtitle: string, count: number, color: string) {
     Row({ space: 10 }) {
       Stack() {
-        LinearGradient({ angle: 45, colors: [color, '#2E7D58'] })
+        Stack()
           .width(76)
           .height(58)
           .borderRadius(4)
         Text('✈')
           .fontSize(16)
-          .fontColor(Color.White)
           .opacity(0.5)
       }
 
       Column({ space: 2 }) {
         Text(title)
           .fontSize(20)
-          .fontWeight(FontWeight.Heavy)
+          .fontWeight(FontWeight.Bold)
           .fontFamily('serif')
         Text(subtitle)
           .fontSize(11)
@@ -296,7 +313,6 @@ export struct CollectionView {
           .fontWeight(FontWeight.Bold)
           .fontFamily('serif')
       }
-      .fontColor(Colors.inkBlack)
       .alignItems(HorizontalAlign.Start)
       .layoutWeight(1)
     }
@@ -305,7 +321,7 @@ export struct CollectionView {
     .borderRadius(7)
     .border({ width: 1, color: Colors.lineSepia })
     .shadow({ radius: 10, color: 'rgba(0,0,0,0.09)', offsetY: 4 })
-    .overlay(StampPerforation({ cornerRadius: 7, color: Colors.pageBackground }))
+    
   }
 }
 
@@ -317,7 +333,7 @@ struct YearAlbumCard {
   @Prop isSelected: boolean = false;
   onSelect?: () => void;
 
-  private get currentColor(): ResourceColor {
+  private getCurrentColor(): ResourceColor {
     return this.year % 2 === 0 ? '#A47A36' : Colors.dawnYellow;
   }
 
@@ -325,12 +341,7 @@ struct YearAlbumCard {
     Button() {
       Stack({ alignContent: Alignment.TopEnd }) {
         // Background
-        LinearGradient({
-          angle: 45,
-          colors: this.year % 2 === 0
-            ? [Colors.overlayBackground, '#F1E3C8']
-            : [Colors.travelBlue, '#063D31']
-        })
+        Stack()
         .width('100%')
         .height('100%')
         .borderRadius(12)
@@ -345,7 +356,7 @@ struct YearAlbumCard {
 
         // Bottom image overlay
         Stack() {
-          LinearGradient({ angle: 45, colors: [this.year % 2 === 0 ? '#DDE9DE' : '#E6B06A', '#2E7D58'] })
+          Stack()
             .width('100%')
             .height(88)
             .opacity(this.year % 2 === 0 ? 0.34 : 0.42)
@@ -362,11 +373,11 @@ struct YearAlbumCard {
             .fontFamily('serif')
           Text('年邮册')
             .fontSize(22)
-            .fontWeight(FontWeight.Heavy)
+            .fontWeight(FontWeight.Bold)
             .fontFamily('serif')
           Text('旅行 · 邮记 · 世界')
             .fontSize(12)
-            .fontWeight(FontWeight.SemiBold)
+            .fontWeight(FontWeight.Bold)
             .letterSpacing(1)
           Blank()
           Row() {
@@ -375,11 +386,10 @@ struct YearAlbumCard {
               .fontSize(12)
               .fontWeight(FontWeight.Bold)
               .padding({ left: 10, right: 10, top: 6, bottom: 6 })
-              .border({ width: 1, color: this.currentColor, radius: 4 })
+              .border({ width: 1, color: this.getCurrentColor(), radius: 4 })
           }
           .width('100%')
         }
-        .fontColor(this.currentColor)
         .padding(22)
         .width('100%')
         .height('100%')
@@ -387,7 +397,6 @@ struct YearAlbumCard {
 
         Text('⭐')
           .fontSize(20)
-          .fontColor(this.currentColor)
           .padding(14)
       }
       .width('100%')

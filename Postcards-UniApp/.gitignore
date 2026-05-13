@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+unpackage/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+
+# SDK & binaries
+Android-SDK@*/
+*.aar
+*.jar
+*.keystore
+*.jks
+
+# Gradle
+.gradle/
+
+# Temp files
+.playwright-mcp/

@@ -1,5 +1,23 @@
 import { generateUUID } from '../utils/UUIDUtil';
 
+interface PostcardJSON {
+  id: string;
+  travelID: string | null;
+  locationName: string;
+  locationLat: number | null;
+  locationLng: number | null;
+  country: string | null;
+  city: string | null;
+  photos: string[];
+  recordedAt: number;
+  weatherCondition: string | null;
+  weatherTemp: string | null;
+  note: string | null;
+  tags: string[];
+  isFavorite: boolean;
+  createdAt: number;
+}
+
 export class Postcard {
   id: string;
   travelID: string | null;
@@ -11,7 +29,7 @@ export class Postcard {
   city: string | null;
   recordedAt: number;
   weatherCondition: string | null;
-  weatherTemp: number | null;
+  weatherTemp: string | null;
   note: string | null;
   tags: string[];
   isFavorite: boolean;
@@ -35,25 +53,25 @@ export class Postcard {
     this.createdAt = Date.now();
   }
 
-  static fromJSON(obj: Record<string, any>): Postcard {
-    const p = new Postcard(obj['locationName'], obj['recordedAt']);
-    p.id = obj['id'];
-    p.travelID = obj['travelID'] ?? null;
-    p.photos = obj['photos'] ?? [];
-    p.locationLat = obj['locationLat'] ?? null;
-    p.locationLng = obj['locationLng'] ?? null;
-    p.country = obj['country'] ?? null;
-    p.city = obj['city'] ?? null;
-    p.weatherCondition = obj['weatherCondition'] ?? null;
-    p.weatherTemp = obj['weatherTemp'] ?? null;
-    p.note = obj['note'] ?? null;
-    p.tags = obj['tags'] ?? [];
-    p.isFavorite = obj['isFavorite'] ?? false;
-    p.createdAt = obj['createdAt'];
+  static fromJSON(obj: Record<string, Object>): Postcard {
+    const p = new Postcard(obj['locationName'] as string, obj['recordedAt'] as number);
+    p.id = obj['id'] as string;
+    p.travelID = (obj['travelID'] as string) || null;
+    p.photos = (obj['photos'] as string[]) || [];
+    p.locationLat = (obj['locationLat'] as number) || null;
+    p.locationLng = (obj['locationLng'] as number) || null;
+    p.country = (obj['country'] as string) || null;
+    p.city = (obj['city'] as string) || null;
+    p.weatherCondition = (obj['weatherCondition'] as string) || null;
+    p.weatherTemp = (obj['weatherTemp'] as string) || null;
+    p.note = (obj['note'] as string) || null;
+    p.tags = (obj['tags'] as string[]) || [];
+    p.isFavorite = (obj['isFavorite'] as boolean) || false;
+    p.createdAt = obj['createdAt'] as number;
     return p;
   }
 
-  toJSON(): object {
+  toJSON(): PostcardJSON {
     return {
       id: this.id,
       travelID: this.travelID,

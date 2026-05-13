@@ -11,6 +11,11 @@ import {
 import { PostcardCard } from '../components/PostcardCard';
 import { TravelFilterChips } from '../components/TravelFilterChips';
 
+interface PostcardGroup {
+  date: number;
+  items: Postcard[];
+}
+
 @Component
 export struct TimelineView {
   @State travels: Travel[] = [];
@@ -20,6 +25,11 @@ export struct TimelineView {
 
   aboutToAppear() {
     this.refreshData();
+    DataManager.addListener(this.onDataChanged.bind(this));
+  }
+
+  aboutToDisappear() {
+    DataManager.removeListener(this.onDataChanged.bind(this));
   }
 
   onPageShow() {
@@ -31,7 +41,11 @@ export struct TimelineView {
     this.postcards = DataManager.sortedPostcards;
   }
 
-  private get filteredPostcards(): Postcard[] {
+  private onDataChanged() {
+    this.refreshData();
+  }
+
+  private getFilteredPostcards(): Postcard[] {
     const query = this.searchText.trim().toLowerCase();
     let list = this.postcards;
     if (this.selectedTravelID) {
@@ -40,14 +54,14 @@ export struct TimelineView {
     if (query.length === 0) return list;
     return list.filter(p =>
       p.locationName.toLowerCase().includes(query) ||
-      (p.note?.toLowerCase().includes(query) ?? false) ||
+      (p.note && p.note.toLowerCase().includes(query) || false) ||
       p.tags.some(t => t.toLowerCase().includes(query))
     );
   }
 
-  private get groupedPostcards(): { date: number; items: Postcard[] }[] {
+  private getGroupedPostcards(): PostcardGroup[] {
     const map = new Map<number, Postcard[]>();
-    for (const p of this.filteredPostcards) {
+    for (const p of this.getFilteredPostcards()) {
       const d = new Date(p.recordedAt);
       d.setHours(0, 0, 0, 0);
       const ts = d.getTime();
@@ -56,7 +70,11 @@ export struct TimelineView {
     }
     return Array.from(map.entries())
       .sort((a, b) => b[0] - a[0])
-      .map(([date, items]) => ({ date, items }));
+      .map((entry: [number, Postcard[]]): PostcardGroup => {
+      const date = entry[0];
+      const items = entry[1];
+      return { date: date, items: items } as PostcardGroup;
+    });
   }
 
   build() {
@@ -70,12 +88,15 @@ export struct TimelineView {
       .padding({ left: 16, right: 16 })
 
       // Search
-      TextInput({ placeholder: '搜索地点、标签...', text: $$searchText })
+      TextInput({ placeholder: '搜索地点、标签...', text: this.searchText })
         .placeholderColor(Colors.stampGray)
         .height(44)
         .border({ width: 1, color: Colors.lineSepia, radius: 10 })
         .padding({ left: 12, right: 12 })
         .margin({ left: 16, right: 16, top: 8 })
+        .onChange((value: string) => {
+          this.searchText = value;
+        })
 
       TravelFilterChips({
         travels: this.travels,
@@ -84,7 +105,7 @@ export struct TimelineView {
       })
       .padding({ left: 16, right: 16, top: 8 })
 
-      if (this.groupedPostcards.length === 0) {
+      if (this.getGroupedPostcards().length === 0) {
         Scroll() {
           Column({ space: 24 }) {
             PostalEmptyState({
@@ -97,17 +118,16 @@ export struct TimelineView {
             .padding({ left: 16, right: 16 })
 
             this.SampleTimelinePreview()
-              .padding({ left: 16, right: 16 })
           }
           .padding({ top: 16, bottom: 16 })
         }
         .layoutWeight(1)
       } else {
         List() {
-          ForEach(this.groupedPostcards, (group) => {
+          ForEach(this.getGroupedPostcards(), (group: PostcardGroup) => {
             ListItem() {
               Column({ space: 12 }) {
-                DateHeader({ date: group.date, location: group.items[0]?.locationName ?? '' })
+                DateHeader({ date: group.date, location: (group.items[0] && group.items[0].locationName) || '' })
                   .backgroundColor('rgba(250,247,239,0.96)')
 
                 GridRow({ columns: 2, gutter: { x: 12, y: 12 } }) {
@@ -154,23 +174,20 @@ export struct TimelineView {
   SampleStamp(title: string, caption: string, color: string) {
     Column({ space: 8 }) {
       Stack() {
-        LinearGradient({ angle: 45, colors: [color, '#2E7D58'] })
+        Stack()
           .width('100%')
           .height(104)
           .borderRadius(5)
         Text('✈')
           .fontSize(24)
-          .fontColor(Color.White)
           .opacity(0.5)
       }
       Text(title)
         .fontSize(19)
-        .fontWeight(FontWeight.Heavy)
+        .fontWeight(FontWeight.Bold)
         .fontFamily('serif')
-        .fontColor(Colors.travelBlue)
       Text(caption)
         .fontSize(12)
-        .fontColor(Colors.pencilGray)
     }
     .padding(10)
     .backgroundColor(Colors.overlayBackground)
@@ -187,35 +204,32 @@ struct DateHeader {
   build() {
     Row({ space: 16 }) {
       Column({ space: 0 }) {
-        Text(this.stampMonth)
+        Text(this.getStampMonth())
           .fontSize(20)
           .fontWeight(FontWeight.Bold)
           .fontFamily('serif')
         Divider()
           .color(Colors.stampRed)
           .width('100%')
-        Text(this.stampDay)
+        Text(this.getStampDay())
           .fontSize(20)
           .fontWeight(FontWeight.Bold)
           .fontFamily('serif')
       }
       .width(58)
       .height(58)
-      .fontColor(Colors.stampRed)
       .border({ width: 1.5, color: 'rgba(184,74,56,0.8)', radius: 29 })
 
       Column({ space: 4 }) {
         Row({ space: 8 }) {
-          Text(this.formatDate)
+          Text(this.getFormatDate())
             .fontSize(25)
             .fontWeight(FontWeight.Bold)
             .fontFamily('serif')
-            .fontColor(Colors.travelBlue)
           Text(this.location)
             .fontSize(24)
-            .fontWeight(FontWeight.Heavy)
+            .fontWeight(FontWeight.Bold)
             .fontFamily('serif')
-            .fontColor(Colors.travelBlue)
           WaveLine()
             .width(58)
             .height(18)
@@ -225,11 +239,10 @@ struct DateHeader {
         Row({ space: 6 }) {
           Text('📍')
             .fontSize(12)
-            .fontWeight(FontWeight.SemiBold)
+            .fontWeight(FontWeight.Bold)
           Text(this.location.length > 0 ? this.location : '旅行邮件档案')
             .fontSize(12)
         }
-        .fontColor(Colors.pencilGray)
       }
       .alignItems(HorizontalAlign.Start)
       .layoutWeight(1)
@@ -237,23 +250,22 @@ struct DateHeader {
       Text('⌄')
         .fontSize(14)
         .fontWeight(FontWeight.Bold)
-        .fontColor(Colors.travelBlue)
     }
     .padding({ left: 16, right: 16, top: 12, bottom: 12 })
     .width('100%')
   }
 
-  private get stampMonth(): string {
+  private getStampMonth(): string {
     const d = new Date(this.date);
     const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
     return months[d.getMonth()];
   }
 
-  private get stampDay(): string {
+  private getStampDay(): string {
     return new Date(this.date).getDate().toString();
   }
 
-  private get formatDate(): string {
+  private getFormatDate(): string {
     const d = new Date(this.date);
     return `${(d.getMonth() + 1).toString().padStart(2, '0')}.${d.getDate().toString().padStart(2, '0')}`;
   }

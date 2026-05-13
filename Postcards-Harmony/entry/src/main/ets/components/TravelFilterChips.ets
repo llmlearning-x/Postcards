@@ -35,18 +35,17 @@ export struct TravelFilterChips {
       Row({ space: 6 }) {
         Text(title)
           .fontSize(18)
-          .fontWeight(FontWeight.Heavy)
+          .fontWeight(FontWeight.Bold)
           .fontFamily('serif')
         if (!isSelected) {
           Text(title === this.allTitle ? 'ALL' : title.substring(0, 8).toUpperCase())
             .fontSize(9)
-            .fontWeight(FontWeight.Medium)
+            .fontWeight(FontWeight.Normal)
             .fontFamily('serif')
             .fontColor(Colors.travelBlue)
             .opacity(0.62)
         }
       }
-      .fontColor(isSelected ? Color.White : Colors.travelBlue)
       .padding({ left: 22, right: 22, top: 14, bottom: 14 })
     }
     .type(ButtonType.Normal)
@@ -57,7 +56,7 @@ export struct TravelFilterChips {
       color: isSelected ? 'rgba(216,191,125,0.5)' : 'rgba(15,93,73,0.2)',
       radius: 5
     })
-    .overlay(StampPerforation({ cornerRadius: 5, color: Colors.pageBackground }))
+    
     .onClick(action)
   }
 }

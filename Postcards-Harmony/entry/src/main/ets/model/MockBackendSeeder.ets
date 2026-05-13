@@ -56,7 +56,7 @@ export class MockBackendSeeder {
     travels.push(guangxi, yunnan, shanghai, sichuan);
 
     const citySamples = MockBackendSeeder.mockCities();
-    for (let i = 0; i < 128; i++) {
+    for (let i = 0; i < 24; i++) {
       const city = citySamples[i % citySamples.length];
       const travel = MockBackendSeeder.travelForIndex(i, guangxi, yunnan, shanghai, sichuan);
       const recordedAt = travel.startDate + (i % 10) * 24 * 60 * 60 * 1000;
@@ -67,18 +67,18 @@ export class MockBackendSeeder {
       postcard.locationLat = city.latitude;
       postcard.locationLng = city.longitude;
       postcard.weatherCondition = ['晴', '多云', '小雨', '晚风'][i % 4];
-      postcard.weatherTemp = 18 + (i % 12);
+      postcard.weatherTemp = `${18 + (i % 12)}°C`;
       postcard.note = city.note;
       postcard.tags = city.tags;
-      postcard.isFavorite = i < 86;
+      postcard.isFavorite = i < 12;
       postcards.push(postcard);
     }
   }
 
   private static travelForIndex(index: number, guangxi: Travel, yunnan: Travel, shanghai: Travel, sichuan: Travel): Travel {
-    if (index < 56) return guangxi;
-    if (index < 88) return yunnan;
-    if (index < 108) return shanghai;
+    if (index < 10) return guangxi;
+    if (index < 16) return yunnan;
+    if (index < 20) return shanghai;
     return sichuan;
   }
 

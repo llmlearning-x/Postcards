@@ -15,7 +15,7 @@ export default class EntryAbility extends UIAbility {
   }
 
   onWindowStageCreate(windowStage: window.WindowStage): void {
-    windowStage.loadContent('pages/Index').catch(() => {});
+    windowStage.loadContent('pages/Index').catch((): void => {});
   }
 
   onWindowStageDestroy(): void {

@@ -1,33 +1,256 @@
 import { Colors } from './Colors';
-import { CanvasRenderingContext2D, RenderingContextSettings } from '@kit.ArkUI';
+
+// Toast notification component
+@Component
+export struct PostalToast {
+  @Consume toastMessage: string = '';
+  @Consume showToast: boolean = false;
+  toastType: ToastType = ToastType.INFO;
+
+  build() {
+    if (this.showToast) {
+      Column() {
+        Row({ space: 8 }) {
+          Text(this.getToastIcon())
+            .fontSize(16)
+          Text(this.toastMessage)
+            .fontSize(14)
+            .fontColor(Color.White)
+        }
+        .padding({ left: 20, right: 20, top: 12, bottom: 12 })
+      }
+      .backgroundColor(this.getToastColor())
+      .borderRadius(24)
+      .shadow({ radius: 12, color: this.getToastColor(), offsetY: 4 })
+      .transition(TransitionEffect.OPACITY.animation({ duration: 300 }))
+      .position({ x: '50%', y: '75%' })
+      .translate({ x: '-50%', y: '-50%' })
+      .zIndex(9999)
+    }
+  }
+
+  private getToastIcon(): string {
+    switch (this.toastType) {
+      case ToastType.SUCCESS: return '✓';
+      case ToastType.ERROR: return '✕';
+      case ToastType.WARNING: return '!';
+      default: return 'i';
+    }
+  }
+
+  private getToastColor(): string {
+    switch (this.toastType) {
+      case ToastType.SUCCESS: return 'rgba(46, 125, 88, 0.95)';
+      case ToastType.ERROR: return 'rgba(184, 74, 56, 0.95)';
+      case ToastType.WARNING: return 'rgba(216, 191, 125, 0.95)';
+      default: return 'rgba(0, 0, 0, 0.85)';
+    }
+  }
+}
+
+export enum ToastType {
+  INFO,
+  SUCCESS,
+  ERROR,
+  WARNING
+}
+
+// Confirm dialog component
+@Component
+export struct ConfirmDialog {
+  @Consume isVisible: boolean = false;
+  @Consume dialogTitle: string = '';
+  @Consume dialogMessage: string = '';
+  @Consume confirmText: string = '确认';
+  @Consume cancelText: string = '取消';
+  onConfirm?: () => void;
+  onCancel?: () => void;
+  isDangerous: boolean = false;
+
+  show(title: string, message: string, confirm: string = '确认', cancel: string = '取消', dangerous: boolean = false, onConfirm?: () => void, onCancel?: () => void) {
+    this.dialogTitle = title;
+    this.dialogMessage = message;
+    this.confirmText = confirm;
+    this.cancelText = cancel;
+    this.isDangerous = dangerous;
+    this.onConfirm = onConfirm;
+    this.onCancel = onCancel;
+    this.isVisible = true;
+  }
+
+  hide() {
+    this.isVisible = false;
+  }
+
+  build() {
+    if (this.isVisible) {
+      Stack() {
+        Column() {
+          Column({ space: 16 }) {
+            Text(this.isDangerous ? '⚠️' : '💡')
+              .fontSize(32)
+              .margin({ top: 8 })
+
+            Text(this.dialogTitle)
+              .fontSize(20)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(Colors.inkBlack)
+
+            Text(this.dialogMessage)
+              .fontSize(14)
+              .fontColor(Colors.pencilGray)
+              .textAlign(TextAlign.Center)
+              .lineHeight(20)
+
+            Row({ space: 12 }) {
+              Button(this.cancelText)
+                .fontSize(15)
+                .fontColor(Colors.pencilGray)
+                .backgroundColor('rgba(0,0,0,0.05)')
+                .borderRadius(10)
+                .height(44)
+                .layoutWeight(1)
+                .onClick(() => {
+                  this.hide();
+                  if (this.onCancel) this.onCancel();
+                })
+
+              Button(this.confirmText)
+                .fontSize(15)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(Color.White)
+                .backgroundColor(this.isDangerous ? Colors.stampRed : Colors.travelBlue)
+                .borderRadius(10)
+                .height(44)
+                .layoutWeight(1)
+                .onClick(() => {
+                  this.hide();
+                  if (this.onConfirm) this.onConfirm();
+                })
+            }
+            .margin({ top: 8 })
+          }
+          .padding(24)
+          .backgroundColor(Colors.cardBackground)
+          .borderRadius(20)
+          .shadow({ radius: 20, color: 'rgba(0,0,0,0.25)', offsetY: 8 })
+          .margin({ left: 40, right: 40 })
+        }
+        .width('100%')
+        .height('100%')
+        .justifyContent(FlexAlign.Center)
+        .backgroundColor('rgba(0,0,0,0.5)')
+        .transition(TransitionEffect.OPACITY.animation({ duration: 200 }))
+      }
+      .width('100%')
+      .height('100%')
+      .position({ x: 0, y: 0 })
+      .zIndex(9998)
+    }
+  }
+}
+
+// Loading overlay component
+@Component
+export struct LoadingOverlay {
+  @Consume isLoading: boolean = false;
+  @Consume loadingMessage: string = '加载中...';
+
+  build() {
+    if (this.isLoading) {
+      Stack() {
+        Column()
+          .width('100%')
+          .height('100%')
+          .backgroundColor('rgba(0,0,0,0.4)')
+
+        Column({ space: 16 }) {
+          LoadingProgress()
+            .width(40)
+            .height(40)
+
+          Text(this.loadingMessage)
+            .fontSize(14)
+            .fontColor(Color.White)
+        }
+        .padding(24)
+        .backgroundColor('rgba(0,0,0,0.8)')
+        .borderRadius(16)
+      }
+      .width('100%')
+      .height('100%')
+      .position({ x: 0, y: 0 })
+      .zIndex(9997)
+    }
+  }
+}
+
+// Empty state with illustration
+@Component
+export struct EmptyStateView {
+  icon: string = '';
+  title: string = '';
+  message: string = '';
+  actionTitle: string = '';
+  onAction?: () => void;
+
+  build() {
+    Column({ space: 20 }) {
+      Column({ space: 12 }) {
+        Text(this.icon)
+          .fontSize(56)
+          .opacity(0.7)
+
+        Text(this.title)
+          .fontSize(22)
+          .fontWeight(FontWeight.Bold)
+          .fontFamily('serif')
+          .fontColor(Colors.travelBlue)
+
+        Text(this.message)
+          .fontSize(14)
+          .fontColor(Colors.pencilGray)
+          .textAlign(TextAlign.Center)
+          .lineHeight(20)
+          .padding({ left: 32, right: 32 })
+      }
+
+      if (this.actionTitle.length > 0) {
+        Button(this.actionTitle)
+          .fontSize(15)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(Color.White)
+          .backgroundColor(Colors.travelBlue)
+          .borderRadius(12)
+          .padding({ left: 32, right: 32, top: 12, bottom: 12 })
+          .onClick(() => {
+            if (this.onAction) this.onAction();
+          })
+      }
+    }
+    .padding(32)
+  }
+}
 
 // 波浪线装饰
 @Component
 export struct WaveLine {
-  private context: CanvasRenderingContext2D = new CanvasRenderingContext2D(new RenderingContextSettings(true));
-
   build() {
-    Canvas(this.context)
-      .width('100%')
-      .height('100%')
-      .onReady(() => {
-        const width = this.context.width;
-        const height = this.context.height;
-        this.context.strokeStyle = Colors.travelBlue;
-        this.context.globalAlpha = 0.55;
-        this.context.lineWidth = 1.1;
-        for (let row = 0; row < 3; row++) {
-          const y = height * (0.24 + row * 0.25);
-          this.context.beginPath();
-          this.context.moveTo(0, y);
-          let x = 0;
-          while (x <= width) {
-            this.context.bezierCurveTo(x + 4, y - 5, x + 12, y + 5, x + 16, y);
-            x += 16;
-          }
-          this.context.stroke();
+    Row({ space: 0 }) {
+      ForEach([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19], (i: number) => {
+        Column() {
+          Stack()
+            .width('100%')
+            .height(2 + 8 * (0.5 + 0.5 * Math.sin(i * 0.5)))
+            .backgroundColor(Colors.travelBlue)
+            .borderRadius(1)
         }
+        .layoutWeight(1)
+        .justifyContent(FlexAlign.Center)
       })
+    }
+    .width('100%')
+    .height(20)
   }
 }
 
@@ -120,14 +343,13 @@ export struct PostalStampSeal {
       if (this.date.length > 0) {
         Text(this.date)
           .fontSize(10)
-          .fontWeight(FontWeight.Medium)
+          .fontWeight(FontWeight.Normal)
       }
     }
     .width(74)
     .height(74)
     .rotate({ angle: -10 })
     .border({ width: 1.5, color: this.color, radius: 37 })
-    .fontColor(this.color)
   }
 }
 
@@ -187,11 +409,11 @@ export struct PostalStatsTicket {
     Column({ space: this.compact ? 4 : 7 }) {
       Text(item.icon)
         .fontSize(this.compact ? 18 : 22)
-        .fontWeight(FontWeight.Medium)
+        .fontWeight(FontWeight.Normal)
         .fontColor(Colors.travelBlue)
       Text(item.title)
         .fontSize(this.compact ? 11 : 13)
-        .fontWeight(FontWeight.Medium)
+        .fontWeight(FontWeight.Normal)
         .fontColor(Colors.pencilGray)
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -231,7 +453,7 @@ export class PostalStatItem {
 export struct PostalEmptyState {
   title: string = '';
   message: string = '';
-  icon: string = '📮';
+  icon: string = '';
   actionTitle: string = '';
   action?: () => void;
 
@@ -254,7 +476,7 @@ export struct PostalEmptyState {
       Column({ space: 7 }) {
         Text(this.title)
           .fontSize(24)
-          .fontWeight(FontWeight.Heavy)
+          .fontWeight(FontWeight.Bold)
           .fontFamily('serif')
           .fontColor(Colors.travelBlue)
         Text(this.message)
@@ -264,7 +486,7 @@ export struct PostalEmptyState {
           .lineHeight(22)
       }
 
-      if (this.action && this.actionTitle.length > 0) {
+      if (this.actionTitle.length > 0) {
         Button(this.actionTitle)
           .fontSize(14)
           .fontWeight(FontWeight.Bold)
@@ -296,7 +518,7 @@ export struct PostalEmptyState {
 export struct PostalPageHeader {
   title: string = '';
   subtitle: string = '';
-  leadingSymbol: string = '📮';
+  leadingSymbol: string = '';
   trailingLabel: string = '签到';
 
   build() {
@@ -310,20 +532,19 @@ export struct PostalPageHeader {
             .strokeWidth(2)
           Text(this.leadingSymbol)
             .fontSize(20)
-            .fontWeight(FontWeight.SemiBold)
+            .fontWeight(FontWeight.Bold)
           WaveLine()
-            .width(46)
-            .height(16)
-            .position({ x: 25, y: 13 })
+            .width(40)
+            .height(12)
+            .position({ x: 26, y: 30 })
         }
         .width(48)
         .height(48)
-        .fontColor(Colors.travelBlue)
 
         Column({ space: 3 }) {
           Text(this.title)
             .fontSize(29)
-            .fontWeight(FontWeight.Heavy)
+            .fontWeight(FontWeight.Bold)
             .fontFamily('serif')
             .fontColor(Colors.travelBlue)
             .maxLines(1)
@@ -331,7 +552,7 @@ export struct PostalPageHeader {
             .minFontSize(20)
           Text(this.subtitle)
             .fontSize(12)
-            .fontWeight(FontWeight.SemiBold)
+            .fontWeight(FontWeight.Bold)
             .fontColor(Colors.travelBlue)
             .opacity(0.78)
             .letterSpacing(2)
@@ -343,14 +564,10 @@ export struct PostalPageHeader {
 
       if (this.trailingLabel.length > 0) {
         Row({ space: 6 }) {
-          Text(this.trailingLabel === '筛选' ? '☰' : '✓')
-            .fontSize(12)
-            .fontWeight(FontWeight.Bold)
           Text(this.trailingLabel)
             .fontSize(14)
-            .fontWeight(FontWeight.SemiBold)
+            .fontWeight(FontWeight.Bold)
         }
-        .fontColor(Colors.travelBlue)
         .padding({ left: 12, right: 12, top: 9, bottom: 9 })
         .backgroundColor('rgba(255,252,245,0.92)')
         .borderRadius(12)
@@ -372,19 +589,18 @@ export struct PostalSectionHeader {
     Row({ space: 8 }) {
       Text(this.title)
         .fontSize(22)
-        .fontWeight(FontWeight.Heavy)
+        .fontWeight(FontWeight.Bold)
         .fontFamily('serif')
         .fontColor(Colors.travelBlue)
       WaveLine()
         .width(62)
         .height(18)
-        .fontColor(Colors.stampGray)
         .opacity(0.75)
       Blank()
       if (this.trailing.length > 0) {
         Text(this.trailing)
           .fontSize(14)
-          .fontWeight(FontWeight.Medium)
+          .fontWeight(FontWeight.Normal)
           .fontColor(Colors.pencilGray)
         Text('›')
           .fontSize(12)
@@ -414,12 +630,12 @@ export struct PostalCTAButton {
         Column({ space: 2 }) {
           Text(this.title)
             .fontSize(20)
-            .fontWeight(FontWeight.Heavy)
+            .fontWeight(FontWeight.Bold)
             .fontFamily('serif')
           if (this.subtitle.length > 0) {
             Text(this.subtitle)
               .fontSize(12)
-              .fontWeight(FontWeight.SemiBold)
+              .fontWeight(FontWeight.Bold)
           }
         }
         .alignItems(HorizontalAlign.Start)
@@ -427,7 +643,6 @@ export struct PostalCTAButton {
       }
       .width('100%')
       .padding({ left: 18, right: 18, top: 14, bottom: 14 })
-      .fontColor(Color.White)
     }
     .type(ButtonType.Normal)
     .borderRadius(10)

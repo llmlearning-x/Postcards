@@ -3,11 +3,23 @@ import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import { cameraPicker, camera } from '@kit.CameraKit';
 import { fileIo as fs, fileUri } from '@kit.CoreFileKit';
 import { common } from '@kit.AbilityKit';
+import { geolocation } from '@kit.LocationKit';
 import { DataManager } from '../model/DataManager';
 import { Travel } from '../model/Travel';
 import { Postcard } from '../model/Postcard';
 import { Colors } from '../components/Colors';
 import { PostalStampSeal } from '../components/PostalComponents';
+
+function formatDateTime(d: Date): string {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+function formatDateOnly(d: Date): string {
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
 
 enum RecordStep {
   CHOOSE_METHOD,
@@ -28,7 +40,7 @@ struct RecordPage {
   @State showErrorDialog: boolean = false;
   @State toggleOn: boolean = true;
 
-  private get currentTravel(): Travel | undefined {
+  private getCurrentTravel(): Travel | undefined {
     return DataManager.currentTravel;
   }
 
@@ -38,7 +50,6 @@ struct RecordPage {
       Row() {
         Button('取消')
           .fontSize(16)
-          .fontColor(Colors.pencilGray)
           .backgroundColor('transparent')
           .onClick(() => {
             router.back();
@@ -46,17 +57,15 @@ struct RecordPage {
 
         Blank()
 
-        Text(this.navigationTitle)
+        Text(this.getNavigationTitle())
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
-          .fontColor(Colors.inkBlack)
 
         Blank()
 
         if (this.currentStep !== RecordStep.CHOOSE_METHOD) {
           Button('返回')
             .fontSize(16)
-            .fontColor(Colors.travelBlue)
             .backgroundColor('transparent')
             .onClick(() => this.goBack())
         } else {
@@ -72,10 +81,16 @@ struct RecordPage {
       // Content
       if (this.currentStep === RecordStep.CHOOSE_METHOD) {
         ChooseMethodView({
-          onSelectCamera: () => this.openCamera(),
-          onSelectPhotoLibrary: () => this.openPhotoPicker(),
-          onSelectVoice: () => { this.currentStep = RecordStep.EDIT; },
-          onSelectText: () => { this.currentStep = RecordStep.EDIT; }
+          onSelectCamera: (): void => { void this.openCamera(); },
+          onSelectPhotoLibrary: (): void => { void this.openPhotoPicker(); },
+          onSelectVoice: (): void => {
+            this.flowErrorMessage = '语音记录功能即将上线';
+            this.showErrorDialog = true;
+          },
+          onSelectText: (): void => {
+            this.selectedImages = [];
+            this.currentStep = RecordStep.EDIT;
+          }
         })
       } else if (this.currentStep === RecordStep.EDIT) {
         RecordEditView({
@@ -84,31 +99,33 @@ struct RecordPage {
           location: $locationName,
           isLocating: this.isLocating,
           locationStatusMessage: this.locationStatusMessage,
-          onRequestLocation: () => this.requestLocation(),
-          onNext: () => { this.currentStep = RecordStep.PREVIEW; }
+          onRequestLocation: (): void => { this.requestLocation(); },
+          onNext: (): void => { this.currentStep = RecordStep.PREVIEW; }
         })
       } else if (this.currentStep === RecordStep.PREVIEW) {
         PostcardPreviewView({
           images: this.selectedImages,
           note: this.note,
           location: this.locationName,
-          onSave: () => this.savePostcard()
+          toggleOn: this.toggleOn,
+          onToggleChange: (isOn: boolean) => { this.toggleOn = isOn; },
+          onSave: (): void => { this.savePostcard(); }
+        })
+      }
+
+      if (this.showErrorDialog) {
+        ErrorDialog({
+          message: this.flowErrorMessage,
+          onClose: (): void => { this.showErrorDialog = false; }
         })
       }
     }
     .width('100%')
     .height('100%')
     .backgroundColor(Colors.pageBackground)
-
-    if (this.showErrorDialog) {
-      ErrorDialog({
-        message: this.flowErrorMessage,
-        onClose: () => { this.showErrorDialog = false; }
-      })
-    }
   }
 
-  private get navigationTitle(): string {
+  private getNavigationTitle(): string {
     switch (this.currentStep) {
       case RecordStep.CHOOSE_METHOD: return '记录新瞬间';
       case RecordStep.EDIT: return '编辑';
@@ -145,7 +162,7 @@ struct RecordPage {
           this.currentStep = RecordStep.EDIT;
         }
       }
-    } catch (e: Error) {
+    } catch (e) {
       this.flowErrorMessage = '相机启动失败';
       this.showErrorDialog = true;
     }
@@ -171,7 +188,7 @@ struct RecordPage {
           this.currentStep = RecordStep.EDIT;
         }
       }
-    } catch (e: Error) {
+    } catch (e) {
       this.flowErrorMessage = '相册访问失败';
       this.showErrorDialog = true;
     }
@@ -189,31 +206,33 @@ struct RecordPage {
       fs.closeSync(srcFile);
 
       return fileUri.getUriFromPath(destPath);
-    } catch (e: Error) {
+    } catch (e) {
       console.error('Copy to sandbox failed', e);
       return null;
     }
   }
 
-  private requestLocation() {
+  private async requestLocation() {
     this.isLocating = true;
     this.locationStatusMessage = '正在获取当前位置…';
-    // Simulate location
-    setTimeout(() => {
+    
+    try {
+      const location = await geolocation.getCurrentLocation();
       this.isLocating = false;
-      this.locationName = '当前位置';
-      this.locationStatusMessage = '已自动识别当前位置';
-    }, 1500);
-  }
-
-  private formatDateTime(d: Date): string {
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  }
-
-  private formatDateOnly(d: Date): string {
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      
+      if (location) {
+        this.locationName = `位置 ${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}`;
+        this.locationStatusMessage = '已自动识别当前位置';
+      } else {
+        this.locationName = '未知位置';
+        this.locationStatusMessage = '无法获取位置，请手动输入';
+      }
+    } catch (e) {
+      console.error('Failed to get location', e);
+      this.isLocating = false;
+      this.locationName = '位置获取失败';
+      this.locationStatusMessage = '无法获取位置，请手动输入';
+    }
   }
 
   private savePostcard() {
@@ -224,7 +243,7 @@ struct RecordPage {
     postcard.note = trimmedNote.length > 0 ? trimmedNote : null;
     postcard.photos = this.selectedImages;
     postcard.weatherCondition = '晴';
-    postcard.weatherTemp = 24;
+    postcard.weatherTemp = '24°C';
     postcard.tags = trimmedLocation.length > 0 ? [trimmedLocation, '旅行'] : ['旅行'];
 
     const current = DataManager.currentTravel;
@@ -258,7 +277,6 @@ struct ChooseMethodView {
       Text('选择记录方式')
         .fontSize(20)
         .fontWeight(FontWeight.Bold)
-        .fontColor(Colors.inkBlack)
 
       Row({ space: 20 }) {
         MethodButton({ icon: '📷', title: '拍照', color: Colors.stampRed, action: this.onSelectCamera })
@@ -272,12 +290,11 @@ struct ChooseMethodView {
             .fontSize(18)
           Text('从相册导入多张照片')
             .fontSize(16)
-            .fontWeight(FontWeight.Medium)
+            .fontWeight(FontWeight.Normal)
         }
         .width('100%')
         .justifyContent(FlexAlign.Center)
         .padding({ top: 16, bottom: 16 })
-        .fontColor(Colors.inkBlack)
       }
       .type(ButtonType.Normal)
       .borderRadius(12)
@@ -309,12 +326,10 @@ struct MethodButton {
           .width(72)
           .height(72)
           .textAlign(TextAlign.Center)
-          .fontColor(this.color)
           .backgroundColor('rgba(0,0,0,0.03)')
           .borderRadius(16)
         Text(this.title)
           .fontSize(14)
-          .fontColor(Colors.inkBlack)
       }
     }
     .type(ButtonType.Normal)
@@ -354,7 +369,7 @@ struct RecordEditView {
         // Auto info
         Column({ space: 12 }) {
           InfoRow({ icon: '📍', color: Colors.stampRed, text: this.location.length === 0 ? '自动识别地点...' : this.location })
-          InfoRow({ icon: '🕐', color: Colors.pencilGray, text: this.formatDateTime(new Date()) })
+          InfoRow({ icon: '🕐', color: Colors.pencilGray, text: formatDateTime(new Date()) })
           InfoRow({ icon: '☀', color: Colors.dawnYellow, text: '晴朗 24°C' })
         }
         .padding(16)
@@ -362,25 +377,27 @@ struct RecordEditView {
         .borderRadius(12)
         .width('100%')
 
-        TextInput({ placeholder: '地点名称', text: $$location })
+        TextInput({ placeholder: '地点名称', text: this.location })
           .placeholderColor(Colors.stampGray)
           .padding(12)
           .backgroundColor(Color.White)
           .borderRadius(12)
           .border({ width: 1, color: '#E8E4DC', radius: 12 })
           .width('100%')
+          .onChange((value: string) => {
+            this.location = value;
+          })
 
         Button() {
           Row({ space: 4 }) {
             Text('📍')
             Text(this.isLocating ? '定位中…' : '使用当前位置')
               .fontSize(14)
-              .fontWeight(FontWeight.Medium)
+              .fontWeight(FontWeight.Normal)
           }
           .width('100%')
           .justifyContent(FlexAlign.Center)
           .padding({ top: 12, bottom: 12 })
-          .fontColor(Colors.travelBlue)
         }
         .type(ButtonType.Normal)
         .borderRadius(12)
@@ -392,12 +409,11 @@ struct RecordEditView {
         if (this.locationStatusMessage.length > 0) {
           Text(this.locationStatusMessage)
             .fontSize(12)
-            .fontColor(Colors.pencilGray)
             .width('100%')
         }
 
         // Note input
-        TextArea({ placeholder: '写下此刻心情...', text: $$note })
+        TextArea({ placeholder: '写下此刻心情...', text: this.note })
           .placeholderColor(Colors.stampGray)
           .height(120)
           .padding(12)
@@ -409,13 +425,15 @@ struct RecordEditView {
             radius: 12
           })
           .width('100%')
+          .onChange((value: string) => {
+            this.note = value;
+          })
 
         // Tags
-        Flex({ wrap: FlexWrap.Wrap, space: { main: { value: 8, unit: LengthUnit.VP } } }) {
+        Flex({ wrap: FlexWrap.Wrap }) {
           ForEach(['#日本', '#东京', '#旅行'], (tag: string) => {
             Text(tag)
               .fontSize(12)
-              .fontColor(Colors.travelBlue)
               .padding({ left: 10, right: 10, top: 6, bottom: 6 })
               .backgroundColor('rgba(15,93,73,0.08)')
               .borderRadius(6)
@@ -425,8 +443,7 @@ struct RecordEditView {
 
         Button('生成明信片')
           .fontSize(16)
-          .fontWeight(FontWeight.SemiBold)
-          .fontColor(Color.White)
+          .fontWeight(FontWeight.Bold)
           .width('100%')
           .height(50)
           .backgroundColor(Colors.stampRed)
@@ -449,10 +466,8 @@ struct InfoRow {
   build() {
     Row({ space: 8 }) {
       Text(this.icon)
-        .fontColor(this.color)
       Text(this.text)
         .fontSize(14)
-        .fontColor(Colors.inkBlack)
       Blank()
     }
     .width('100%')
@@ -464,6 +479,8 @@ struct PostcardPreviewView {
   images: string[] = [];
   note: string = '';
   location: string = '';
+  toggleOn: boolean = true;
+  onToggleChange?: (isOn: boolean) => void;
   onSave?: () => void;
 
   build() {
@@ -484,23 +501,19 @@ struct PostcardPreviewView {
 
         Row({ space: 4 }) {
           Text('📍')
-            .fontColor(Colors.stampRed)
           Text(this.location.toUpperCase())
             .fontSize(14)
             .fontWeight(FontWeight.Bold)
             .fontFamily('sans-serif')
-            .fontColor(Colors.stampRed)
             .letterSpacing(1)
         }
 
-        Text(this.formatDateOnly(new Date()))
+        Text(formatDateOnly(new Date()))
           .fontSize(12)
-          .fontColor(Colors.pencilGray)
 
         if (this.note.length > 0) {
           Text(`"${this.note}"`)
             .fontSize(16)
-            .fontColor(Colors.inkBlack)
         }
       }
       .padding(16)
@@ -517,9 +530,6 @@ struct PostcardPreviewView {
             Text('✓')
             Text('保存到时间轴')
           }
-          .fontSize(16)
-          .fontWeight(FontWeight.SemiBold)
-          .fontColor(Color.White)
           .width('100%')
           .justifyContent(FlexAlign.Center)
           .padding({ top: 14, bottom: 14 })
@@ -535,9 +545,6 @@ struct PostcardPreviewView {
             Text('↗')
             Text('分享')
           }
-          .fontSize(16)
-          .fontWeight(FontWeight.SemiBold)
-          .fontColor(Colors.stampRed)
           .width('100%')
           .justifyContent(FlexAlign.Center)
           .padding({ top: 14, bottom: 14 })
@@ -551,8 +558,11 @@ struct PostcardPreviewView {
       .width('100%')
       .padding({ left: 16, right: 16 })
 
-      Toggle({ type: ToggleType.Switch, isOn: $toggleOn })
+      Toggle({ type: ToggleType.Switch, isOn: this.toggleOn })
         .padding({ left: 16, right: 16 })
+        .onChange((isOn: boolean) => {
+          if (this.onToggleChange) this.onToggleChange(isOn);
+        })
 
       Blank()
     }
@@ -573,15 +583,12 @@ struct ErrorDialog {
           Text('操作失败')
             .fontSize(18)
             .fontWeight(FontWeight.Bold)
-            .fontColor(Colors.inkBlack)
           Text(this.message)
             .fontSize(14)
-            .fontColor(Colors.pencilGray)
             .textAlign(TextAlign.Center)
 
           Button('知道了')
             .fontSize(16)
-            .fontColor(Color.White)
             .backgroundColor(Colors.travelBlue)
             .borderRadius(8)
             .padding({ left: 24, right: 24, top: 10, bottom: 10 })

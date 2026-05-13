@@ -60,3 +60,4 @@ Postcards-Harmony/entry/build/
 Postcards-Harmony/entry/.preview/
 Postcards-Harmony/build/
 Postcards-Harmony/.externalNativeBuild/
+*.bak

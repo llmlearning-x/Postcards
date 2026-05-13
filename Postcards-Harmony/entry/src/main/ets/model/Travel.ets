@@ -6,6 +6,19 @@ export enum TravelStatus {
   PLANNED = 'PLANNED'
 }
 
+interface TravelJSON {
+  id: string;
+  title: string;
+  destination: string;
+  startDate: number;
+  endDate: number | null;
+  isCurrent: boolean;
+  status: string;
+  coverImageURL: string | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
 export class Travel {
   id: string;
   title: string;
@@ -31,18 +44,18 @@ export class Travel {
     this.updatedAt = Date.now();
   }
 
-  static fromJSON(obj: Record<string, any>): Travel {
-    const t = new Travel(obj['title'], obj['destination'], obj['startDate'], obj['isCurrent']);
-    t.id = obj['id'];
-    t.endDate = obj['endDate'] ?? null;
+  static fromJSON(obj: Record<string, Object>): Travel {
+    const t = new Travel(obj['title'] as string, obj['destination'] as string, obj['startDate'] as number, obj['isCurrent'] as boolean);
+    t.id = obj['id'] as string;
+    t.endDate = (obj['endDate'] as number) || null;
     t.status = obj['status'] as TravelStatus;
-    t.coverImageURL = obj['coverImageURL'] ?? null;
-    t.createdAt = obj['createdAt'];
-    t.updatedAt = obj['updatedAt'];
+    t.coverImageURL = (obj['coverImageURL'] as string) || null;
+    t.createdAt = obj['createdAt'] as number;
+    t.updatedAt = obj['updatedAt'] as number;
     return t;
   }
 
-  toJSON(): object {
+  toJSON(): TravelJSON {
     return {
       id: this.id,
       title: this.title,

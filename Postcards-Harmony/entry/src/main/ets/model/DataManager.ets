@@ -9,28 +9,40 @@ const PREF_NAME = 'postcards_data';
 const KEY_TRAVELS = 'travels';
 const KEY_POSTCARDS = 'postcards';
 
+type DataChangeListener = () => void;
+
 class DataManagerClass {
   travels: Travel[] = [];
   postcards: Postcard[] = [];
   private pref: preferences.Preferences | null = null;
   private initialized: boolean = false;
+  private listeners: DataChangeListener[] = [];
 
-  async init() {
+  init() {
     if (this.initialized) return;
     const ctx = context;
     if (!ctx) {
-      // Fallback to memory only if context not available
+      console.warn('DataManager: context not available, using memory only');
       MockBackendSeeder.seed(this.travels, this.postcards);
       this.initialized = true;
+      this.notifyListeners();
       return;
     }
-    this.pref = preferences.getPreferencesSync(ctx, { name: PREF_NAME });
-    this.load();
-    if (this.travels.length === 0) {
+    try {
+      this.pref = preferences.getPreferencesSync(ctx, { name: PREF_NAME });
+      this.load();
+      if (this.travels.length === 0) {
+        MockBackendSeeder.seed(this.travels, this.postcards);
+        this.save();
+      }
+      this.initialized = true;
+      this.notifyListeners();
+    } catch (e) {
+      console.error('DataManager init failed', e);
       MockBackendSeeder.seed(this.travels, this.postcards);
-      this.save();
+      this.initialized = true;
+      this.notifyListeners();
     }
-    this.initialized = true;
   }
 
   private load() {
@@ -38,24 +50,50 @@ class DataManagerClass {
     try {
       const travelsStr = this.pref.getSync(KEY_TRAVELS, '[]') as string;
       const postcardsStr = this.pref.getSync(KEY_POSTCARDS, '[]') as string;
-      const travelsArr = JSON.parse(travelsStr) as object[];
-      const postcardsArr = JSON.parse(postcardsStr) as object[];
+      const travelsArr = JSON.parse(travelsStr) as Record<string, Object>[];
+      const postcardsArr = JSON.parse(postcardsStr) as Record<string, Object>[];
       this.travels = travelsArr.map(t => Travel.fromJSON(t));
       this.postcards = postcardsArr.map(p => Postcard.fromJSON(p));
     } catch (e) {
+      console.error('DataManager load failed', e);
       this.travels = [];
       this.postcards = [];
     }
   }
 
   save() {
-    if (!this.pref) return;
     try {
-      this.pref.putSync(KEY_TRAVELS, JSON.stringify(this.travels.map(t => t.toJSON())));
-      this.pref.putSync(KEY_POSTCARDS, JSON.stringify(this.postcards.map(p => p.toJSON())));
-      this.pref.flush();
+      if (this.pref) {
+        this.pref.putSync(KEY_TRAVELS, JSON.stringify(this.travels.map(t => t.toJSON())));
+        this.pref.putSync(KEY_POSTCARDS, JSON.stringify(this.postcards.map(p => p.toJSON())));
+        this.pref.flush();
+      }
+      this.notifyListeners();
     } catch (e) {
       console.error('DataManager save failed', e);
+    }
+  }
+
+  addListener(listener: DataChangeListener) {
+    if (!this.listeners.includes(listener)) {
+      this.listeners.push(listener);
+    }
+  }
+
+  removeListener(listener: DataChangeListener) {
+    const index = this.listeners.indexOf(listener);
+    if (index >= 0) {
+      this.listeners.splice(index, 1);
+    }
+  }
+
+  private notifyListeners() {
+    for (const listener of this.listeners) {
+      try {
+        listener();
+      } catch (e) {
+        console.error('DataManager listener error', e);
+      }
     }
   }
 
@@ -146,7 +184,8 @@ class DataManagerClass {
 
   // Queries
   get currentTravel(): Travel | undefined {
-    return this.travels.find(t => t.isCurrent) ?? this.travels.find(t => t.status === TravelStatus.ONGOING);
+    const current = this.travels.find(t => t.isCurrent);
+    return current || this.travels.find(t => t.status === TravelStatus.ONGOING);
   }
 
   get otherTravels(): Travel[] {
@@ -155,11 +194,11 @@ class DataManagerClass {
   }
 
   get sortedTravels(): Travel[] {
-    return [...this.travels].sort((a, b) => b.startDate - a.startDate);
+    return this.travels.slice().sort((a, b) => b.startDate - a.startDate);
   }
 
   get sortedPostcards(): Postcard[] {
-    return [...this.postcards].sort((a, b) => b.recordedAt - a.recordedAt);
+    return this.postcards.slice().sort((a, b) => b.recordedAt - a.recordedAt);
   }
 
   getTravelPostcards(travelId: string): Postcard[] {

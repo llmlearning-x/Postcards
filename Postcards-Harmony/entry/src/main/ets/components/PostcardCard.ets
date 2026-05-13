@@ -2,6 +2,7 @@ import { Colors } from './Colors';
 import { Postcard } from '../model/Postcard';
 import { DataManager } from '../model/DataManager';
 import { PostalStampSeal, StampPerforation } from './PostalComponents';
+import { ToastManager } from '../utils/GlobalStateManager';
 
 @Component
 export struct PostcardCard {
@@ -12,25 +13,33 @@ export struct PostcardCard {
     Column({ space: this.compact ? 8 : 12 }) {
       // Photo Area
       Stack({ alignContent: Alignment.TopEnd }) {
-        // Placeholder gradient image
+        // Photo or Placeholder
         Stack({ alignContent: Alignment.Center }) {
-          LinearGradient({
-            angle: 45,
-            colors: this.sampleColors
-          })
-            .width('100%')
-            .aspectRatio(4 / 3)
-            .borderRadius(this.compact ? 4 : 8)
-
-          Text('✈')
-            .fontSize(this.compact ? 24 : 36)
-            .fontColor(Color.White)
-            .opacity(0.6)
+          if (this.postcard.photos.length > 0) {
+            // Load real photo
+            Image(this.postcard.photos[0])
+              .width('100%')
+              .aspectRatio(4 / 3)
+              .borderRadius(this.compact ? 4 : 8)
+              .objectFit(ImageFit.Cover)
+          } else {
+            // Placeholder gradient image
+            Stack()
+              .width('100%')
+              .aspectRatio(4 / 3)
+              .borderRadius(this.compact ? 4 : 8)
+              .backgroundColor(this.getSampleColor())
+            
+            Text('图')
+              .fontSize(this.compact ? 24 : 36)
+              .fontColor(Color.White)
+              .opacity(0.6)
+          }
         }
 
         // CHINA POST badge
         Row() {
-          Text('CHINA POST')
+          Text('FAR POST')
             .fontSize(8)
             .fontWeight(FontWeight.Bold)
             .fontFamily('sans-serif')
@@ -45,15 +54,14 @@ export struct PostcardCard {
         .alignItems(VerticalAlign.Top)
 
         // Stamp seal
-        PostalStampSeal({ title: '旅行邮局', date: this.dateStampText })
+        PostalStampSeal({ title: '旅行邮局', date: this.getDateStampText() })
           .scale({ x: this.compact ? 0.72 : 0.86, y: this.compact ? 0.72 : 0.86 })
           .translate({ x: this.compact ? 16 : 10, y: this.compact ? -10 : -8 })
 
         // Favorite button
         Button() {
-          Text(this.postcard.isFavorite ? '♥' : '♡')
+          Text(this.postcard.isFavorite ? '❤️' : '♡')
             .fontSize(this.compact ? 16 : 18)
-            .fontWeight(FontWeight.Medium)
             .fontColor(this.postcard.isFavorite ? Colors.stampRed : Colors.travelBlue)
         }
         .type(ButtonType.Circle)
@@ -63,7 +71,13 @@ export struct PostcardCard {
         .position({ x: '100%', y: '100%' })
         .translate({ x: -42, y: -42 })
         .onClick(() => {
+          const wasFavorite = this.postcard.isFavorite;
           DataManager.toggleFavorite(this.postcard);
+          if (!wasFavorite) {
+            ToastManager.success('已添加到收藏');
+          } else {
+            ToastManager.info('已取消收藏');
+          }
         })
       }
       .width('100%')
@@ -71,7 +85,7 @@ export struct PostcardCard {
       // Location
       Text(this.postcard.locationName)
         .fontSize(this.compact ? 13 : 15)
-        .fontWeight(FontWeight.SemiBold)
+        .fontWeight(FontWeight.Bold)
         .fontFamily('serif')
         .fontColor(Colors.inkBlack)
         .maxLines(1)
@@ -103,7 +117,7 @@ export struct PostcardCard {
 
         // Tags
         if (this.postcard.tags.length > 0) {
-          Flex({ wrap: FlexWrap.Wrap, space: { main: { value: 6, unit: LengthUnit.VP } } }) {
+          Flex({ wrap: FlexWrap.Wrap }) {
             ForEach(this.postcard.tags, (tag: string) => {
               Text(`#${tag}`)
                 .fontSize(12)
@@ -122,10 +136,10 @@ export struct PostcardCard {
     .borderRadius(8)
     .border({ width: 1, color: Colors.lineSepia })
     .shadow({ radius: 8, color: 'rgba(0,0,0,0.08)', offsetY: 3 })
-    .overlay(StampPerforation({ cornerRadius: 8, color: Colors.pageBackground }))
+    
   }
 
-  private get dateStampText(): string {
+  private getDateStampText(): string {
     const d = new Date(this.postcard.recordedAt);
     const m = (d.getMonth() + 1).toString().padStart(2, '0');
     const day = d.getDate().toString().padStart(2, '0');
@@ -137,14 +151,14 @@ export struct PostcardCard {
     return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
   }
 
-  private get sampleColors: [ResourceColor, ResourceColor] {
-    const themes: [ResourceColor, ResourceColor][] = [
-      ['#B8DAEA', '#2E7D58'],
-      ['#243C63', '#C78D5A'],
-      ['#89C5D5', '#2E8B75'],
-      ['#E6B06A', '#557E48'],
-      ['#DDE9DE', '#87A18A'],
-      ['#27394B', '#A65E3D']
+  private getSampleColor(): ResourceColor {
+    const themes: ResourceColor[] = [
+      '#B8DAEA',
+      '#243C63',
+      '#89C5D5',
+      '#E6B06A',
+      '#DDE9DE',
+      '#27394B'
     ];
     const idx = Math.abs(this.hashCode(this.postcard.locationName)) % themes.length;
     return themes[idx];
