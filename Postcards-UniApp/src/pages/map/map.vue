@@ -1,94 +1,129 @@
 <template>
   <view class="page-container">
-    <view class="header">
-      <text class="header-title">旅行地图</text>
-      <text class="header-subtitle">探索去过的地方</text>
+    <view class="postal-header">
+      <view class="header-perf"></view>
+      <text class="header-kicker">ATLAS · 旅行足迹</text>
+      <text class="header-title">走过的远方</text>
+      <text class="header-subtitle">{{ countryCount }} 个国家 · {{ cityCount }} 座城市</text>
     </view>
 
     <scroll-view class="content" scroll-y>
-      <view class="map-section">
-        <view class="map-card">
-          <view class="map-header">
-            <text class="map-title">我的足迹</text>
-            <text class="map-count">{{ cityCount }} 座城市</text>
-          </view>
-          
-          <view class="route-container">
-            <view class="route-line"></view>
-            <view class="route-cities">
+      <!-- Route card -->
+      <view class="route-card">
+        <view class="route-card-hd">
+          <text class="route-card-title">城市足迹</text>
+          <text class="route-card-count">{{ String(cityList.length).padStart(2, '0') }} 站</text>
+        </view>
+        <view v-if="cityList.length > 0" class="route-track">
+          <view class="route-path-line"></view>
+          <view class="route-cities">
+            <view
+              v-for="(city, idx) in cityList"
+              :key="city"
+              class="route-stop"
+            >
               <view
-                v-for="(city, index) in cityList"
-                :key="city"
-                class="route-city"
+                class="stop-dot"
+                :class="{
+                  'stop-dot-first': idx === 0,
+                  'stop-dot-last': idx === cityList.length - 1
+                }"
               >
-                <view class="city-dot" :class="{ start: index === 0, end: index === cityList.length - 1 }">
-                  <text class="dot-number">{{ index + 1 }}</text>
+                <text class="stop-num">{{ idx + 1 }}</text>
+              </view>
+              <text class="stop-name">{{ city }}</text>
+            </view>
+          </view>
+        </view>
+        <view v-else class="route-empty">
+          <text class="route-empty-txt">尚无足迹记录</text>
+        </view>
+      </view>
+
+      <!-- Stats 2×2 grid -->
+      <view class="stat-grid">
+        <view class="stat-cell">
+          <view class="stat-icon-ring">
+            <IconGlobe :size="28" :color="$travel_blue" />
+          </view>
+          <text class="stat-num">{{ countryCount }}</text>
+          <text class="stat-lbl">COUNTRIES</text>
+        </view>
+        <view class="stat-cell">
+          <view class="stat-icon-ring">
+            <IconLocation :size="28" :color="$travel_blue" />
+          </view>
+          <text class="stat-num">{{ cityCount }}</text>
+          <text class="stat-lbl">CITIES</text>
+        </view>
+        <view class="stat-cell">
+          <view class="stat-icon-ring">
+            <IconImage :size="28" :color="$travel_blue" />
+          </view>
+          <text class="stat-num">{{ postcards.length }}</text>
+          <text class="stat-lbl">POSTCARDS</text>
+        </view>
+        <view class="stat-cell">
+          <view class="stat-icon-ring">
+            <IconStampClassic :size="28" :color="$travel_blue" />
+          </view>
+          <text class="stat-num">{{ travels.length }}</text>
+          <text class="stat-lbl">JOURNEYS</text>
+        </view>
+      </view>
+
+      <!-- Journey list -->
+      <view class="section-block">
+        <view class="section-hd">
+          <view class="section-hd-top">
+            <text class="section-kicker">JOURNEYS · 旅程路线</text>
+            <view class="new-journey-btn" @click="goCreateTravel">
+              <text class="new-journey-txt">+ 新建旅程</text>
+            </view>
+          </view>
+          <view class="section-rule"></view>
+        </view>
+
+        <view v-if="travels.length > 0" class="journey-list">
+          <view
+            v-for="(travel, idx) in travels"
+            :key="travel.id"
+            class="journey-row"
+          >
+            <view v-if="idx > 0" class="journey-divider"></view>
+            <view class="journey-inner" @click="goEditTravel(travel.id)">
+              <view class="journey-status-col">
+                <view class="journey-status-dot" :class="`status-${travel.status}`"></view>
+                <view v-if="travel.isCurrent" class="journey-current-ring"></view>
+              </view>
+              <view class="journey-body">
+                <view class="journey-title-row">
+                  <text class="journey-title">{{ travel.title }}</text>
+                  <text v-if="travel.isCurrent" class="journey-active-tag">当前</text>
                 </view>
-                <text class="city-name">{{ city }}</text>
+                <text class="journey-dest">{{ travel.destination.toUpperCase() }}</text>
+                <text class="journey-date">{{ formatTravelDate(travel) }}</text>
+              </view>
+              <view class="journey-badge" :class="`badge-${travel.status}`">
+                <text class="journey-badge-txt">{{ getStatusText(travel.status) }}</text>
               </view>
             </view>
           </view>
         </view>
-      </view>
 
-      <view class="stats-section">
-        <view class="section-header">
-          <text class="section-title">旅行统计</text>
-        </view>
-
-        <view class="stats-grid">
-          <view class="stat-card">
-            <IconGlobe :size="36" color="#2E7D58" />
-            <text class="stat-value">{{ countryCount }}</text>
-            <text class="stat-label">国家</text>
-          </view>
-          <view class="stat-card">
-            <IconLocation :size="36" color="#2E7D58" />
-            <text class="stat-value">{{ cityCount }}</text>
-            <text class="stat-label">城市</text>
-          </view>
-          <view class="stat-card">
-            <IconImage :size="36" color="#2E7D58" />
-            <text class="stat-value">{{ postcards.length }}</text>
-            <text class="stat-label">明信片</text>
-          </view>
-          <view class="stat-card">
-            <IconStampClassic :size="36" color="#2E7D58" />
-            <text class="stat-value">{{ travels.length }}</text>
-            <text class="stat-label">旅程</text>
-          </view>
+        <view v-else class="journey-empty" @click="goCreateTravel">
+          <text class="journey-empty-txt">暂无旅程 · 点击新建</text>
         </view>
       </view>
 
-      <view class="travels-section">
-        <view class="section-header">
-          <text class="section-title">旅程路线</text>
-        </view>
-
-        <view v-if="travels.length > 0" class="travel-list">
-          <view v-for="travel in travels" :key="travel.id" class="travel-card">
-            <view class="travel-icon">
-              <component :is="getTravelIcon(travel.status)" :size="36" :color="getTravelIconColor(travel.status)" />
-            </view>
-            <view class="travel-info">
-              <text class="travel-title">{{ travel.title }}</text>
-              <text class="travel-destination">{{ travel.destination }}</text>
-              <text class="travel-date">{{ formatTravelDate(travel) }}</text>
-            </view>
-            <view class="travel-status-badge" :class="travel.status">
-              <text class="badge-text">{{ getStatusText(travel.status) }}</text>
-            </view>
-          </view>
-        </view>
-      </view>
-
-      <view class="bottom-space"></view>
+      <view class="btm-gap"></view>
     </scroll-view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, markRaw } from 'vue'
+import { computed, onMounted } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { usePostcardStore } from '@/stores/postcard'
 import { TravelStatus } from '@/model/Travel'
 import type { Travel } from '@/model/Travel'
@@ -97,340 +132,455 @@ import {
   IconLocation,
   IconImage,
   IconStampClassic,
-  IconRocket,
-  IconCheckCircle,
-  IconClipboardList,
-  IconMapPin
 } from '@/components/icons'
 
 const store = usePostcardStore()
-
 const travels = computed(() => store.sortedTravels)
 const postcards = computed(() => store.sortedPostcards)
+
+// Expose color as a computed prop workaround for inline binding
+const $travel_blue = '#3C604D'
 
 const cityList = computed(() => {
   const cities = new Set(postcards.value.map(p => p.city).filter(c => c))
   return Array.from(cities)
 })
-
 const cityCount = computed(() => cityList.value.length)
-
 const countryCount = computed(() => {
   const countries = new Set(postcards.value.map(p => p.country).filter(c => c))
   return countries.size
 })
 
-function getTravelIcon(status: string) {
-  switch (status) {
-    case TravelStatus.ONGOING:
-      return markRaw(IconRocket)
-    case TravelStatus.COMPLETED:
-      return markRaw(IconCheckCircle)
-    case TravelStatus.PLANNED:
-      return markRaw(IconClipboardList)
-    default:
-      return markRaw(IconMapPin)
-  }
-}
-
-function getTravelIconColor(status: string): string {
-  switch (status) {
-    case TravelStatus.ONGOING:
-      return '#22C55E'
-    case TravelStatus.COMPLETED:
-      return '#6B7280'
-    case TravelStatus.PLANNED:
-      return '#3B82F6'
-    default:
-      return '#2E7D58'
-  }
-}
-
 function getStatusText(status: string): string {
   switch (status) {
-    case TravelStatus.ONGOING:
-      return '进行中'
-    case TravelStatus.COMPLETED:
-      return '已完成'
-    case TravelStatus.PLANNED:
-      return '待出发'
-    case TravelStatus.CANCELLED:
-      return '已取消'
-    default:
-      return '未知'
+    case TravelStatus.ONGOING:    return '进行中'
+    case TravelStatus.COMPLETED:  return '已完成'
+    case TravelStatus.PLANNED:    return '待出发'
+    case TravelStatus.CANCELLED:  return '已取消'
+    default:                      return '未知'
   }
 }
 
 function formatTravelDate(travel: Travel): string {
-  const start = new Date(travel.startDate)
-  const end = new Date(travel.endDate)
-  return `${start.getMonth() + 1}/${start.getDate()} - ${end.getMonth() + 1}/${end.getDate()}`
+  const s = new Date(travel.startDate)
+  const e = new Date(travel.endDate)
+  return `${s.getMonth() + 1}·${String(s.getDate()).padStart(2,'0')} — ${e.getMonth() + 1}·${String(e.getDate()).padStart(2,'0')}`
 }
 
-onMounted(() => {
-  store.initData()
-})
+function goCreateTravel() {
+  uni.navigateTo({ url: '/pages/travel/travel' })
+}
+
+function goEditTravel(id: string) {
+  uni.navigateTo({ url: `/pages/travel/travel?id=${id}` })
+}
+
+onMounted(() => store.initData())
+onShow(() => { if (store.travels.length > 0) store.initData() })
 </script>
 
 <style lang="scss" scoped>
 .page-container {
-  min-height: 100vh;
-  background: #FAF7F2;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: $page-background;
 }
 
-.header {
-  background: linear-gradient(135deg, #2E7D58 0%, #2E6E49 100%);
-  padding: 120rpx 40rpx 40rpx;
+// ─── Header ───
+.postal-header {
+  background: $page-background;
+  padding: 100rpx 48rpx 40rpx;
+  border-bottom: 1rpx solid $line-sepia;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.header-perf {
+  position: absolute;
+  top: 90rpx;
+  left: 0;
+  right: 0;
+  height: 2rpx;
+  background-image: repeating-linear-gradient(
+    90deg,
+    $line-sepia 0,
+    $line-sepia 8rpx,
+    transparent 8rpx,
+    transparent 16rpx
+  );
+}
+
+.header-kicker {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 20rpx;
+  letter-spacing: 4rpx;
+  color: $travel-blue;
+  margin-bottom: 22rpx;
 }
 
 .header-title {
-  font-size: 44rpx;
-  font-weight: 700;
-  color: #fff;
-  font-family: 'Georgia', serif;
   display: block;
-  margin-bottom: 8rpx;
+  font-family: $font-family-serif;
+  font-size: 58rpx;
+  font-weight: 400;
+  color: $ink-black;
+  line-height: 1.15;
+  letter-spacing: -1rpx;
 }
 
 .header-subtitle {
+  display: block;
+  font-family: $font-family-serif;
   font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.85);
+  color: $body-text;
+  margin-top: 18rpx;
 }
 
 .content {
-  height: calc(100vh - 220rpx);
-  padding: 24rpx;
-  box-sizing: border-box;
-  width: 100%;
+  flex: 1;
+  overflow: hidden;
 }
 
-.map-section {
-  margin-bottom: 32rpx;
+// ─── Route card ───
+.route-card {
+  margin: 40rpx 40rpx 0;
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  border-radius: 8rpx;
+  padding: 28rpx 28rpx 24rpx;
 }
 
-.map-card {
-  background: #fff;
-  border-radius: 24rpx;
-  padding: 32rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
-}
-
-.map-header {
+.route-card-hd {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32rpx;
+  align-items: baseline;
+  margin-bottom: 28rpx;
 }
 
-.map-title {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #2C2C2C;
+.route-card-title {
+  font-family: $font-family-serif;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: $ink-black;
 }
 
-.map-count {
-  font-size: 24rpx;
-  color: #999;
+.route-card-count {
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 3rpx;
+  color: $mute-text;
 }
 
-.route-container {
+.route-track {
   position: relative;
-  padding: 20rpx 0;
+  padding-bottom: 8rpx;
 }
 
-.route-line {
+.route-path-line {
   position: absolute;
   top: 24rpx;
   left: 24rpx;
-  right: 0;
-  height: 4rpx;
-  background: linear-gradient(90deg, #2E7D58 0%, #B2DFDB 100%);
-  border-radius: 2rpx;
+  right: 24rpx;
+  height: 1rpx;
+  background: $line-sepia;
 }
 
 .route-cities {
   display: flex;
   justify-content: space-between;
+  position: relative;
 }
 
-.route-city {
+.route-stop {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 12rpx;
-  position: relative;
+}
+
+.stop-dot {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: $page-background;
+  border: 2rpx solid $line-sepia;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 1;
 }
 
-.city-dot {
-  width: 48rpx;
-  height: 48rpx;
-  background: #2E7D58;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 4rpx solid #fff;
-  box-shadow: 0 4rpx 12rpx rgba(46, 125, 88, 0.3);
-
-  &.start {
-    background: #C41E3A;
-    box-shadow: 0 0 0 8rpx rgba(196, 30, 58, 0.2);
-  }
-
-  &.end {
-    background: #22C55E;
-    box-shadow: 0 0 0 8rpx rgba(34, 197, 94, 0.2);
-  }
+.stop-dot-first {
+  background: $stamp-red;
+  border-color: $stamp-red;
+  box-shadow: 0 0 0 8rpx rgba(164, 59, 45, 0.12);
 }
 
-.dot-number {
-  font-size: 20rpx;
-  color: #fff;
+.stop-dot-last {
+  background: $travel-blue;
+  border-color: $travel-blue;
+  box-shadow: 0 0 0 8rpx $green-soft;
+}
+
+.stop-num {
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  color: $card-bg;
   font-weight: 600;
 }
 
-.city-name {
+.stop-dot:not(.stop-dot-first):not(.stop-dot-last) .stop-num {
+  color: $mute-text;
+}
+
+.stop-name {
+  font-family: $font-family-serif;
   font-size: 22rpx;
-  color: #666;
+  color: $body-text;
   white-space: nowrap;
 }
 
-.stats-section {
-  margin-bottom: 32rpx;
+.route-empty {
+  padding: 32rpx 0;
+  text-align: center;
 }
 
-.section-header {
-  margin-bottom: 20rpx;
+.route-empty-txt {
+  font-family: $font-family-serif;
+  font-size: 26rpx;
+  color: $whisper;
 }
 
-.section-title {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #2C2C2C;
+// ─── Stat grid ───
+.stat-grid {
+  display: flex;
+  gap: 0;
+  margin: 32rpx 40rpx 0;
+  border: 1rpx solid $line-sepia;
+  border-radius: 8rpx;
+  overflow: hidden;
+  background: $card-bg;
+  flex-wrap: wrap;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16rpx;
-}
-
-.stat-card {
-  background: #fff;
-  border-radius: 20rpx;
-  padding: 24rpx 16rpx;
+.stat-cell {
+  flex: 1 1 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
+  padding: 32rpx 16rpx 28rpx;
+  gap: 10rpx;
+  border-right: 1rpx solid $line-sepia;
+  border-bottom: 1rpx solid $line-sepia;
+  box-sizing: border-box;
+
+  &:nth-child(2n) { border-right: none; }
+  &:nth-child(3),
+  &:nth-child(4) { border-bottom: none; }
 }
 
-.stat-value {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #2E7D58;
-  font-family: 'Georgia', serif;
-}
-
-.stat-label {
-  font-size: 20rpx;
-  color: #999;
-}
-
-.travels-section {
-  margin-bottom: 32rpx;
-}
-
-.travel-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16rpx;
-}
-
-.travel-card {
-  display: flex;
-  align-items: center;
-  background: #fff;
-  border-radius: 20rpx;
-  padding: 24rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
-}
-
-.travel-icon {
-  width: 80rpx;
-  height: 80rpx;
-  background: #F5F5DC;
-  border-radius: 16rpx;
+.stat-icon-ring {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  border: 1rpx solid $line-sepia;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 20rpx;
+  background: $page-background;
 }
 
-.travel-info {
-  flex: 1;
+.stat-num {
+  font-family: $font-family-serif;
+  font-size: 52rpx;
+  font-weight: 400;
+  color: $ink-black;
+  line-height: 1;
+  letter-spacing: -1rpx;
+}
+
+.stat-lbl {
+  font-family: $font-family-mono;
+  font-size: 14rpx;
+  letter-spacing: 3rpx;
+  color: $mute-text;
+}
+
+// ─── Journey section ───
+.section-block {
+  margin: 40rpx 40rpx 0;
+}
+
+.section-hd { margin-bottom: 20rpx; }
+
+.section-hd-top {
   display: flex;
-  flex-direction: column;
-  gap: 6rpx;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14rpx;
 }
 
-.travel-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #2C2C2C;
+.section-kicker {
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  letter-spacing: 3rpx;
+  color: $travel-blue;
+  white-space: nowrap;
 }
 
-.travel-destination {
-  font-size: 24rpx;
-  color: #666;
+.new-journey-btn {
+  border: 1rpx solid rgba(60, 96, 77, 0.4);
+  border-radius: 100rpx;
+  padding: 8rpx 24rpx;
+  background: rgba(60, 96, 77, 0.06);
+}
+.new-journey-txt {
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  letter-spacing: 2rpx;
+  color: $travel-blue;
 }
 
-.travel-date {
-  font-size: 22rpx;
-  color: #999;
+.section-rule {
+  height: 1rpx;
+  background: $line-sepia;
 }
 
-.travel-status-badge {
-  padding: 8rpx 16rpx;
+.journey-list {
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.journey-divider {
+  height: 1rpx;
+  background: $line-sepia;
+  margin: 0 24rpx;
+}
+
+.journey-inner {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 24rpx 24rpx;
+}
+
+.journey-status-col {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36rpx;
+}
+
+.journey-status-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  position: relative;
+
+  &.status-ongoing   { background: $alive-green; }
+  &.status-completed { background: $mute-text; }
+  &.status-planned   { background: #1F4B66; }
+  &.status-cancelled { background: $stamp-red; opacity: 0.5; }
+}
+
+.journey-current-ring {
+  position: absolute;
+  top: -6rpx;
+  left: -6rpx;
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: 50%;
+  border: 1rpx solid $alive-green;
+  animation: pulse-out 1.8s ease-out infinite;
+}
+
+.journey-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 6rpx;
+}
+
+.journey-active-tag {
+  font-family: $font-family-mono;
+  font-size: 14rpx;
+  letter-spacing: 2rpx;
+  color: $alive-green;
+  border: 1rpx solid rgba(94, 140, 79, 0.4);
+  padding: 2rpx 10rpx;
   border-radius: 999rpx;
-
-  &.ongoing {
-    background: rgba(34, 197, 94, 0.1);
-    .badge-text {
-      color: #22C55E;
-    }
-  }
-
-  &.completed {
-    background: rgba(107, 114, 128, 0.1);
-    .badge-text {
-      color: #6B7280;
-    }
-  }
-
-  &.planned {
-    background: rgba(59, 130, 246, 0.1);
-    .badge-text {
-      color: #3B82F6;
-    }
-  }
-
-  &.cancelled {
-    background: rgba(239, 68, 68, 0.1);
-    .badge-text {
-      color: #EF4444;
-    }
-  }
 }
 
-.badge-text {
-  font-size: 22rpx;
-  font-weight: 600;
+.journey-body {
+  flex: 1;
+  min-width: 0;
 }
 
-.bottom-space {
-  height: 120rpx;
+.journey-title {
+  font-family: $font-family-serif;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: $ink-black;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
+
+.journey-dest {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 2rpx;
+  color: $mute-text;
+  margin-bottom: 4rpx;
+}
+
+.journey-date {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 14rpx;
+  color: $whisper;
+  letter-spacing: 1rpx;
+}
+
+.journey-badge {
+  flex-shrink: 0;
+  padding: 6rpx 18rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid currentColor;
+
+  &.badge-ongoing   { color: $alive-green; background: rgba(94, 140, 79, 0.08); }
+  &.badge-completed { color: $mute-text;   background: rgba(142, 135, 117, 0.08); }
+  &.badge-planned   { color: #1F4B66;      background: rgba(31, 75, 102, 0.08); }
+  &.badge-cancelled { color: $stamp-red;   background: rgba(164, 59, 45, 0.08); }
+}
+
+.journey-badge-txt {
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  letter-spacing: 1rpx;
+}
+
+.journey-empty {
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  border-radius: 8rpx;
+  padding: 60rpx 0;
+  text-align: center;
+}
+
+.journey-empty-txt {
+  font-family: $font-family-serif;
+  font-size: 28rpx;
+  color: $whisper;
+}
+
+.btm-gap { height: 120rpx; }
 </style>

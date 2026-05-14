@@ -1,387 +1,488 @@
 <template>
   <view class="page-container">
-    <view class="header">
-      <text class="header-title">收藏邮票</text>
-      <text class="header-subtitle">珍藏旅途中的美好</text>
+    <!-- Paper editorial header -->
+    <view class="postal-header">
+      <view class="header-perf"></view>
+      <view class="nav-back" @click="goBack">
+        <IconBack :size="18" color="#3C604D" />
+      </view>
+      <text class="header-kicker">COLLECTION · 收藏夹</text>
+      <text class="header-title">珍藏邮票</text>
+      <text class="header-subtitle">{{ favorites.length }} 枚收藏 · {{ postcards.length }} 张明信片</text>
     </view>
 
     <scroll-view class="content" scroll-y>
-      <view class="stats-section">
-        <view class="stats-card">
-          <view class="stat-item">
-            <IconImage :size="36" color="#2E7D58" />
-            <text class="stat-value">{{ postcards.length }}</text>
-            <text class="stat-label">明信片</text>
-          </view>
-          <view class="stat-divider"></view>
-          <view class="stat-item">
-            <IconStampClassic :size="36" color="#2E7D58" />
-            <text class="stat-value">{{ favorites.length }}</text>
-            <text class="stat-label">邮票</text>
-          </view>
-          <view class="stat-divider"></view>
-          <view class="stat-item">
-            <IconBookOpen :size="36" color="#2E7D58" />
-            <text class="stat-value">{{ albumCount }}</text>
-            <text class="stat-label">邮册</text>
-          </view>
-        </view>
-      </view>
 
-      <view class="section">
-        <view class="section-header">
-          <text class="section-title">我的邮票</text>
-          <text class="section-count">{{ favorites.length }} 枚</text>
+      <!-- Favorites section -->
+      <view class="section-pad">
+        <view class="section-hd">
+          <view>
+            <text class="section-kicker">LOVED · 心选</text>
+            <text class="section-ttl">收藏明信片</text>
+          </view>
+          <text class="section-badge">{{ String(favorites.length).padStart(2, '0') }}</text>
         </view>
+        <view class="section-rule"></view>
 
         <view v-if="favorites.length > 0" class="stamp-grid">
           <view
             v-for="card in favorites"
             :key="card.id"
-            class="stamp-item"
+            class="stamp-cell"
             @click="viewPostcard(card)"
           >
-            <view class="stamp-card">
-              <view class="stamp-perforation">
-                <view class="stamp-image">
-                  <image v-if="card.photoUrl" :src="card.photoUrl" class="stamp-image-src" mode="aspectFill" />
-                  <IconImage v-else :size="48" color="#999" />
-                </view>
+            <view class="stamp-frame">
+              <view class="stamp-perf-top">
+                <view v-for="i in 9" :key="i" class="perf-hole"></view>
               </view>
-              <text class="stamp-location">{{ card.locationName }}</text>
-              <text class="stamp-city">{{ card.city }}</text>
-              <view class="stamp-favorite" @click.stop="toggleFavorite(card.id)">
-                <IconFavorite :size="28" color="#FF4757" />
+              <view class="stamp-img-wrap">
+                <image v-if="card.photoUrl" :src="card.photoUrl" class="stamp-img" mode="aspectFill" />
+                <view v-else class="stamp-img-grad"></view>
+                <view class="stamp-color-band" :style="{ background: stampColor(card.stampDesign) }"></view>
               </view>
+              <view class="stamp-perf-bot">
+                <view v-for="i in 9" :key="i" class="perf-hole"></view>
+              </view>
+            </view>
+            <text class="stamp-loc">{{ card.locationName }}</text>
+            <text class="stamp-city-lbl">{{ card.city }}</text>
+            <view class="stamp-fav-btn" @click.stop="unfavorite(card.id)">
+              <IconFavorite :size="22" color="#A43B2D" />
             </view>
           </view>
         </view>
 
-        <view v-else class="empty-state">
-          <IconStampClassic :size="64" color="#CCC" />
-          <text class="empty-text">还没有收藏邮票</text>
-          <text class="empty-hint">点击明信片上的心形图标即可收藏</text>
+        <view v-else class="empty-block">
+          <IconFavorite :size="72" color="#B5AE9B" />
+          <text class="empty-main">还没有收藏</text>
+          <text class="empty-sub">点击明信片上的心形图标即可收藏</text>
         </view>
       </view>
 
-      <view class="section">
-        <view class="section-header">
-          <text class="section-title">所有明信片</text>
-          <text class="section-count">{{ postcards.length }} 张</text>
+      <!-- All postcards section -->
+      <view class="section-pad">
+        <view class="section-hd">
+          <view>
+            <text class="section-kicker">ARCHIVE · 全部明信片</text>
+            <text class="section-ttl">所有记录</text>
+          </view>
+          <text class="section-badge">{{ String(postcards.length).padStart(2, '0') }}</text>
         </view>
+        <view class="section-rule"></view>
 
-        <view v-if="postcards.length > 0" class="postcard-list">
+        <view v-if="postcards.length > 0" class="card-list">
           <view
             v-for="card in postcards"
             :key="card.id"
-            class="postcard-item"
+            class="letter-row"
             @click="viewPostcard(card)"
           >
-            <view class="postcard-image">
-              <image v-if="card.photoUrl" :src="card.photoUrl" class="postcard-image-src" mode="aspectFill" />
-              <IconImage v-else :size="40" color="#999" />
+            <view class="row-thumb">
+              <image v-if="card.photoUrl" :src="card.photoUrl" class="row-thumb-img" mode="aspectFill" />
+              <view v-else class="row-thumb-grad"></view>
             </view>
-            <view class="postcard-info">
-              <text class="postcard-location">{{ card.locationName }}</text>
-              <text class="postcard-city">{{ card.city }}</text>
-              <text class="postcard-note">{{ card.note }}</text>
+            <view class="row-body">
+              <text class="row-meta">{{ card.city.toUpperCase() }} · {{ dotDate(card.recordedAt) }}</text>
+              <text class="row-loc">{{ card.locationName }}</text>
+              <text class="row-note">"{{ card.note }}"</text>
             </view>
-            <view class="postcard-favorite" @click.stop="toggleFavorite(card.id)">
-              <IconFavorite :size="28" :color="card.isFavorite ? '#FF4757' : '#CCC'" />
+            <view class="row-trail">
+              <view @click.stop="toggleFav(card.id)">
+                <IconFavorite :size="26" :color="card.isFavorite ? '#A43B2D' : '#B5AE9B'" />
+              </view>
+              <view class="stamp-badge" :style="{ 'border-color': stampColor(card.stampDesign) }">
+                <text class="stamp-dot" :style="{ color: stampColor(card.stampDesign) }">✦</text>
+              </view>
             </view>
           </view>
         </view>
 
-        <view v-else class="empty-state">
-          <IconImage :size="64" color="#CCC" />
-          <text class="empty-text">还没有明信片</text>
-          <text class="empty-hint">去记录你的第一张明信片吧</text>
+        <view v-else class="empty-block">
+          <IconImage :size="72" color="#B5AE9B" />
+          <text class="empty-main">还没有明信片</text>
+          <text class="empty-sub">去记录你的第一张旅行明信片</text>
         </view>
       </view>
 
-      <view class="bottom-space"></view>
+      <view class="btm-gap"></view>
     </scroll-view>
   </view>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { usePostcardStore } from '@/stores/postcard'
+import { StampDesigns } from '@/config/app'
 import type { Postcard } from '@/model/Postcard'
-import {
-  IconImage,
-  IconStampClassic,
-  IconBookOpen,
-  IconFavorite
-} from '@/components/icons'
+import { IconBack, IconFavorite, IconImage } from '@/components/icons'
 
 const store = usePostcardStore()
-
 const postcards = computed(() => store.sortedPostcards)
-
 const favorites = computed(() => postcards.value.filter(p => p.isFavorite))
 
-const albumCount = computed(() => {
-  const years = new Set(postcards.value.map(p => new Date(p.recordedAt).getFullYear()))
-  return Math.max(1, years.size)
-})
+function stampColor(id: string): string {
+  return StampDesigns.find(s => s.id === id)?.color ?? '#8E8775'
+}
+
+function dotDate(ts: number): string {
+  const d = new Date(ts)
+  return `${String(d.getMonth() + 1).padStart(2, '0')}·${String(d.getDate()).padStart(2, '0')}`
+}
 
 function viewPostcard(card: Postcard) {
-  uni.navigateTo({
-    url: `/pages/detail/detail?id=${card.id}`,
-  })
+  uni.navigateTo({ url: `/pages/detail/detail?id=${card.id}` })
 }
 
-function toggleFavorite(id: string) {
+function toggleFav(id: string) {
   store.toggleFavorite(id)
-  uni.showToast({
-    title: '收藏已更新',
-    icon: 'success'
-  })
+  uni.showToast({ title: '收藏已更新', icon: 'success' })
 }
 
-onMounted(() => {
-  store.initData()
-})
+function unfavorite(id: string) {
+  store.toggleFavorite(id)
+  uni.showToast({ title: '已取消收藏', icon: 'none' })
+}
+
+function goBack() {
+  uni.navigateBack({ fail: () => uni.switchTab({ url: '/pages/profile/profile' }) })
+}
+
+onMounted(() => store.initData())
+onShow(() => { if (store.postcards.length === 0) store.initData() })
 </script>
 
 <style lang="scss" scoped>
 .page-container {
-  min-height: 100vh;
-  background: #FAF7F2;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: $page-background;
 }
 
-.header {
-  background: linear-gradient(135deg, #2E7D58 0%, #2E6E49 100%);
-  padding: 120rpx 40rpx 40rpx;
+// ─── Header ───
+.postal-header {
+  background: $page-background;
+  padding: 96rpx 48rpx 40rpx;
+  border-bottom: 1rpx solid $line-sepia;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.header-perf {
+  position: absolute;
+  top: 88rpx;
+  left: 0;
+  right: 0;
+  height: 2rpx;
+  background-image: repeating-linear-gradient(
+    90deg,
+    $line-sepia 0,
+    $line-sepia 8rpx,
+    transparent 8rpx,
+    transparent 16rpx
+  );
+}
+
+.nav-back {
+  position: absolute;
+  top: 52rpx;
+  left: 48rpx;
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-kicker {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 20rpx;
+  letter-spacing: 4rpx;
+  color: $travel-blue;
+  margin-bottom: 22rpx;
 }
 
 .header-title {
-  font-size: 44rpx;
-  font-weight: 700;
-  color: #fff;
-  font-family: 'Georgia', serif;
   display: block;
-  margin-bottom: 8rpx;
+  font-family: $font-family-serif;
+  font-size: 58rpx;
+  font-weight: 400;
+  color: $ink-black;
+  line-height: 1.15;
+  letter-spacing: -1rpx;
 }
 
 .header-subtitle {
+  display: block;
+  font-family: $font-family-serif;
   font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.85);
+  color: $body-text;
+  margin-top: 18rpx;
 }
 
+// ─── Scroll ───
 .content {
-  height: calc(100vh - 220rpx);
-  padding: 24rpx;
-  box-sizing: border-box;
-  width: 100%;
-}
-
-.stats-section {
-  margin-bottom: 32rpx;
-}
-
-.stats-card {
-  display: flex;
-  background: #fff;
-  border-radius: 24rpx;
-  padding: 32rpx 24rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
-}
-
-.stat-item {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8rpx;
+  overflow: hidden;
 }
 
-.stat-value {
-  font-size: 44rpx;
-  font-weight: 700;
-  color: #2E7D58;
-  font-family: 'Georgia', serif;
+.section-pad {
+  padding: 44rpx 40rpx 0;
 }
 
-.stat-label {
-  font-size: 22rpx;
-  color: #999;
-}
-
-.stat-divider {
-  width: 2rpx;
-  background: #E0D5C0;
-  margin: 0 12rpx;
-}
-
-.section {
-  margin-bottom: 32rpx;
-}
-
-.section-header {
+// ─── Section header ───
+.section-hd {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20rpx;
+  align-items: flex-end;
+  margin-bottom: 16rpx;
 }
 
-.section-title {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #2C2C2C;
+.section-kicker {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 20rpx;
+  letter-spacing: 3rpx;
+  color: $travel-blue;
+  margin-bottom: 8rpx;
 }
 
-.section-count {
-  font-size: 24rpx;
-  color: #999;
+.section-ttl {
+  display: block;
+  font-family: $font-family-serif;
+  font-weight: 500;
+  font-size: 38rpx;
+  color: $ink-black;
+  line-height: 1;
 }
 
+.section-badge {
+  font-family: $font-family-serif;
+  font-size: 44rpx;
+  color: $line-sepia;
+  line-height: 1;
+  letter-spacing: -1rpx;
+}
+
+.section-rule {
+  height: 2rpx;
+  background: $line-sepia;
+  margin-bottom: 28rpx;
+}
+
+// ─── Stamp grid ───
 .stamp-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  gap: 20rpx;
+}
+
+.stamp-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+  position: relative;
+}
+
+.stamp-frame {
+  width: 100%;
+  border: 1rpx solid $line-sepia;
+  background: $card-bg;
+  border-radius: 4rpx;
+  overflow: hidden;
+}
+
+.stamp-perf-top,
+.stamp-perf-bot {
+  display: flex;
+  justify-content: space-around;
+  padding: 4rpx 8rpx;
+  background: $page-background;
+}
+
+.perf-hole {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: $page-background;
+  border: 1rpx solid $line-sepia;
+}
+
+.stamp-img-wrap {
+  position: relative;
+  width: 100%;
+  height: 160rpx;
+  overflow: hidden;
+}
+
+.stamp-img {
+  width: 100%;
+  height: 100%;
+}
+
+.stamp-img-grad {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #C9D2B6 0%, #6E8862 100%);
+}
+
+.stamp-color-band {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 6rpx;
+  opacity: 0.7;
+}
+
+.stamp-loc {
+  font-family: $font-family-serif;
+  font-size: 22rpx;
+  font-weight: 500;
+  color: $ink-black;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.stamp-city-lbl {
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 2rpx;
+  color: $mute-text;
+  text-align: center;
+}
+
+.stamp-fav-btn {
+  position: absolute;
+  top: 8rpx;
+  right: 4rpx;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(251, 248, 241, 0.85);
+  border-radius: 50%;
+}
+
+// ─── Letter rows ───
+.card-list {
+  display: flex;
+  flex-direction: column;
   gap: 16rpx;
 }
 
-.stamp-item {
-  background: #fff;
-  border-radius: 20rpx;
-  overflow: hidden;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
-}
-
-.stamp-card {
-  padding: 16rpx;
-}
-
-.stamp-perforation {
-  position: relative;
-  margin-bottom: 12rpx;
-}
-
-.stamp-image {
-  width: 100%;
-  height: 160rpx;
-  background: #F5F5DC;
-  border-radius: 12rpx;
+.letter-row {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  gap: 24rpx;
+  padding: 24rpx;
+  background: $card-bg;
+  border-radius: 8rpx;
+  border: 1rpx solid $line-sepia;
+  align-items: stretch;
 }
 
-.stamp-image-src {
+.row-thumb {
+  width: 136rpx;
+  height: 136rpx;
+  border-radius: 6rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.row-thumb-img { width: 100%; height: 100%; }
+
+.row-thumb-grad {
   width: 100%;
   height: 100%;
+  background: linear-gradient(180deg, #C9D2B6 0%, #6E8862 100%);
 }
 
-.stamp-location {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #2C2C2C;
-  display: block;
-  margin-bottom: 4rpx;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.stamp-city {
-  font-size: 22rpx;
-  color: #999;
-  display: block;
-  margin-bottom: 12rpx;
-}
-
-.stamp-favorite {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.postcard-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12rpx;
-}
-
-.postcard-item {
-  display: flex;
-  align-items: center;
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 16rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
-}
-
-.postcard-image {
-  width: 80rpx;
-  height: 80rpx;
-  background: #F5F5DC;
-  border-radius: 12rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 16rpx;
-  overflow: hidden;
-}
-
-.postcard-image-src {
-  width: 100%;
-  height: 100%;
-}
-
-.postcard-info {
+.row-body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4rpx;
+  justify-content: center;
+  min-width: 0;
+  gap: 8rpx;
 }
 
-.postcard-location {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #2C2C2C;
+.row-meta {
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 3rpx;
+  color: $mute-text;
 }
 
-.postcard-city {
-  font-size: 22rpx;
-  color: #999;
+.row-loc {
+  font-family: $font-family-serif;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: $ink-black;
+  line-height: 1.1;
 }
 
-.postcard-note {
-  font-size: 20rpx;
-  color: #666;
+.row-note {
+  font-family: $font-family-serif;
+  font-style: italic;
+  font-size: 24rpx;
+  color: $body-text;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.postcard-favorite {
-  padding: 8rpx;
+.row-trail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-left: 8rpx;
 }
 
-.empty-state {
+.stamp-badge {
+  width: 44rpx;
+  height: 54rpx;
+  border: 1rpx dashed currentColor;
+  background: $paper-beige;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2rpx;
+}
+
+.stamp-dot { font-size: 20rpx; }
+
+// ─── Empty state ───
+.empty-block {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 60rpx 0;
-  background: #fff;
-  border-radius: 20rpx;
+  padding: 72rpx 0;
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  border-radius: 8rpx;
 }
 
-.empty-text {
-  font-size: 28rpx;
-  color: #666;
+.empty-main {
+  font-family: $font-family-serif;
+  font-size: 32rpx;
+  color: $body-text;
+  margin-top: 28rpx;
   margin-bottom: 8rpx;
-  margin-top: 16rpx;
 }
 
-.empty-hint {
+.empty-sub {
+  font-family: $font-family-serif;
   font-size: 24rpx;
-  color: #999;
+  color: $mute-text;
 }
 
-.bottom-space {
-  height: 120rpx;
-}
+.btm-gap { height: 120rpx; }
 </style>

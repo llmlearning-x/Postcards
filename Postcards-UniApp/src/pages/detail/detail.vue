@@ -1,185 +1,296 @@
 <template>
-  <view class="page-container">
-    <view class="custom-header" v-if="postcard">
-      <view class="header-left" @click="goBack">
-        <IconBack :size="28" color="#fff" />
+  <view class="page-container" v-if="postcard">
+    <!-- Floating nav over hero photo -->
+    <view class="float-nav">
+      <view class="nav-btn" @click="goBack">
+        <IconBack :size="20" color="#F4EFE5" />
       </view>
-      <text class="header-title">明信片详情</text>
-      <view class="header-right" @click="showMoreOptions">
-        <IconMore :size="28" color="#fff" />
-      </view>
-    </view>
-
-    <view class="loading-overlay" v-if="store.isLoading">
-      <view class="loading-content">
-        <view class="loading-spinner"></view>
-        <text class="loading-text">加载中...</text>
+      <text class="nav-label">POSTCARD · 明信片</text>
+      <view class="nav-btn" @click="showMoreOptions">
+        <IconMore :size="20" color="#F4EFE5" />
       </view>
     </view>
 
-    <view class="content" v-else-if="postcard">
-      <scroll-view scroll-y class="scroll-content">
-        <view class="card-detail">
-          <view class="card-image-wrapper">
-            <image 
-              v-if="postcard.photoUrl" 
-              :src="postcard.photoUrl" 
-              class="card-image"
-              mode="aspectFill"
-              @click="previewImage"
-            />
-            <view v-else class="card-image-placeholder">
-              <IconImage :size="64" color="#999" />
+    <scroll-view class="scroll-wrap" scroll-y>
+      <!-- Full-bleed hero photo -->
+      <view class="hero-wrap">
+        <image
+          v-if="postcard.photoUrl"
+          :src="postcard.photoUrl"
+          class="hero-img"
+          mode="aspectFill"
+          @click="previewImage"
+        />
+        <view v-else class="hero-placeholder">
+          <IconImage :size="80" color="#B5AE9B" />
+        </view>
+        <!-- Postmark badge -->
+        <view class="postmark">
+          <view class="postmark-outer"></view>
+          <view class="postmark-inner"></view>
+          <view class="postmark-text">
+            <text class="postmark-city">{{ postcard.city.toUpperCase() }}</text>
+            <text class="postmark-date">{{ dotDate(postcard.recordedAt) }}</text>
+            <text class="postmark-year">{{ yearStr(postcard.recordedAt) }}</text>
+          </view>
+        </view>
+        <!-- Gradient fade at bottom -->
+        <view class="hero-fade"></view>
+      </view>
+
+      <!-- Content card overlapping photo -->
+      <view class="detail-card-wrap" :class="{ 'card-revealed': cardRevealed }">
+        <!-- ── Postcard back ── -->
+        <view class="pback">
+          <!-- Header bar -->
+          <view class="pback-hd">
+            <view class="pback-hd-left">
+              <text class="pback-title">POST CARD · 明信片</text>
+              <text class="pback-series">SÉRIE {{ stampSeries(postcard.stampDesign) }} · {{ stampSeriesName(postcard.stampDesign) }}</text>
+            </view>
+            <!-- Stamp box -->
+            <view class="pback-stamp" :style="{ borderColor: stampColor(postcard.stampDesign) }">
+              <text class="pback-stamp-dot" :style="{ color: stampColor(postcard.stampDesign) }">✦</text>
+              <text class="pback-stamp-name" :style="{ color: stampColor(postcard.stampDesign) }">{{ stampName(postcard.stampDesign) }}</text>
+            </view>
+          </view>
+          <view class="pback-top-rule"></view>
+
+          <!-- Body: message left | address right -->
+          <view class="pback-body">
+            <!-- Left: ruled message area -->
+            <view class="pback-message">
+              <text class="pback-msg-label">MESSAGE · 留言</text>
+              <view class="pback-ruled-lines">
+                <view class="pback-rule-line"></view>
+                <view class="pback-rule-line"></view>
+              </view>
+              <text class="pback-note">{{ postcard.note }}</text>
+              <view class="pback-ruled-lines" style="margin-top: 12rpx;">
+                <view class="pback-rule-line"></view>
+                <view class="pback-rule-line"></view>
+              </view>
+              <view class="pback-sig">
+                <text class="pback-sig-name">— 远方旅人</text>
+                <text class="pback-sig-date">{{ dotDate(postcard.recordedAt) }}</text>
+              </view>
+            </view>
+
+            <!-- Vertical divider -->
+            <view class="pback-vdivider"></view>
+
+            <!-- Right: address block -->
+            <view class="pback-address">
+              <view class="pback-addr-block">
+                <text class="pback-addr-label">FROM</text>
+                <text class="pback-addr-main">{{ postcard.locationName }}</text>
+                <text class="pback-addr-sub">{{ postcard.city }} · {{ postcard.country }}</text>
+              </view>
+              <view class="pback-addr-sep"></view>
+              <view class="pback-addr-block">
+                <text class="pback-addr-label">TO</text>
+                <text class="pback-addr-main">未来的我</text>
+                <text class="pback-addr-sub">心中的远方</text>
+              </view>
+              <!-- Postmark -->
+              <view class="pback-postmark">
+                <view class="pback-pm-outer"></view>
+                <view class="pback-pm-inner"></view>
+                <view class="pback-pm-text">
+                  <text class="pback-pm-city">{{ postcard.city.substring(0,2).toUpperCase() }}</text>
+                  <text class="pback-pm-date">{{ dotDate(postcard.recordedAt) }}</text>
+                </view>
+              </view>
             </view>
           </view>
 
-          <view class="card-info">
-            <view class="info-row">
-              <IconLocation :size="24" color="#2E7D58" />
-              <text class="location-text">{{ postcard.locationName }}</text>
-            </view>
-            <view class="info-row">
-              <IconMap :size="24" color="#666" />
-              <text class="city-text">{{ postcard.city }} · {{ postcard.country }}</text>
-            </view>
-            <view class="info-row">
-              <IconClock :size="24" color="#666" />
-              <text class="date-text">{{ formatDate(postcard.recordedAt) }}</text>
-            </view>
-          </view>
-
-          <view class="card-note">
-            <IconEdit :size="24" color="#2E7D58" />
-            <text class="note-text">{{ postcard.note }}</text>
-          </view>
-
-          <view class="card-stamp">
-            <text class="stamp-label">邮票样式</text>
-            <view class="stamp-display">
-              <component :is="getStampComponent(postcard.stampDesign)" :size="48" :color="getStampColor(postcard.stampDesign)" />
-              <text class="stamp-name">{{ getStampName(postcard.stampDesign) }}</text>
-            </view>
+          <!-- Footer -->
+          <view class="pback-footer">
+            <text class="pback-footer-l">旅行邮局 · 寄往远方</text>
+            <text class="pback-footer-r">N° {{ padNum(postcard.id) }}</text>
           </view>
         </view>
 
-        <view class="actions-section">
-          <view 
-            class="action-btn favorite-btn" 
-            :class="{ active: postcard.isFavorite }"
+        <!-- Action buttons -->
+        <view class="action-row">
+          <view
+            class="action-btn"
+            :class="{ 'action-btn-active': postcard.isFavorite, 'fav-stamping': stampingFav }"
             @click="toggleFavorite"
           >
-            <IconFavorite :size="32" :color="postcard.isFavorite ? '#FF4757' : '#666'" />
-            <text class="action-text">{{ postcard.isFavorite ? '已收藏' : '收藏' }}</text>
+            <IconFavorite :size="22" :color="postcard.isFavorite ? '#A43B2D' : '#8E8775'" />
+            <text class="action-main">收藏</text>
+            <text class="action-sub">LOVE</text>
           </view>
-          <view class="action-btn edit-btn" @click="goToEdit">
-            <IconEdit :size="32" color="#2E7D58" />
-            <text class="action-text">编辑</text>
+          <view class="action-btn" @click="goToEdit">
+            <IconEdit :size="22" color="#8E8775" />
+            <text class="action-main">编辑</text>
+            <text class="action-sub">EDIT</text>
           </view>
-          <view class="action-btn share-btn" @click="sharePostcard">
-            <IconShare :size="32" color="#2E7D58" />
-            <text class="action-text">分享</text>
+          <view class="action-btn" @click="goToSend">
+            <IconSend :size="22" color="#3C604D" />
+            <text class="action-main" style="color:#3C604D;">寄出</text>
+            <text class="action-sub">MAIL</text>
+          </view>
+          <view class="action-btn" @click="sharePostcard">
+            <IconShare :size="22" color="#8E8775" />
+            <text class="action-main">分享</text>
+            <text class="action-sub">SHARE</text>
           </view>
         </view>
-      </scroll-view>
-    </view>
 
-    <view class="empty-state" v-else>
-      <IconImage :size="80" color="#ccc" />
-      <text class="empty-text">明信片不存在</text>
-      <view class="empty-btn" @click="goBack">
-        <text class="empty-btn-text">返回首页</text>
+        <!-- Journey context strip -->
+        <view class="journey-strip" v-if="journeyCards.length > 0">
+          <view class="journey-strip-hd">
+            <view>
+              <text class="journey-kicker">JOURNEY · 同一旅程</text>
+              <text class="journey-title">{{ travelTitle }}</text>
+            </view>
+            <text class="journey-count">{{ journeyCards.length }} 张 →</text>
+          </view>
+          <scroll-view class="journey-scroll" scroll-x>
+            <view class="journey-cards">
+              <view
+                v-for="card in journeyCards"
+                :key="card.id"
+                class="journey-mini-card"
+                @click="viewPostcard(card)"
+              >
+                <view class="journey-mini-thumb">
+                  <image v-if="card.photoUrl" :src="card.photoUrl" class="journey-mini-img" mode="aspectFill" />
+                  <view v-else class="journey-mini-grad"></view>
+                </view>
+                <text class="journey-mini-loc">{{ card.locationName }}</text>
+                <text class="journey-mini-date">{{ dotDate(card.recordedAt) }}</text>
+              </view>
+            </view>
+          </scroll-view>
+        </view>
       </view>
+
+      <view class="btm-gap"></view>
+    </scroll-view>
+  </view>
+
+  <!-- Empty state -->
+  <view class="empty-state" v-else>
+    <view class="float-nav-empty">
+      <view class="nav-btn nav-btn-dark" @click="goBack">
+        <IconBack :size="20" color="#5C5648" />
+      </view>
+    </view>
+    <IconImage :size="96" color="#B5AE9B" />
+    <text class="empty-main">明信片不存在</text>
+    <view class="empty-btn" @click="goBack">
+      <text class="empty-btn-txt">返回</text>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, markRaw } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { usePostcardStore } from '@/stores/postcard'
 import { UIUtil } from '@/utils/ui'
 import { ToastMessages, StampDesigns } from '@/config/app'
-import { DateUtil } from '@/utils/date'
 import type { Postcard } from '@/model/Postcard'
 import {
   IconBack,
   IconMore,
-  IconLocation,
-  IconMap,
-  IconClock,
-  IconEdit,
   IconImage,
   IconFavorite,
+  IconEdit,
   IconShare,
-  IconStampClassic,
-  IconStampNature,
-  IconStampCulture,
-  IconStampCity,
-  IconStampSea,
-  IconStampSunset
+  IconSend,
 } from '@/components/icons'
 
 const store = usePostcardStore()
-
 const postcard = ref<Postcard | null>(null)
 const postcardId = ref('')
+const cardRevealed = ref(false)
+const stampingFav  = ref(false)
 
-const stampComponents: Record<string, any> = {
-  classic: markRaw(IconStampClassic),
-  nature: markRaw(IconStampNature),
-  culture: markRaw(IconStampCulture),
-  city: markRaw(IconStampCity),
-  sea: markRaw(IconStampSea),
-  sunset: markRaw(IconStampSunset),
+const travelTitle = computed(() => {
+  if (!postcard.value) return ''
+  const travel = store.travels.find(t => t.id === postcard.value!.travelId)
+  return travel?.title || '旅行'
+})
+
+const journeyCards = computed(() => {
+  if (!postcard.value) return []
+  return store.postcards.filter(
+    p => p.travelId === postcard.value!.travelId && p.id !== postcard.value!.id
+  ).slice(0, 6)
+})
+
+function padNum(id: string): string {
+  const match = id.match(/\d+$/)
+  return match ? String(match[0]).padStart(4, '0') : '0001'
 }
 
-function getStampComponent(stampId: string) {
-  return stampComponents[stampId] || IconStampClassic
+function dotDate(ts: number): string {
+  const d = new Date(ts)
+  return `${String(d.getMonth() + 1).padStart(2, '0')}·${String(d.getDate()).padStart(2, '0')}`
 }
 
-function getStampColor(stampId: string): string {
-  const stamp = StampDesigns.find(s => s.id === stampId)
-  return stamp?.color || '#333'
+function yearStr(ts: number): string {
+  return String(new Date(ts).getFullYear())
 }
 
-function getStampName(stampId: string): string {
-  const stamp = StampDesigns.find(s => s.id === stampId)
-  return stamp?.name || '经典'
+function metaDate(ts: number): string {
+  const d = new Date(ts)
+  return `${d.getFullYear()} · ${String(d.getMonth() + 1).padStart(2, '0')} · ${String(d.getDate()).padStart(2, '0')}`
 }
 
-function formatDate(timestamp: number): string {
-  return DateUtil.formatDateTime(timestamp)
+function metaTime(ts: number): string {
+  const d = new Date(ts)
+  return `${String(d.getHours()).padStart(2, '0')} : ${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+function stampColor(id: string): string {
+  return StampDesigns.find(s => s.id === id)?.color ?? '#8E8775'
+}
+
+function stampName(id: string): string {
+  return StampDesigns.find(s => s.id === id)?.name ?? '经典'
+}
+
+function stampSeries(id: string): string {
+  return (StampDesigns.find(s => s.id === id) as any)?.series ?? 'I'
+}
+
+function stampSeriesName(id: string): string {
+  return (StampDesigns.find(s => s.id === id) as any)?.seriesName ?? '旅行'
 }
 
 function goBack() {
-  uni.navigateBack({
-    fail: () => {
-      uni.switchTab({ url: '/pages/home/home' })
-    }
-  })
+  uni.navigateBack({ fail: () => uni.switchTab({ url: '/pages/home/home' }) })
 }
 
 function previewImage() {
   if (postcard.value?.photoUrl) {
-    uni.previewImage({
-      urls: [postcard.value.photoUrl],
-      current: postcard.value.photoUrl
-    })
+    uni.previewImage({ urls: [postcard.value.photoUrl], current: postcard.value.photoUrl })
   }
 }
 
 function toggleFavorite() {
-  if (postcard.value) {
-    store.toggleFavorite(postcard.value.id)
-    UIUtil.showSuccess(ToastMessages.success.favorite)
-  }
+  if (!postcard.value) return
+  stampingFav.value = true
+  store.toggleFavorite(postcard.value.id)
+  postcard.value = store.getPostcardById(postcardId.value) || null
+  UIUtil.showSuccess(ToastMessages.success.favorite)
+  setTimeout(() => { stampingFav.value = false }, 500)
 }
 
 function goToEdit() {
   if (postcard.value) {
-    uni.navigateTo({
-      url: `/pages/edit/edit?id=${postcard.value.id}`
-    })
+    uni.navigateTo({ url: `/pages/edit/edit?id=${postcard.value.id}` })
+  }
+}
+
+function goToSend() {
+  if (postcard.value) {
+    uni.navigateTo({ url: `/pages/send/send?postcardId=${postcard.value.id}` })
   }
 }
 
@@ -187,17 +298,7 @@ function sharePostcard() {
   uni.showActionSheet({
     itemList: ['分享给好友', '生成图片'],
     success: (res) => {
-      if (res.tapIndex === 0) {
-        uni.showToast({
-          title: '分享功能开发中',
-          icon: 'none'
-        })
-      } else {
-        uni.showToast({
-          title: '生成图片功能开发中',
-          icon: 'none'
-        })
-      }
+      uni.showToast({ title: res.tapIndex === 0 ? '分享功能开发中' : '生成图片功能开发中', icon: 'none' })
     }
   })
 }
@@ -223,256 +324,621 @@ function confirmDelete() {
       if (res.confirm && postcard.value) {
         store.deletePostcard(postcard.value.id)
         UIUtil.showSuccess(ToastMessages.success.delete)
-        setTimeout(() => {
-          uni.switchTab({ url: '/pages/home/home' })
-        }, 1500)
+        setTimeout(() => uni.switchTab({ url: '/pages/home/home' }), 1500)
       }
     }
   })
 }
 
-function loadPostcard() {
-  if (postcardId.value) {
-    postcard.value = store.getPostcardById(postcardId.value) || null
-  }
+function viewPostcard(card: Postcard) {
+  uni.navigateTo({ url: `/pages/detail/detail?id=${card.id}` })
 }
 
 onLoad((options) => {
-  if (options?.id) {
-    postcardId.value = options.id
-  }
+  if (options?.id) postcardId.value = options.id
 })
 
 onMounted(() => {
   store.initData()
-  loadPostcard()
+  if (postcardId.value) {
+    postcard.value = store.getPostcardById(postcardId.value) || null
+  }
+  setTimeout(() => { cardRevealed.value = true }, 120)
 })
 </script>
 
 <style lang="scss" scoped>
 .page-container {
   min-height: 100vh;
-  background: #FAF7F2;
+  background: $page-background;
+  position: relative;
 }
 
-.custom-header {
+// ─── Floating nav ───
+.float-nav {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 88rpx;
-  padding-top: 44px;
-  background: linear-gradient(135deg, #2E7D58 0%, #2E6E49 100%);
+  padding-top: 50px;
+  height: 100px;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  padding-left: 24rpx;
-  padding-right: 24rpx;
-  z-index: 100;
+  padding-left: 32rpx;
+  padding-right: 32rpx;
+  padding-bottom: 16rpx;
+  z-index: 20;
   box-sizing: border-box;
 }
 
-.header-left, .header-right {
-  width: 64rpx;
-  height: 64rpx;
+.nav-btn {
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 50%;
+  background: rgba(20, 15, 10, 0.35);
+  border: 1rpx solid rgba(244, 239, 229, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.header-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #fff;
+.nav-btn-dark {
+  background: $card-bg;
+  border-color: $line-sepia;
 }
 
-.loading-overlay {
-  position: fixed;
-  top: 0;
+.nav-label {
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  letter-spacing: 3rpx;
+  color: rgba(244, 239, 229, 0.9);
+  text-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.3);
+}
+
+// ─── Scroll + hero ───
+.scroll-wrap {
+  height: 100vh;
+}
+
+.hero-wrap {
+  position: relative;
+  width: 100%;
+  height: 800rpx;
+}
+
+.hero-img {
+  width: 100%;
+  height: 100%;
+}
+
+.hero-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #C9D2B6 0%, #6E8862 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-fade {
+  position: absolute;
+  bottom: 0;
   left: 0;
   right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
+  height: 160rpx;
+  background: linear-gradient(180deg, transparent, $page-background);
+}
+
+// ─── Postmark ───
+.postmark {
+  position: absolute;
+  top: 156rpx;
+  right: 36rpx;
+  transform: rotate(-9deg);
+  width: 172rpx;
+  height: 172rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 200;
+  opacity: 0.9;
 }
 
-.loading-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.loading-spinner {
-  width: 48rpx;
-  height: 48rpx;
-  border: 4rpx solid #F3F3F3;
-  border-top: 4rpx solid #2E7D58;
+.postmark-outer {
+  position: absolute;
+  width: 172rpx;
+  height: 172rpx;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  border: 2rpx solid rgba(244, 239, 229, 0.5);
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.postmark-inner {
+  position: absolute;
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(244, 239, 229, 0.8);
 }
 
-.loading-text {
-  font-size: 26rpx;
-  color: #666;
+.postmark-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
 }
 
-.content {
-  padding-top: calc(88rpx + 44px);
+.postmark-city {
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 4rpx;
+  color: rgba(244, 239, 229, 0.9);
 }
 
-.scroll-content {
-  height: calc(100vh - 88rpx - 44px);
+.postmark-date {
+  font-family: $font-family-serif;
+  font-size: 36rpx;
+  font-weight: 500;
+  color: rgba(244, 239, 229, 0.95);
+  line-height: 1.1;
 }
 
-.card-detail {
-  margin: 24rpx;
-  background: #fff;
-  border-radius: 24rpx;
+.postmark-year {
+  font-family: $font-family-mono;
+  font-size: 14rpx;
+  letter-spacing: 4rpx;
+  color: rgba(244, 239, 229, 0.7);
+}
+
+// ─── Detail card wrap ───
+.detail-card-wrap {
+  padding: 0 36rpx;
+  margin-top: -76rpx;
+  position: relative;
+  z-index: 5;
+  transform: translateY(80rpx);
+  opacity: 0;
+  transition: transform 0.72s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.6s ease;
+
+  &.card-revealed {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// ─── Postcard back ───
+.pback {
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  border-radius: 8rpx;
   overflow: hidden;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 24rpx 64rpx rgba(40, 30, 15, 0.10);
 }
 
-.card-image-wrapper {
-  width: 100%;
-  height: 400rpx;
+.pback-hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 28rpx 28rpx 20rpx;
+  gap: 16rpx;
 }
 
-.card-image {
-  width: 100%;
-  height: 100%;
+.pback-hd-left { flex: 1; min-width: 0; }
+
+.pback-title {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  letter-spacing: 4rpx;
+  color: $ink-black;
+  margin-bottom: 6rpx;
 }
 
-.card-image-placeholder {
-  width: 100%;
-  height: 100%;
-  background: #F5F5DC;
+.pback-series {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 14rpx;
+  letter-spacing: 2rpx;
+  color: $mute-text;
+}
+
+.pback-stamp {
+  flex-shrink: 0;
+  width: 88rpx;
+  height: 112rpx;
+  border: 1rpx dashed currentColor;
+  border-radius: 3rpx;
+  background: $page-background;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  transform: rotate(-2deg);
+}
+
+.pback-stamp-dot { font-size: 28rpx; }
+
+.pback-stamp-name {
+  font-family: $font-family-mono;
+  font-size: 14rpx;
+  letter-spacing: 1rpx;
+}
+
+.pback-top-rule {
+  height: 1rpx;
+  background: $line-sepia;
+  margin: 0 28rpx;
+}
+
+// ─── Postcard back body ───
+.pback-body {
+  display: flex;
+  min-height: 320rpx;
+  padding: 24rpx 28rpx 20rpx;
+  gap: 0;
+}
+
+.pback-message {
+  flex: 1;
+  min-width: 0;
+  padding-right: 24rpx;
+}
+
+.pback-msg-label {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 14rpx;
+  letter-spacing: 3rpx;
+  color: $travel-blue;
+  margin-bottom: 16rpx;
+}
+
+.pback-ruled-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 22rpx;
+}
+
+.pback-rule-line {
+  height: 1rpx;
+  background: $line-sepia;
+}
+
+.pback-note {
+  display: block;
+  font-family: $font-family-serif;
+  font-style: italic;
+  font-size: 28rpx;
+  color: $ink-black;
+  line-height: 1.75;
+  letter-spacing: 0.5rpx;
+  padding: 16rpx 0;
+}
+
+.pback-sig {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16rpx;
+  padding-top: 14rpx;
+  border-top: 1rpx dashed $line-sepia;
+}
+
+.pback-sig-name,
+.pback-sig-date {
+  font-family: $font-family-mono;
+  font-size: 14rpx;
+  letter-spacing: 2rpx;
+  color: $mute-text;
+}
+
+// ─── Vertical divider ───
+.pback-vdivider {
+  width: 1rpx;
+  background: $line-sepia;
+  flex-shrink: 0;
+  margin: 0 8rpx;
+}
+
+// ─── Address block ───
+.pback-address {
+  width: 220rpx;
+  flex-shrink: 0;
+  padding-left: 20rpx;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.pback-addr-block {
+  flex: 1;
+}
+
+.pback-addr-label {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 14rpx;
+  letter-spacing: 3rpx;
+  color: $travel-blue;
+  margin-bottom: 8rpx;
+}
+
+.pback-addr-main {
+  display: block;
+  font-family: $font-family-serif;
+  font-size: 24rpx;
+  font-weight: 500;
+  color: $ink-black;
+  margin-bottom: 4rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pback-addr-sub {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 14rpx;
+  letter-spacing: 1rpx;
+  color: $mute-text;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pback-addr-sep {
+  height: 1rpx;
+  background: $line-sepia;
+  margin: 16rpx 0;
+}
+
+// ─── Postmark in address area ───
+.pback-postmark {
+  position: relative;
+  width: 96rpx;
+  height: 96rpx;
+  margin-top: 16rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  transform: rotate(-8deg);
 }
 
-.card-info {
-  padding: 24rpx;
+.pback-pm-outer {
+  position: absolute;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(164, 59, 45, 0.5);
+}
+
+.pback-pm-inner {
+  position: absolute;
+  width: 78rpx;
+  height: 78rpx;
+  border-radius: 50%;
+  border: 1rpx solid rgba(164, 59, 45, 0.35);
+}
+
+.pback-pm-text {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
-  border-bottom: 1rpx solid #F0F0F0;
-}
-
-.info-row {
-  display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: 2rpx;
 }
 
-.location-text {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #2C2C2C;
+.pback-pm-city {
+  font-family: $font-family-mono;
+  font-size: 14rpx;
+  letter-spacing: 3rpx;
+  color: rgba(164, 59, 45, 0.8);
 }
 
-.city-text, .date-text {
-  font-size: 26rpx;
-  color: #666;
+.pback-pm-date {
+  font-family: $font-family-serif;
+  font-size: 22rpx;
+  font-weight: 500;
+  color: rgba(164, 59, 45, 0.85);
+  line-height: 1.1;
 }
 
-.card-note {
-  padding: 24rpx;
+// ─── Postcard back footer ───
+.pback-footer {
   display: flex;
-  flex-direction: column;
-  gap: 12rpx;
-  border-bottom: 1rpx solid #F0F0F0;
-}
-
-.note-text {
-  font-size: 28rpx;
-  color: #444;
-  line-height: 1.6;
-}
-
-.card-stamp {
-  padding: 24rpx;
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-}
-
-.stamp-label {
-  font-size: 26rpx;
-  color: #666;
-}
-
-.stamp-display {
-  display: flex;
   align-items: center;
-  gap: 12rpx;
+  padding: 16rpx 28rpx;
+  border-top: 1rpx solid $line-sepia;
+  background: $paper-beige;
 }
 
-.stamp-name {
-  font-size: 26rpx;
-  color: #2C2C2C;
+.pback-footer-l,
+.pback-footer-r {
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 3rpx;
+  color: $mute-text;
 }
 
-.actions-section {
-  margin: 24rpx;
+// ─── Action row ───
+.action-row {
   display: flex;
-  gap: 24rpx;
+  gap: 16rpx;
+  margin-top: 28rpx;
 }
 
 .action-btn {
   flex: 1;
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 24rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
+  padding: 28rpx 0;
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  border-radius: 6rpx;
+  color: $body-text;
+
+  &.action-btn-active {
+    color: $stamp-red;
+    border-color: rgba(164, 59, 45, 0.3);
+    background: rgba(164, 59, 45, 0.04);
+  }
 }
 
-.action-btn.active {
-  background: rgba(255, 71, 87, 0.1);
+.action-main {
+  font-family: $font-family-serif;
+  font-size: 22rpx;
+  font-weight: 500;
+  color: $ink-black;
 }
 
-.action-text {
-  font-size: 24rpx;
-  color: #666;
+.action-btn-active .action-main {
+  color: $stamp-red;
 }
 
+.action-sub {
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 2rpx;
+  color: $mute-text;
+}
+
+// ─── Journey context ───
+.journey-strip {
+  margin-top: 48rpx;
+}
+
+.journey-strip-hd {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 20rpx;
+}
+
+.journey-kicker {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 3rpx;
+  color: $travel-blue;
+  margin-bottom: 6rpx;
+}
+
+.journey-title {
+  display: block;
+  font-family: $font-family-serif;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: $ink-black;
+}
+
+.journey-count {
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 2rpx;
+  color: $mute-text;
+}
+
+.journey-scroll {
+  width: 100%;
+}
+
+.journey-cards {
+  display: flex;
+  gap: 20rpx;
+  width: max-content;
+  padding-bottom: 16rpx;
+}
+
+.journey-mini-card {
+  width: 240rpx;
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  border-radius: 6rpx;
+  padding: 16rpx;
+}
+
+.journey-mini-thumb {
+  width: 100%;
+  height: 176rpx;
+  border-radius: 4rpx;
+  overflow: hidden;
+  margin-bottom: 16rpx;
+}
+
+.journey-mini-img { width: 100%; height: 100%; }
+
+.journey-mini-grad {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #C9D2B6 0%, #6E8862 100%);
+}
+
+.journey-mini-loc {
+  display: block;
+  font-family: $font-family-serif;
+  font-size: 26rpx;
+  font-weight: 500;
+  color: $ink-black;
+  margin-bottom: 6rpx;
+}
+
+.journey-mini-date {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 2rpx;
+  color: $mute-text;
+}
+
+// ─── Empty state ───
 .empty-state {
+  min-height: 100vh;
+  background: $page-background;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 120rpx 40rpx;
+  padding: 80rpx 40rpx;
+  position: relative;
 }
 
-.empty-text {
-  font-size: 30rpx;
-  color: #999;
-  margin-top: 24rpx;
+.float-nav-empty {
+  position: absolute;
+  top: 50px;
+  left: 32rpx;
+}
+
+.empty-main {
+  font-family: $font-family-serif;
+  font-size: 32rpx;
+  color: $body-text;
+  margin-top: 32rpx;
+  margin-bottom: 40rpx;
 }
 
 .empty-btn {
-  margin-top: 40rpx;
-  background: linear-gradient(135deg, #2E7D58 0%, #2E6E49 100%);
-  padding: 24rpx 64rpx;
-  border-radius: 999rpx;
+  background: $travel-blue;
+  padding: 20rpx 60rpx;
+  border-radius: 6rpx;
 }
 
-.empty-btn-text {
+.empty-btn-txt {
+  font-family: $font-family-serif;
   font-size: 28rpx;
-  color: #fff;
-  font-weight: 600;
+  color: $card-bg;
+  letter-spacing: 4rpx;
+}
+
+.btm-gap { height: 120rpx; }
+
+// ── 收藏邮戳动画 ──
+.fav-stamping { animation: fav-press 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+@keyframes fav-press {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(0.65); }
+  65%  { transform: scale(1.32); }
+  100% { transform: scale(1); }
 }
 </style>

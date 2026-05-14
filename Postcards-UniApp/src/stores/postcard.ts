@@ -6,6 +6,7 @@ import type { Postcard } from '@/model/Postcard'
 import { mockTravels, mockPostcards } from '@/data/mockData'
 import { StorageUtil } from '@/utils/storage'
 import { AppConfig } from '@/config/app'
+import { TravelApi, PostcardApi } from '@/services/api'
 
 export const usePostcardStore = defineStore('postcard', () => {
   const travels = ref<Travel[]>([])
@@ -18,7 +19,7 @@ export const usePostcardStore = defineStore('postcard', () => {
   })
 
   const sortedPostcards = computed(() => {
-    return [...postcards.value].sort((a, b) => b.recordedAt - a.createdAt)
+    return [...postcards.value].sort((a, b) => b.recordedAt - a.recordedAt)
   })
 
   const currentTravel = computed(() => {
@@ -132,6 +133,11 @@ export const usePostcardStore = defineStore('postcard', () => {
     return false
   }
 
+  function setCurrentTravel(id: string): void {
+    travels.value = travels.value.map(t => ({ ...t, isCurrent: t.id === id }))
+    saveToStorage()
+  }
+
   function deletePostcard(postcardId: string): boolean {
     const index = postcards.value.findIndex(p => p.id === postcardId)
     if (index !== -1) {
@@ -140,6 +146,20 @@ export const usePostcardStore = defineStore('postcard', () => {
       return true
     }
     return false
+  }
+
+  async function syncFromServer(): Promise<void> {
+    try {
+      const [remoteTravels, remotePostcards] = await Promise.all([
+        TravelApi.list(),
+        PostcardApi.list(),
+      ])
+      travels.value = remoteTravels as Travel[]
+      postcards.value = remotePostcards as Postcard[]
+      saveToStorage()
+    } catch {
+      // keep local data on network error
+    }
   }
 
   function clearError(): void {
@@ -167,6 +187,7 @@ export const usePostcardStore = defineStore('postcard', () => {
     getPostcardsByTravel,
     addTravel,
     updateTravel,
+    setCurrentTravel,
     addPostcard,
     updatePostcard,
     toggleFavorite,
@@ -174,5 +195,6 @@ export const usePostcardStore = defineStore('postcard', () => {
     deletePostcard,
     clearError,
     resetData,
+    syncFromServer,
   }
 })

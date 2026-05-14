@@ -4,7 +4,7 @@
       "path": "pages/index/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "远方邮政"
+        "navigationBarTitleText": "旅行邮局"
       }
     },
     {
@@ -62,21 +62,77 @@
         "navigationStyle": "custom",
         "navigationBarTitleText": "编辑明信片"
       }
+    },
+    {
+      "path": "pages/travel/travel",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "旅程管理"
+      }
+    },
+    {
+      "path": "pages/auth/login",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "登录"
+      }
+    },
+    {
+      "path": "pages/auth/register",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "注册"
+      }
+    },
+    {
+      "path": "pages/inbox/inbox",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "收件箱"
+      }
+    },
+    {
+      "path": "pages/maildetail/maildetail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "明信片详情"
+      }
+    },
+    {
+      "path": "pages/send/send",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "寄出明信片"
+      }
+    },
+    {
+      "path": "pages/shop/shop",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "邮票商店"
+      }
+    },
+    {
+      "path": "pages/contacts/contacts",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "通讯录"
+      }
     }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "white",
-    "navigationBarTitleText": "远方邮政",
+    "navigationBarTitleText": "旅行邮局",
     "navigationBarBackgroundColor": "#2E7D58",
     "backgroundColor": "#FAF7F2",
     "backgroundColorTop": "#FAF7F2",
     "backgroundColorBottom": "#FAF7F2"
   },
   "tabBar": {
-    "color": "#999999",
-    "selectedColor": "#2E7D58",
-    "borderStyle": "white",
-    "backgroundColor": "#FFFFFF",
+    "color": "#8E8775",
+    "selectedColor": "#3C604D",
+    "borderStyle": "black",
+    "backgroundColor": "#FBF8F1",
     "list": [
       {
         "pagePath": "pages/home/home",

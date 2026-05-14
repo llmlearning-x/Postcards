@@ -1,58 +1,78 @@
 <template>
   <view class="page-container">
-    <view class="header">
-      <text class="header-title">时间轴</text>
-      <text class="header-subtitle">回顾旅途的点点滴滴</text>
+    <view class="postal-header">
+      <view class="header-perf"></view>
+      <text class="header-kicker">TIMELINE · 时间轴</text>
+      <text class="header-title">回顾旅途</text>
+      <text class="header-subtitle">按日期倒序 · 共 {{ postcards.length }} 张明信片</text>
     </view>
 
     <scroll-view class="content" scroll-y>
-      <view v-if="groupedPostcards.length > 0">
-        <view v-for="group in groupedPostcards" :key="group.date" class="timeline-group">
-          <view class="group-header">
-            <text class="group-date">{{ group.date }}</text>
-            <text class="group-count">{{ group.items.length }} 张明信片</text>
+      <view v-if="groupedPostcards.length > 0" class="groups-wrap">
+        <view v-for="group in groupedPostcards" :key="group.dateKey" class="timeline-group">
+          <!-- Date group header -->
+          <view class="group-hd">
+            <view class="group-date-block">
+              <text class="group-date-n">{{ group.dayNum }}</text>
+              <view>
+                <text class="group-month-lbl">{{ group.monthLbl }}</text>
+                <text class="group-weekday">{{ group.weekday }}</text>
+              </view>
+            </view>
+            <view class="group-rule"></view>
+            <text class="group-count-lbl">{{ String(group.items.length).padStart(2, '0') }} 张</text>
           </view>
 
-          <view class="timeline-list">
-            <view
-              v-for="(card, index) in group.items"
-              :key="card.id"
-              class="timeline-item"
-            >
-              <view class="timeline-connector">
-                <view class="connector-dot" :class="{ first: index === 0 }"></view>
-                <view v-if="index < group.items.length - 1" class="connector-line"></view>
-              </view>
-
-              <view class="timeline-card" @click="viewPostcard(card)">
-                <view class="card-image">
-                  <image v-if="card.photoUrl" :src="card.photoUrl" class="card-image-src" mode="aspectFill" />
-                  <IconImage v-else :size="40" color="#999" />
-                </view>
-                <view class="card-content">
-                  <text class="card-location">{{ card.locationName }}</text>
-                  <text class="card-city">{{ card.city }}</text>
-                  <text class="card-note">{{ card.note }}</text>
-                </view>
-                <view class="card-favorite" @click.stop="toggleFavorite(card.id)">
-                  <IconFavorite :size="28" :color="card.isFavorite ? '#FF4757' : '#CCC'" />
+          <!-- Cards with timeline rail -->
+          <view class="rail-wrap">
+            <view class="rail-line"></view>
+            <view class="cards-col">
+              <view
+                v-for="(card, idx) in group.items"
+                :key="card.id"
+                class="rail-item"
+              >
+                <view
+                  class="rail-dot"
+                  :class="{ 'rail-dot-first': idx === 0 && groupedPostcards[0] === group }"
+                ></view>
+                <view class="letter-row" @click="viewPostcard(card)">
+                  <view class="row-thumb">
+                    <image v-if="card.photoUrl" :src="card.photoUrl" class="row-thumb-img" mode="aspectFill" />
+                    <view v-else class="row-thumb-grad"></view>
+                  </view>
+                  <view class="row-body">
+                    <text class="row-meta">{{ card.city.toUpperCase() }} · {{ dotDate(card.recordedAt) }}</text>
+                    <text class="row-loc">{{ card.locationName }}</text>
+                    <text class="row-note">"{{ card.note }}"</text>
+                  </view>
+                  <view class="row-trail">
+                    <view @click.stop="toggleFavorite(card.id)">
+                      <IconFavorite :size="28" :color="card.isFavorite ? '#A43B2D' : '#B5AE9B'" />
+                    </view>
+                    <view class="stamp-badge" :style="{ 'border-color': stampColor(card.stampDesign) }">
+                      <text class="stamp-dot" :style="{ color: stampColor(card.stampDesign) }">✦</text>
+                    </view>
+                  </view>
                 </view>
               </view>
             </view>
           </view>
         </view>
+
+        <text class="timeline-end">— · 旅程开始 · —</text>
       </view>
 
       <view v-else class="empty-state">
-        <IconImage :size="96" color="#CCC" />
-        <text class="empty-text">还没有明信片</text>
-        <text class="empty-hint">去记录你的第一张明信片吧</text>
-        <view class="empty-action" @click="goToRecord">
-          <text class="action-text">立即记录</text>
+        <IconImage :size="96" color="#B5AE9B" />
+        <text class="empty-main">还没有明信片</text>
+        <text class="empty-sub">去记录你的第一张明信片吧</text>
+        <view class="empty-btn" @click="goToRecord">
+          <text class="empty-btn-txt">立即记录</text>
         </view>
       </view>
 
-      <view class="bottom-space"></view>
+      <view class="btm-gap"></view>
     </scroll-view>
   </view>
 </template>
@@ -60,218 +80,330 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { usePostcardStore } from '@/stores/postcard'
+import { StampDesigns } from '@/config/app'
 import type { Postcard } from '@/model/Postcard'
 import { IconImage, IconFavorite } from '@/components/icons'
 
 const store = usePostcardStore()
-
 const postcards = computed(() => store.sortedPostcards)
 
+const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+
 interface GroupedPostcard {
-  date: string
+  dateKey: string
+  dayNum: string
+  monthLbl: string
+  weekday: string
   items: Postcard[]
 }
 
-const groupedPostcards = computed(() => {
-  const groups: { [key: string]: Postcard[] } = {}
-
+const groupedPostcards = computed<GroupedPostcard[]>(() => {
+  const map: Record<string, Postcard[]> = {}
   postcards.value.forEach(card => {
-    const date = formatDate(card.recordedAt)
-    if (!groups[date]) {
-      groups[date] = []
-    }
-    groups[date].push(card)
+    const d = new Date(card.recordedAt)
+    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+    if (!map[key]) map[key] = []
+    map[key].push(card)
   })
-
-  return Object.entries(groups).map(([date, items]) => ({
-    date,
-    items
-  }))
+  return Object.entries(map).map(([key, items]) => {
+    const d = new Date(items[0].recordedAt)
+    return {
+      dateKey: key,
+      dayNum: String(d.getDate()).padStart(2, '0'),
+      monthLbl: MONTHS[d.getMonth()],
+      weekday: '星期' + WEEKDAYS[d.getDay()],
+      items,
+    }
+  })
 })
 
-function formatDate(timestamp: number): string {
-  const date = new Date(timestamp)
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-  return `${year}年${month}月${day}日`
+function dotDate(ts: number): string {
+  const d = new Date(ts)
+  return `${String(d.getMonth() + 1).padStart(2, '0')}·${String(d.getDate()).padStart(2, '0')}`
+}
+
+function stampColor(id: string): string {
+  return StampDesigns.find(s => s.id === id)?.color ?? '#8E8775'
 }
 
 function viewPostcard(card: Postcard) {
-  uni.navigateTo({
-    url: `/pages/detail/detail?id=${card.id}`,
-  })
+  uni.navigateTo({ url: `/pages/detail/detail?id=${card.id}` })
 }
 
 function toggleFavorite(id: string) {
   store.toggleFavorite(id)
-  uni.showToast({
-    title: '收藏已更新',
-    icon: 'success'
-  })
+  uni.showToast({ title: '收藏已更新', icon: 'success' })
 }
 
 function goToRecord() {
   uni.switchTab({ url: '/pages/record/record' })
 }
 
-onMounted(() => {
-  store.initData()
-})
+onMounted(() => store.initData())
 </script>
 
 <style lang="scss" scoped>
 .page-container {
-  min-height: 100vh;
-  background: #FAF7F2;
-}
-
-.header {
-  background: linear-gradient(135deg, #2E7D58 0%, #2E6E49 100%);
-  padding: 120rpx 40rpx 40rpx;
-}
-
-.header-title {
-  font-size: 44rpx;
-  font-weight: 700;
-  color: #fff;
-  font-family: 'Georgia', serif;
-  display: block;
-  margin-bottom: 8rpx;
-}
-
-.header-subtitle {
-  font-size: 26rpx;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.content {
-  height: calc(100vh - 220rpx);
-  padding: 24rpx;
-  box-sizing: border-box;
-  width: 100%;
-}
-
-.timeline-group {
-  margin-bottom: 32rpx;
-}
-
-.group-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16rpx;
-  padding: 0 16rpx;
-}
-
-.group-date {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: #2C2C2C;
-}
-
-.group-count {
-  font-size: 24rpx;
-  color: #999;
-}
-
-.timeline-list {
-  padding-left: 24rpx;
-}
-
-.timeline-item {
-  display: flex;
-  gap: 16rpx;
-}
-
-.timeline-connector {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  width: 24rpx;
+  height: 100vh;
+  background: $page-background;
+}
+
+.postal-header {
+  background: $page-background;
+  padding: 100rpx 48rpx 40rpx;
+  border-bottom: 1rpx solid $line-sepia;
+  position: relative;
   flex-shrink: 0;
 }
 
-.connector-dot {
-  width: 16rpx;
-  height: 16rpx;
-  background: #2E7D58;
-  border-radius: 50%;
-  border: 4rpx solid #fff;
-  box-shadow: 0 2rpx 8rpx rgba(46, 125, 88, 0.3);
-
-  &.first {
-    background: #22C55E;
-    box-shadow: 0 0 0 8rpx rgba(34, 197, 94, 0.2);
-  }
+.header-perf {
+  position: absolute;
+  top: 90rpx;
+  left: 0;
+  right: 0;
+  height: 2rpx;
+  background-image: repeating-linear-gradient(
+    90deg,
+    $line-sepia 0,
+    $line-sepia 8rpx,
+    transparent 8rpx,
+    transparent 16rpx
+  );
 }
 
-.connector-line {
-  width: 2rpx;
+.header-kicker {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 20rpx;
+  letter-spacing: 4rpx;
+  color: $travel-blue;
+  margin-bottom: 22rpx;
+}
+
+.header-title {
+  display: block;
+  font-family: $font-family-serif;
+  font-size: 58rpx;
+  font-weight: 400;
+  color: $ink-black;
+  line-height: 1.15;
+  letter-spacing: -1rpx;
+}
+
+.header-subtitle {
+  display: block;
+  font-family: $font-family-serif;
+  font-size: 26rpx;
+  color: $body-text;
+  margin-top: 18rpx;
+}
+
+.content {
   flex: 1;
-  background: #E0D5C0;
-  margin: 8rpx 0;
-}
-
-.timeline-card {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  background: #fff;
-  border-radius: 20rpx;
-  padding: 20rpx;
-  margin-bottom: 16rpx;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
-}
-
-.card-image {
-  width: 100rpx;
-  height: 100rpx;
-  background: #F5F5DC;
-  border-radius: 12rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 16rpx;
   overflow: hidden;
 }
 
-.card-image-src {
-  width: 100%;
-  height: 100%;
+.groups-wrap {
+  padding: 40rpx 40rpx 0;
 }
 
-.card-content {
+// ─── Timeline group ───
+.timeline-group {
+  margin-bottom: 44rpx;
+}
+
+.group-hd {
+  display: flex;
+  align-items: baseline;
+  gap: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.group-date-block {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  flex-shrink: 0;
+}
+
+.group-date-n {
+  font-family: $font-family-serif;
+  font-size: 52rpx;
+  font-weight: 400;
+  color: $ink-black;
+  line-height: 1;
+  letter-spacing: -1rpx;
+}
+
+.group-month-lbl {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 3rpx;
+  color: $mute-text;
+}
+
+.group-weekday {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 14rpx;
+  letter-spacing: 2rpx;
+  color: $whisper;
+}
+
+.group-rule {
+  flex: 1;
+  height: 1rpx;
+  background: $line-sepia;
+}
+
+.group-count-lbl {
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 3rpx;
+  color: $mute-text;
+  flex-shrink: 0;
+}
+
+// ─── Timeline rail ───
+.rail-wrap {
+  position: relative;
+  padding-left: 36rpx;
+}
+
+.rail-line {
+  position: absolute;
+  left: 4rpx;
+  top: 24rpx;
+  bottom: 24rpx;
+  width: 2rpx;
+  background: $line-sepia;
+}
+
+.cards-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.rail-item {
+  position: relative;
+}
+
+.rail-dot {
+  position: absolute;
+  left: -38rpx;
+  top: 48rpx;
+  width: 18rpx;
+  height: 18rpx;
+  border-radius: 50%;
+  background: $page-background;
+  border: 3rpx solid $travel-blue;
+  z-index: 1;
+}
+
+.rail-dot-first {
+  background: $travel-blue;
+  box-shadow: 0 0 0 8rpx $green-soft;
+}
+
+// ─── Letter row card ───
+.letter-row {
+  display: flex;
+  gap: 24rpx;
+  padding: 24rpx;
+  background: $card-bg;
+  border-radius: 8rpx;
+  border: 1rpx solid $line-sepia;
+  align-items: stretch;
+}
+
+.row-thumb {
+  width: 136rpx;
+  height: 136rpx;
+  border-radius: 6rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.row-thumb-img { width: 100%; height: 100%; }
+
+.row-thumb-grad {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #C9D2B6 0%, #6E8862 100%);
+}
+
+.row-body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4rpx;
+  justify-content: center;
+  min-width: 0;
+  gap: 8rpx;
 }
 
-.card-location {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #2C2C2C;
+.row-meta {
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 3rpx;
+  color: $mute-text;
 }
 
-.card-city {
-  font-size: 22rpx;
-  color: #999;
+.row-loc {
+  font-family: $font-family-serif;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: $ink-black;
+  line-height: 1.1;
 }
 
-.card-note {
-  font-size: 22rpx;
-  color: #666;
+.row-note {
+  font-family: $font-family-serif;
+  font-style: italic;
+  font-size: 24rpx;
+  color: $body-text;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-top: 4rpx;
 }
 
-.card-favorite {
-  padding: 8rpx;
+.row-trail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-left: 8rpx;
 }
 
+.stamp-badge {
+  width: 44rpx;
+  height: 54rpx;
+  border: 1rpx dashed currentColor;
+  background: $paper-beige;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2rpx;
+}
+
+.stamp-dot { font-size: 20rpx; }
+
+// ─── Timeline end ───
+.timeline-end {
+  display: block;
+  text-align: center;
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  letter-spacing: 6rpx;
+  color: $whisper;
+  padding: 24rpx 0 40rpx;
+}
+
+// ─── Empty state ───
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -279,32 +411,33 @@ onMounted(() => {
   padding: 100rpx 40rpx;
 }
 
-.empty-text {
+.empty-main {
+  font-family: $font-family-serif;
   font-size: 32rpx;
-  color: #666;
+  color: $body-text;
+  margin-top: 28rpx;
   margin-bottom: 8rpx;
-  margin-top: 24rpx;
 }
 
-.empty-hint {
+.empty-sub {
+  font-family: $font-family-serif;
   font-size: 26rpx;
-  color: #999;
-  margin-bottom: 32rpx;
+  color: $mute-text;
+  margin-bottom: 40rpx;
 }
 
-.empty-action {
-  background: #2E7D58;
+.empty-btn {
+  background: $travel-blue;
   padding: 20rpx 60rpx;
-  border-radius: 999rpx;
+  border-radius: 6rpx;
 }
 
-.action-text {
+.empty-btn-txt {
+  font-family: $font-family-serif;
   font-size: 28rpx;
-  color: #fff;
-  font-weight: 600;
+  color: $card-bg;
+  letter-spacing: 4rpx;
 }
 
-.bottom-space {
-  height: 120rpx;
-}
+.btm-gap { height: 120rpx; }
 </style>

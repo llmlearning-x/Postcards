@@ -1,6 +1,6 @@
 // 应用配置
 export const AppConfig = {
-  name: '远方邮政',
+  name: '旅行邮局',
   version: '1.0.0',
   storageKeys: {
     TRAVELS: 'postcards_travels',
@@ -35,14 +35,39 @@ export const ToastMessages = {
   },
 } as const
 
-// 邮票样式配置
+// 邮票样式配置 — 4 系列 · 20 款（复古印刷色调）
+// imageUrl: 邮票图案图片，留空时前端用符号占位，图片由后端 stamp_designs 表管理
 export const StampDesigns = [
-  { id: 'classic', name: '经典', icon: 'stampClassic', color: '#C41E3A' },
-  { id: 'nature', name: '自然', icon: 'stampNature', color: '#2E7D58' },
-  { id: 'culture', name: '文化', icon: 'stampCulture', color: '#7C3AED' },
-  { id: 'city', name: '城市', icon: 'stampCity', color: '#2563EB' },
-  { id: 'sea', name: '海洋', icon: 'stampSea', color: '#0EA5E9' },
-  { id: 'sunset', name: '日落', icon: 'stampSunset', color: '#F97316' },
+  // Series I · 旅行 TRAVEL
+  { id: 'classic',     name: '经典', series: 'I',   seriesName: '旅行', color: '#A43B2D', imageUrl: '' },
+  { id: 'nature',      name: '自然', series: 'I',   seriesName: '旅行', color: '#3C604D', imageUrl: '' },
+  { id: 'culture',     name: '文化', series: 'I',   seriesName: '旅行', color: '#5B4F76', imageUrl: '' },
+  { id: 'city',        name: '城市', series: 'I',   seriesName: '旅行', color: '#1F4B66', imageUrl: '' },
+  { id: 'ocean',       name: '海洋', series: 'I',   seriesName: '旅行', color: '#3A7791', imageUrl: '' },
+  { id: 'sunset',      name: '日落', series: 'I',   seriesName: '旅行', color: '#C4753A', imageUrl: '' },
+  // Series II · 古迹 HERITAGE
+  { id: 'greatwall',   name: '长城', series: 'II',  seriesName: '古迹', color: '#7A7264', imageUrl: '' },
+  { id: 'terracotta',  name: '兵马俑', series: 'II', seriesName: '古迹', color: '#9C6240', imageUrl: '' },
+  { id: 'pagoda',      name: '古塔', series: 'II',  seriesName: '古迹', color: '#8B5030', imageUrl: '' },
+  { id: 'garden',      name: '苏园', series: 'II',  seriesName: '古迹', color: '#3E7058', imageUrl: '' },
+  { id: 'canal',       name: '水乡', series: 'II',  seriesName: '古迹', color: '#3B5E7A', imageUrl: '' },
+  // Series III · 四季 SEASONS
+  { id: 'spring',      name: '春樱', series: 'III', seriesName: '四季', color: '#B26573', imageUrl: '' },
+  { id: 'summer',      name: '夏荷', series: 'III', seriesName: '四季', color: '#2F6E5E', imageUrl: '' },
+  { id: 'autumn',      name: '秋枫', series: 'III', seriesName: '四季', color: '#B25A30', imageUrl: '' },
+  { id: 'winter',      name: '冬雪', series: 'III', seriesName: '四季', color: '#6A85A0', imageUrl: '' },
+  // Series IV · 节气 SOLAR TERMS
+  { id: 'lichun',      name: '立春', series: 'IV',  seriesName: '节气', color: '#6B8E4E', imageUrl: '' },
+  { id: 'qingming',    name: '清明', series: 'IV',  seriesName: '节气', color: '#7B946F', imageUrl: '' },
+  { id: 'xiazhi',      name: '夏至', series: 'IV',  seriesName: '节气', color: '#C49432', imageUrl: '' },
+  { id: 'liqiu',       name: '立秋', series: 'IV',  seriesName: '节气', color: '#9C6F2B', imageUrl: '' },
+  { id: 'shuangjiang', name: '霜降', series: 'IV',  seriesName: '节气', color: '#7E97A8', imageUrl: '' },
+  { id: 'dahan',       name: '大寒', series: 'IV',  seriesName: '节气', color: '#3D5266', imageUrl: '' },
+  // Series V · 远方 FAR LANDS
+  { id: 'prairie',     name: '草原', series: 'V',   seriesName: '远方', color: '#7A8540', imageUrl: '' },
+  { id: 'snowpeak',    name: '雪山', series: 'V',   seriesName: '远方', color: '#5A7585', imageUrl: '' },
+  { id: 'desert',      name: '沙漠', series: 'V',   seriesName: '远方', color: '#B07A3E', imageUrl: '' },
+  { id: 'island',      name: '海岛', series: 'V',   seriesName: '远方', color: '#2E7689', imageUrl: '' },
 ] as const
 
 // Mock 图片数据 - 全部来自 Unsplash 开源图库 (CC0 License)

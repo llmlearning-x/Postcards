@@ -1,121 +1,177 @@
 <template>
   <view class="page-container">
     <scroll-view class="content" scroll-y>
-      <!-- Hero Section -->
+      <!-- Green gradient hero -->
       <view class="hero-section">
-        <view class="hero-card">
-          <view class="brand-header">
-            <text class="brand-title">远方邮政</text>
-            <text class="brand-subtitle">CHINA POST</text>
-          </view>
+        <view class="hero-brand">
+          <text class="hero-brand-title">旅行邮局</text>
+          <text class="hero-brand-sub">CHINA POST · TRAVEL EDITION</text>
+        </view>
+        <view class="hero-monogram">
+          <text class="monogram-letter">{{ userInitial }}</text>
+        </view>
+        <text class="hero-name">{{ userName }}</text>
+        <text class="hero-rank">{{ profileTitle }}</text>
+        <view class="mailbox-pill">
+          <text class="mailbox-pill-txt">{{ mailboxNo }}</text>
+        </view>
+        <text class="hero-days">已加入 {{ joinedDays }} 天</text>
+      </view>
 
-          <view class="profile-avatar">
-            <view class="avatar-circle">
-              <IconUser :size="64" color="#2E7D58" />
+      <!-- Floating stats card overlapping hero -->
+      <view class="stats-float">
+        <view class="stats-inner">
+          <view class="stats-item">
+            <text class="stats-num">{{ store.travels.length }}</text>
+            <text class="stats-lbl">总旅程</text>
+          </view>
+          <view class="stats-sep"></view>
+          <view class="stats-item">
+            <text class="stats-num">{{ store.postcards.length }}</text>
+            <text class="stats-lbl">明信片</text>
+          </view>
+          <view class="stats-sep"></view>
+          <view class="stats-item">
+            <text class="stats-num" style="color: #A43B2D;">{{ favoriteCount }}</text>
+            <text class="stats-lbl">收藏</text>
+          </view>
+          <view class="stats-sep"></view>
+          <view class="stats-item">
+            <text class="stats-num" style="color: #3C604D;">{{ authStore.user?.points ?? 0 }}</text>
+            <text class="stats-lbl">积分</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- Stamp album teaser -->
+      <view class="album-section">
+        <view class="section-hd">
+          <text class="section-kicker">STAMP ALBUM · 邮票集藏</text>
+          <view class="section-rule"></view>
+        </view>
+        <view class="album-card">
+          <view class="stamp-row">
+            <view
+              v-for="stamp in stampDesigns"
+              :key="stamp.id"
+              class="stamp-swatch"
+              :class="{ 'stamp-swatch-collected': ownedSet.has(stamp.id) }"
+              :style="ownedSet.has(stamp.id) ? { borderColor: stamp.color } : {}"
+            >
+              <text
+                class="stamp-swatch-icon"
+                :style="ownedSet.has(stamp.id) ? { color: stamp.color } : {}"
+              >✦</text>
+              <text class="stamp-swatch-name">{{ stamp.name }}</text>
             </view>
           </view>
-
-          <text class="profile-name">{{ userName }}</text>
-          <view class="profile-badge">
-            <IconGlobe :size="24" color="#FFD700" />
-            <text class="badge-text">{{ profileTitle }}</text>
-          </view>
-          <text class="profile-days">已加入 {{ joinedDays }} 天</text>
-
-          <view class="mailbox-badge">
-            <text class="mailbox-label">个人邮箱</text>
-            <text class="mailbox-number">{{ mailboxNo }}</text>
+          <view class="album-footer">
+            <text class="album-note">已拥有 {{ ownedStampCount }} 款 · 共 {{ stampDesigns.length }} 款</text>
+            <text class="album-link" @click="goToShop">前往商店 →</text>
           </view>
         </view>
       </view>
 
-      <!-- Stats Section -->
-      <view class="stats-section">
-        <view class="stats-card">
-          <view class="stat-item">
-            <IconStampClassic :size="32" color="#2E7D58" />
-            <text class="stat-value">{{ store.travels.length }}</text>
-            <text class="stat-label">总旅程</text>
-          </view>
-          <view class="stat-divider"></view>
-          <view class="stat-item">
-            <IconImage :size="32" color="#2E7D58" />
-            <text class="stat-value">{{ store.postcards.length }}</text>
-            <text class="stat-label">明信片</text>
-          </view>
-          <view class="stat-divider"></view>
-          <view class="stat-item">
-            <IconFavorite :size="32" color="#C41E3A" />
-            <text class="stat-value">{{ favoriteCount }}</text>
-            <text class="stat-label">收藏</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- Menu Section -->
+      <!-- Social menu -->
       <view class="menu-section">
-        <text class="menu-title">设置</text>
+        <view class="section-hd">
+          <text class="section-kicker">SOCIAL · 社交</text>
+          <view class="section-rule"></view>
+        </view>
+        <view class="menu-card">
+          <view class="menu-item" @click="goToShop">
+            <view class="menu-item-icon">
+              <IconShop :size="22" color="#5C5648" />
+            </view>
+            <text class="menu-item-text">邮票商店</text>
+            <view class="menu-item-pts">
+              <text class="menu-pts-txt">{{ authStore.user?.points ?? 0 }} PT</text>
+            </view>
+            <IconCaretRight :size="18" color="#B5AE9B" />
+          </view>
+          <view class="menu-rule"></view>
+          <view class="menu-item" @click="goToContacts">
+            <view class="menu-item-icon">
+              <IconContacts :size="22" color="#5C5648" />
+            </view>
+            <text class="menu-item-text">我的通讯录</text>
+            <IconCaretRight :size="18" color="#B5AE9B" />
+          </view>
+          <view class="menu-rule"></view>
+          <view class="menu-item" @click="goToInbox">
+            <view class="menu-item-icon">
+              <IconInbox :size="22" color="#5C5648" />
+            </view>
+            <text class="menu-item-text">我的收件箱</text>
+            <IconCaretRight :size="18" color="#B5AE9B" />
+          </view>
+        </view>
+      </view>
+
+      <!-- Settings menu -->
+      <view class="menu-section">
+        <view class="section-hd">
+          <text class="section-kicker">SETTINGS · 设置</text>
+          <view class="section-rule"></view>
+        </view>
         <view class="menu-card">
           <view class="menu-item" @click="editNickname">
-            <view class="menu-icon">
-              <IconEdit :size="24" color="#2E7D58" />
+            <view class="menu-item-icon">
+              <IconEdit :size="22" color="#5C5648" />
             </view>
-            <text class="menu-text">编辑昵称</text>
-            <view class="menu-arrow">
-              <IconCaretRight :size="20" color="#999" />
-            </view>
+            <text class="menu-item-text">编辑昵称</text>
+            <IconCaretRight :size="18" color="#B5AE9B" />
           </view>
-          <view class="menu-divider"></view>
-          <view class="menu-item" @click="resetData">
-            <view class="menu-icon">
-              <IconReset :size="24" color="#2E7D58" />
+          <view class="menu-rule"></view>
+          <view class="menu-item" @click="doLogout">
+            <view class="menu-item-icon">
+              <IconSignOut :size="22" color="#A43B2D" />
             </view>
-            <text class="menu-text">重置数据</text>
-            <view class="menu-arrow">
-              <IconCaretRight :size="20" color="#999" />
-            </view>
+            <text class="menu-item-text" style="color: #A43B2D;">退出登录</text>
+            <IconCaretRight :size="18" color="#B5AE9B" />
           </view>
         </view>
+      </view>
 
-        <text class="menu-title">关于</text>
+      <view class="menu-section">
+        <view class="section-hd">
+          <text class="section-kicker">ABOUT · 关于</text>
+          <view class="section-rule"></view>
+        </view>
         <view class="menu-card">
           <view class="menu-item" @click="showPrivacy">
-            <view class="menu-icon">
-              <IconShield :size="24" color="#2E7D58" />
+            <view class="menu-item-icon">
+              <IconShield :size="22" color="#5C5648" />
             </view>
-            <text class="menu-text">隐私协议</text>
-            <view class="menu-arrow">
-              <IconCaretRight :size="20" color="#999" />
-            </view>
+            <text class="menu-item-text">隐私协议</text>
+            <IconCaretRight :size="18" color="#B5AE9B" />
           </view>
-          <view class="menu-divider"></view>
+          <view class="menu-rule"></view>
           <view class="menu-item" @click="showAgreement">
-            <view class="menu-icon">
-              <IconFileText :size="24" color="#2E7D58" />
+            <view class="menu-item-icon">
+              <IconFileText :size="22" color="#5C5648" />
             </view>
-            <text class="menu-text">用户协议</text>
-            <view class="menu-arrow">
-              <IconCaretRight :size="20" color="#999" />
-            </view>
+            <text class="menu-item-text">用户协议</text>
+            <IconCaretRight :size="18" color="#B5AE9B" />
           </view>
-          <view class="menu-divider"></view>
+          <view class="menu-rule"></view>
           <view class="menu-item" @click="showAbout">
-            <view class="menu-icon">
-              <IconInfo :size="24" color="#2E7D58" />
+            <view class="menu-item-icon">
+              <IconInfo :size="22" color="#5C5648" />
             </view>
-            <text class="menu-text">关于我们</text>
-            <view class="menu-arrow">
-              <IconCaretRight :size="20" color="#999" />
-            </view>
+            <text class="menu-item-text">关于我们</text>
+            <IconCaretRight :size="18" color="#B5AE9B" />
           </view>
         </view>
       </view>
 
       <!-- Footer -->
       <view class="footer">
-        <text class="footer-version">远方邮政 v{{ appVersion }}</text>
-        <text class="footer-copyright">记录旅途，寄往远方</text>
+        <text class="footer-mono">旅行邮局 · v{{ appVersion }}</text>
+        <text class="footer-serif">记录旅途 · 寄往远方</text>
       </view>
+
+      <view class="btm-gap"></view>
     </scroll-view>
   </view>
 </template>
@@ -123,57 +179,59 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { usePostcardStore } from '@/stores/postcard'
-import { AppConfig } from '@/config/app'
+import { useAuthStore } from '@/stores/auth'
+import { UserApi } from '@/services/api'
+import { AppConfig, StampDesigns } from '@/config/app'
 import { StorageUtil } from '@/utils/storage'
 import {
-  IconUser,
-  IconGlobe,
-  IconStampClassic,
-  IconImage,
-  IconFavorite,
   IconEdit,
   IconReset,
   IconShield,
   IconFileText,
   IconInfo,
   IconCaretRight,
+  IconInbox,
+  IconSignOut,
+  IconShop,
+  IconContacts,
 } from '@/components/icons'
 
 const store = usePostcardStore()
+const authStore = useAuthStore()
 
-const USER_NAME_KEY = 'postcards_user_name'
 const FIRST_LAUNCH_KEY = 'postcards_first_launch'
-const MAILBOX_NO_KEY = 'postcards_mailbox_no'
 
-const userName = ref('远方旅人')
+const userName   = ref(authStore.user?.nickname || '远方旅人')
 const joinedDays = ref(1)
-const mailboxNo = ref('CN-000001')
+const mailboxNo  = ref(authStore.user?.mailboxNo || 'CN-000000')
 
-const appVersion = AppConfig.version
+const appVersion   = AppConfig.version
+const stampDesigns = StampDesigns
 
-// 计算收藏数量
-const favoriteCount = computed(() => {
-  return store.postcards.filter(p => p.isFavorite).length
-})
+const userInitial = computed(() => userName.value.slice(0, 1))
 
-// 根据统计数据动态计算头衔
+const favoriteCount = computed(() => store.postcards.filter(p => p.isFavorite).length)
+
 const profileTitle = computed(() => {
-  const count = store.postcards.length
-  if (count >= 20) return '环球旅者'
-  if (count >= 10) return '资深邮差'
-  if (count >= 5) return '旅行达人'
-  if (count >= 1) return '初出茅庐'
+  const n = store.postcards.length
+  if (n >= 20) return '环球旅者'
+  if (n >= 10) return '资深邮差'
+  if (n >= 5)  return '旅行达人'
+  if (n >= 1)  return '初出茅庐'
   return '期待出发'
 })
 
-function initProfileData() {
-  // 昵称
-  const savedName = StorageUtil.get<string>(USER_NAME_KEY, '')
-  if (savedName) {
-    userName.value = savedName
-  }
+const ownedSet = computed(() =>
+  authStore.ownedStamps.length > 0
+    ? new Set(authStore.ownedStamps)
+    : new Set(['classic', 'nature', 'culture', 'city', 'ocean', 'sunset'])
+)
+const ownedStampCount = computed(() => ownedSet.value.size)
 
-  // 首次启动时间
+function initProfileData() {
+  userName.value  = authStore.user?.nickname || '远方旅人'
+  mailboxNo.value = authStore.user?.mailboxNo || 'CN-000000'
+
   let firstLaunch = StorageUtil.get<number>(FIRST_LAUNCH_KEY, 0)
   if (firstLaunch === 0) {
     firstLaunch = Date.now()
@@ -182,16 +240,6 @@ function initProfileData() {
   const days = Math.floor((Date.now() - firstLaunch) / (24 * 60 * 60 * 1000))
   joinedDays.value = Math.max(1, days + 1)
 
-  // 邮箱编号
-  let savedMailbox = StorageUtil.get<string>(MAILBOX_NO_KEY, '')
-  if (!savedMailbox) {
-    const randomNum = Math.floor(100000 + Math.random() * 900000)
-    savedMailbox = `CN-${randomNum}`
-    StorageUtil.set(MAILBOX_NO_KEY, savedMailbox)
-  }
-  mailboxNo.value = savedMailbox
-
-  // 确保 store 数据已加载
   store.initData()
 }
 
@@ -200,12 +248,43 @@ function editNickname() {
     title: '编辑昵称',
     editable: true,
     placeholderText: '请输入您的昵称',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm && res.content && res.content.trim()) {
         const newName = res.content.trim().slice(0, 12)
-        userName.value = newName
-        StorageUtil.set(USER_NAME_KEY, newName)
-        uni.showToast({ title: '昵称已更新', icon: 'success' })
+        try {
+          await UserApi.update({ nickname: newName })
+          authStore.updateUser({ nickname: newName })
+          userName.value = newName
+          uni.showToast({ title: '昵称已更新', icon: 'success' })
+        } catch {
+          uni.showToast({ title: '更新失败', icon: 'none' })
+        }
+      }
+    },
+  })
+}
+
+function goToShop() {
+  uni.navigateTo({ url: '/pages/shop/shop' })
+}
+
+function goToContacts() {
+  uni.navigateTo({ url: '/pages/contacts/contacts' })
+}
+
+function goToInbox() {
+  uni.navigateTo({ url: '/pages/inbox/inbox' })
+}
+
+function doLogout() {
+  uni.showModal({
+    title: '退出登录',
+    content: '确定要退出登录吗？',
+    confirmColor: '#A43B2D',
+    success: (res) => {
+      if (res.confirm) {
+        authStore.logout()
+        uni.reLaunch({ url: '/pages/auth/login' })
       }
     },
   })
@@ -215,7 +294,7 @@ function resetData() {
   uni.showModal({
     title: '重置数据',
     content: '确定要重置所有数据吗？这将恢复为初始演示数据，您自定义的内容将丢失。',
-    confirmColor: '#C41E3A',
+    confirmColor: '#A43B2D',
     success: (res) => {
       if (res.confirm) {
         store.resetData()
@@ -228,7 +307,7 @@ function resetData() {
 function showPrivacy() {
   uni.showModal({
     title: '隐私协议',
-    content: '远方邮政重视您的隐私保护。我们仅在本地设备上存储您的旅行记录和明信片数据，不会上传到任何服务器。您的数据完全由您掌控。',
+    content: '旅行邮局重视您的隐私保护。我们仅在本地设备上存储您的旅行记录和明信片数据，不会上传到任何服务器。您的数据完全由您掌控。',
     showCancel: false,
   })
 }
@@ -236,22 +315,24 @@ function showPrivacy() {
 function showAgreement() {
   uni.showModal({
     title: '用户协议',
-    content: '欢迎使用远方邮政。本应用仅供个人旅行记录使用，所有内容版权归用户所有。请勿将应用用于任何违法违规用途。',
+    content: '欢迎使用旅行邮局。本应用仅供个人旅行记录使用，所有内容版权归用户所有。请勿将应用用于任何违法违规用途。',
     showCancel: false,
   })
+}
+
+function goToCollection() {
+  uni.navigateTo({ url: '/pages/collection/collection' })
 }
 
 function showAbout() {
   uni.showModal({
-    title: '关于远方邮政',
-    content: `远方邮政 v${appVersion}\n\n一款以邮政明信片为主题的旅行记录应用。\n\n记录旅途中的美好瞬间，将回忆封存为一张张独特的明信片。\n\n愿每一次旅行，都能寄往心中的远方。`,
+    title: '关于旅行邮局',
+    content: `旅行邮局 v${appVersion}\n\n一款以邮政明信片为主题的旅行记录应用。\n\n记录旅途中的美好瞬间，将回忆封存为一张张独特的明信片。\n\n愿每一次旅行，都能寄往心中的远方。`,
     showCancel: false,
   })
 }
 
-onMounted(() => {
-  initProfileData()
-})
+onMounted(() => initProfileData())
 </script>
 
 <style lang="scss" scoped>
@@ -261,225 +342,320 @@ onMounted(() => {
 }
 
 .content {
-  padding-bottom: 40rpx;
+  height: 100vh;
 }
 
-// Hero Section
+// ─── Hero ───
 .hero-section {
-  padding: 120rpx 40rpx 40rpx;
-  background: linear-gradient(135deg, $travel-blue 0%, $forest-green 100%);
-}
-
-.hero-card {
+  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
+  padding: 120rpx 48rpx 72rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16rpx;
+  gap: 0;
+  position: relative;
 }
 
-.brand-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4rpx;
-  margin-bottom: 16rpx;
+.hero-brand {
+  position: absolute;
+  top: 56rpx;
+  left: 48rpx;
 }
 
-.brand-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
-  font-family: 'Georgia', serif;
+.hero-brand-title {
+  display: block;
+  font-family: $font-family-serif;
+  font-size: 28rpx;
+  color: rgba(244, 239, 229, 0.85);
   letter-spacing: 4rpx;
 }
 
-.brand-subtitle {
-  font-size: 18rpx;
-  color: rgba(255, 255, 255, 0.6);
+.hero-brand-sub {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 14rpx;
   letter-spacing: 2rpx;
-}
-
-.profile-avatar {
-  margin: 8rpx 0;
-}
-
-.avatar-circle {
-  width: 160rpx;
-  height: 160rpx;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.15);
-}
-
-.profile-name {
-  font-size: 40rpx;
-  font-weight: 700;
-  color: #fff;
-  margin-top: 8rpx;
-}
-
-.profile-badge {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  background: rgba(255, 255, 255, 0.15);
-  padding: 8rpx 20rpx;
-  border-radius: 9999rpx;
-}
-
-.badge-text {
-  font-size: 24rpx;
-  color: #FFD700;
-  font-weight: 500;
-}
-
-.profile-days {
-  font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(244, 239, 229, 0.5);
   margin-top: 4rpx;
 }
 
-.mailbox-badge {
+.hero-monogram {
+  width: 152rpx;
+  height: 152rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(244, 239, 229, 0.35);
+  background: rgba(244, 239, 229, 0.12);
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4rpx;
-  margin-top: 8rpx;
-  padding: 12rpx 32rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.25);
-  border-radius: 12rpx;
+  justify-content: center;
+  margin-bottom: 24rpx;
+  box-shadow: 0 0 0 12rpx rgba(244, 239, 229, 0.06);
 }
 
-.mailbox-label {
+.monogram-letter {
+  font-family: $font-family-serif;
+  font-size: 72rpx;
+  font-weight: 400;
+  color: rgba(244, 239, 229, 0.95);
+}
+
+.hero-name {
+  font-family: $font-family-serif;
+  font-size: 44rpx;
+  font-weight: 400;
+  color: #F4EFE5;
+  letter-spacing: 1rpx;
+  margin-bottom: 10rpx;
+}
+
+.hero-rank {
+  font-family: $font-family-serif;
+  font-style: italic;
+  font-size: 26rpx;
+  color: rgba(244, 239, 229, 0.75);
+  margin-bottom: 20rpx;
+}
+
+.mailbox-pill {
+  background: rgba(244, 239, 229, 0.12);
+  border: 1rpx solid rgba(244, 239, 229, 0.25);
+  border-radius: 999rpx;
+  padding: 10rpx 32rpx;
+  margin-bottom: 16rpx;
+}
+
+.mailbox-pill-txt {
+  font-family: $font-family-mono;
+  font-size: 24rpx;
+  letter-spacing: 3rpx;
+  color: rgba(244, 239, 229, 0.85);
+}
+
+.hero-days {
+  font-family: $font-family-mono;
   font-size: 20rpx;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.mailbox-number {
-  font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-  font-family: 'Courier New', monospace;
   letter-spacing: 2rpx;
+  color: rgba(244, 239, 229, 0.55);
 }
 
-// Stats Section
-.stats-section {
-  padding: 0 32rpx;
-  margin-top: -32rpx;
+// ─── Floating stats card ───
+.stats-float {
+  margin: -44rpx 40rpx 0;
+  position: relative;
+  z-index: 10;
 }
 
-.stats-card {
-  background: #fff;
-  border-radius: 20rpx;
-  padding: 32rpx;
+.stats-inner {
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  border-radius: 8rpx;
   display: flex;
   align-items: center;
   justify-content: space-around;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  padding: 32rpx 24rpx;
+  box-shadow: 0 8rpx 24rpx rgba(40, 30, 15, 0.10);
 }
 
-.stat-item {
+.stats-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.stats-num {
+  font-family: $font-family-serif;
+  font-size: 52rpx;
+  font-weight: 400;
+  color: $ink-black;
+  line-height: 1;
+  letter-spacing: -1rpx;
+}
+
+.stats-lbl {
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 2rpx;
+  color: $mute-text;
+}
+
+.stats-sep {
+  width: 1rpx;
+  height: 56rpx;
+  background: $line-sepia;
+}
+
+// ─── Section header pattern ───
+.section-hd {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.section-kicker {
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  letter-spacing: 3rpx;
+  color: $travel-blue;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.section-rule {
+  flex: 1;
+  height: 1rpx;
+  background: $line-sepia;
+}
+
+// ─── Stamp album ───
+.album-section {
+  margin: 48rpx 40rpx 0;
+}
+
+.album-card {
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  border-radius: 8rpx;
+  padding: 24rpx;
+}
+
+.stamp-row {
+  display: flex;
+  gap: 16rpx;
+  overflow-x: auto;
+  padding-bottom: 8rpx;
+}
+
+.stamp-swatch {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8rpx;
-  flex: 1;
+  padding: 16rpx 18rpx 12rpx;
+  border: 1rpx dashed $whisper;
+  border-radius: 4rpx;
+  flex-shrink: 0;
+  min-width: 80rpx;
+  background: $page-background;
+  opacity: 0.45;
 }
 
-.stat-divider {
-  width: 1rpx;
-  height: 60rpx;
-  background: $line-sepia;
+.stamp-swatch-collected {
+  opacity: 1;
 }
 
-.stat-value {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: $ink-black;
+.stamp-swatch-icon {
+  font-size: 24rpx;
+  color: $whisper;
 }
 
-.stat-label {
-  font-size: 22rpx;
-  color: #999;
+.stamp-swatch-name {
+  font-family: $font-family-serif;
+  font-size: 20rpx;
+  color: $mute-text;
 }
 
-// Menu Section
-.menu-section {
-  padding: 32rpx;
+.album-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20rpx;
 }
 
-.menu-title {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #999;
-  margin: 24rpx 0 16rpx 8rpx;
+.album-note {
+  font-family: $font-family-mono;
+  font-size: 16rpx;
   letter-spacing: 2rpx;
+  color: $mute-text;
+}
+
+.album-link {
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 2rpx;
+  color: $travel-blue;
+}
+
+// ─── Menu ───
+.menu-section {
+  margin: 40rpx 40rpx 0;
 }
 
 .menu-card {
-  background: #fff;
-  border-radius: 16rpx;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  border-radius: 8rpx;
   overflow: hidden;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
+  gap: 20rpx;
   padding: 28rpx 24rpx;
-  transition: background 0.2s;
+
+  &:active {
+    background: rgba($travel-blue, 0.04);
+  }
 }
 
-.menu-item:active {
-  background: rgba($travel-blue, 0.04);
-}
-
-.menu-icon {
+.menu-item-icon {
   width: 44rpx;
   height: 44rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 20rpx;
 }
 
-.menu-text {
+.menu-item-text {
   flex: 1;
+  font-family: $font-family-serif;
   font-size: 28rpx;
   color: $ink-black;
 }
 
-.menu-arrow {
-  display: flex;
-  align-items: center;
+.menu-item-pts {
+  background: rgba($travel-blue, 0.1);
+  border-radius: 6rpx;
+  padding: 4rpx 12rpx;
+  margin-right: 8rpx;
+}
+.menu-pts-txt {
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  letter-spacing: 1rpx;
+  color: $travel-blue;
 }
 
-.menu-divider {
+.menu-rule {
   height: 1rpx;
-  background: rgba($line-sepia, 0.5);
-  margin-left: 88rpx;
+  background: $line-sepia;
+  margin: 0 24rpx;
 }
 
-// Footer
+// ─── Footer ───
 .footer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8rpx;
-  padding: 48rpx 32rpx 32rpx;
+  gap: 10rpx;
+  padding: 56rpx 32rpx 0;
 }
 
-.footer-version {
-  font-size: 22rpx;
-  color: #bbb;
+.footer-mono {
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  letter-spacing: 3rpx;
+  color: $whisper;
 }
 
-.footer-copyright {
-  font-size: 20rpx;
-  color: #ccc;
+.footer-serif {
+  font-family: $font-family-serif;
+  font-style: italic;
+  font-size: 24rpx;
+  color: $whisper;
 }
+
+.btm-gap { height: 120rpx; }
 </style>

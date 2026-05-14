@@ -48,4 +48,11 @@ export {
   PhGear as IconSettings,
   PhSignOut as IconSignOut,
   PhCaretRight as IconCaretRight,
+  PhPaperPlaneTilt as IconSend,
+  PhTray as IconInbox,
+  PhMagnifyingGlass as IconSearch,
+  PhStorefront as IconShop,
+  PhStar as IconStar,
+  PhLockSimple as IconLock,
+  PhUsers as IconContacts,
 } from '@phosphor-icons/vue'

@@ -1,29 +1,55 @@
-$travel-blue: #2E7D58;
-$forest-green: #2E6E49;
-$postal-mint: #B2DFDB;
-$paper-beige: #F5F5DC;
-$page-background: #FAF7F2;
-$stamp-red: #C41E3A;
-$dawn-yellow: #FFD700;
-$line-sepia: #E0D5C0;
-$ink-black: #2C2C2C;
-$warm-white: #FFFFFF;
+// Design tokens — refined editorial / postal aesthetic
+// Inspired by: Japan Post stamp art · Kinfolk · quiet travel journals
 
-$font-family-serif: 'Georgia', 'Times New Roman', serif;
-$font-family-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+// ─── Brand greens — deeper, lower-chroma postal greens ───
+$travel-blue:     #3C604D;   // primary postal — refined, not neon
+$forest-green:    #2C4A3A;   // gradient terminus / pressed state
+$green-soft:      #E8EEE9;   // 8% tint surface
+$alive-green:     #5E8C4F;   // in-progress / live green (not neon)
 
+// ─── Accent — vermillion postmark / hand-stamp red ───
+$stamp-red:       #A43B2D;
+$red-soft:        #F4E2DE;
+
+// ─── Surface — warm, tactile paper ───
+$page-background: #F4EFE5;   // base paper, warm off-white
+$card-bg:         #FBF8F1;   // off-white card (never pure white)
+$card-warm:       #F8F3E7;   // alt card for variety
+$paper-beige:     #EDE5D1;   // stamp paper / inset surface
+$line-sepia:      #E0D8C4;   // hairlines / dividers
+$rule-color:      #D5CCB2;   // stronger rule when needed
+
+// ─── Text ───
+$ink-black:       #222019;   // warm near-black
+$body-text:       #5C5648;   // secondary / body
+$mute-text:       #8E8775;   // captions / muted
+$whisper:         #B5AE9B;   // tertiary / decorative
+
+// ─── Legacy aliases (keep for compatibility) ───
+$postal-mint:     #B2DFDB;
+$dawn-yellow:     #FFD700;
+$warm-white:      #FFFFFF;
+
+// ─── Typography ───
+$font-family-serif:   'Georgia', 'Noto Serif SC', 'Songti SC', '宋体', serif;
+$font-family-sans:    -apple-system, 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
+$font-family-mono:    'Courier New', 'SF Mono', Menlo, monospace;
+
+// ─── Spacing ───
 $spacing-xs: 4px;
 $spacing-sm: 8px;
 $spacing-md: 16px;
 $spacing-lg: 24px;
 $spacing-xl: 32px;
 
-$radius-sm: 8px;
-$radius-md: 12px;
-$radius-lg: 16px;
-$radius-xl: 24px;
+// ─── Border radius — flatter, editorial ───
+$radius-sm:   4px;
+$radius-md:   8px;
+$radius-lg:   12px;
+$radius-xl:   16px;
 $radius-full: 9999px;
 
-$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
-$shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+// ─── Shadows — minimal and warm ───
+$shadow-sm: 0 2px 8px rgba(40, 30, 15, 0.06);
+$shadow-md: 0 8px 24px rgba(40, 30, 15, 0.08);
+$shadow-lg: 0 16px 40px rgba(40, 30, 15, 0.10);
