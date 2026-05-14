@@ -32,7 +32,10 @@ export async function pointsRoutes(app: FastifyInstance) {
   })
 
   // POST /points/daily — claim daily login bonus (idempotent: one per calendar day)
-  app.post('/points/daily', { preHandler: requireAuth }, async (req, reply) => {
+  app.post('/points/daily', {
+    preHandler: requireAuth,
+    config: { rateLimit: { max: 3, timeWindow: '1 minute' } },
+  }, async (req, reply) => {
     const uid     = userId(req)
     const today   = new Date()
     today.setHours(0, 0, 0, 0)

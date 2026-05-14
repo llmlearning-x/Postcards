@@ -38,7 +38,7 @@
               <view class="stamp-img-wrap">
                 <image v-if="card.photoUrl" :src="card.photoUrl" class="stamp-img" mode="aspectFill" />
                 <view v-else class="stamp-img-grad"></view>
-                <view class="stamp-color-band" :style="{ background: stampColor(card.stampDesign) }"></view>
+                <view class="stamp-color-band" :style="{ background: getStampColor(card.stampDesign) }"></view>
               </view>
               <view class="stamp-perf-bot">
                 <view v-for="i in 9" :key="i" class="perf-hole"></view>
@@ -82,7 +82,7 @@
               <view v-else class="row-thumb-grad"></view>
             </view>
             <view class="row-body">
-              <text class="row-meta">{{ card.city.toUpperCase() }} · {{ dotDate(card.recordedAt) }}</text>
+              <text class="row-meta">{{ card.city.toUpperCase() }} · {{ formatDotDate(card.recordedAt) }}</text>
               <text class="row-loc">{{ card.locationName }}</text>
               <text class="row-note">"{{ card.note }}"</text>
             </view>
@@ -90,8 +90,8 @@
               <view @click.stop="toggleFav(card.id)">
                 <IconFavorite :size="26" :color="card.isFavorite ? '#A43B2D' : '#B5AE9B'" />
               </view>
-              <view class="stamp-badge" :style="{ 'border-color': stampColor(card.stampDesign) }">
-                <text class="stamp-dot" :style="{ color: stampColor(card.stampDesign) }">✦</text>
+              <view class="stamp-badge" :style="{ 'border-color': getStampColor(card.stampDesign) }">
+                <text class="stamp-dot" :style="{ color: getStampColor(card.stampDesign) }">✦</text>
               </view>
             </view>
           </view>
@@ -116,19 +116,11 @@ import { usePostcardStore } from '@/stores/postcard'
 import { StampDesigns } from '@/config/app'
 import type { Postcard } from '@/model/Postcard'
 import { IconBack, IconFavorite, IconImage } from '@/components/icons'
+import { formatDotDate, getStampColor } from '@/utils/stamp'
 
 const store = usePostcardStore()
 const postcards = computed(() => store.sortedPostcards)
 const favorites = computed(() => postcards.value.filter(p => p.isFavorite))
-
-function stampColor(id: string): string {
-  return StampDesigns.find(s => s.id === id)?.color ?? '#8E8775'
-}
-
-function dotDate(ts: number): string {
-  const d = new Date(ts)
-  return `${String(d.getMonth() + 1).padStart(2, '0')}·${String(d.getDate()).padStart(2, '0')}`
-}
 
 function viewPostcard(card: Postcard) {
   uni.navigateTo({ url: `/pages/detail/detail?id=${card.id}` })

@@ -42,7 +42,7 @@
                     <view v-else class="row-thumb-grad"></view>
                   </view>
                   <view class="row-body">
-                    <text class="row-meta">{{ card.city.toUpperCase() }} · {{ dotDate(card.recordedAt) }}</text>
+                    <text class="row-meta">{{ card.city.toUpperCase() }} · {{ formatDotDate(card.recordedAt) }}</text>
                     <text class="row-loc">{{ card.locationName }}</text>
                     <text class="row-note">"{{ card.note }}"</text>
                   </view>
@@ -50,8 +50,8 @@
                     <view @click.stop="toggleFavorite(card.id)">
                       <IconFavorite :size="28" :color="card.isFavorite ? '#A43B2D' : '#B5AE9B'" />
                     </view>
-                    <view class="stamp-badge" :style="{ 'border-color': stampColor(card.stampDesign) }">
-                      <text class="stamp-dot" :style="{ color: stampColor(card.stampDesign) }">✦</text>
+                    <view class="stamp-badge" :style="{ 'border-color': getStampColor(card.stampDesign) }">
+                      <text class="stamp-dot" :style="{ color: getStampColor(card.stampDesign) }">✦</text>
                     </view>
                   </view>
                 </view>
@@ -83,6 +83,7 @@ import { usePostcardStore } from '@/stores/postcard'
 import { StampDesigns } from '@/config/app'
 import type { Postcard } from '@/model/Postcard'
 import { IconImage, IconFavorite } from '@/components/icons'
+import { formatDotDate, getStampColor } from '@/utils/stamp'
 
 const store = usePostcardStore()
 const postcards = computed(() => store.sortedPostcards)
@@ -117,15 +118,6 @@ const groupedPostcards = computed<GroupedPostcard[]>(() => {
     }
   })
 })
-
-function dotDate(ts: number): string {
-  const d = new Date(ts)
-  return `${String(d.getMonth() + 1).padStart(2, '0')}·${String(d.getDate()).padStart(2, '0')}`
-}
-
-function stampColor(id: string): string {
-  return StampDesigns.find(s => s.id === id)?.color ?? '#8E8775'
-}
 
 function viewPostcard(card: Postcard) {
   uni.navigateTo({ url: `/pages/detail/detail?id=${card.id}` })

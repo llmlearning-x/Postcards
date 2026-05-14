@@ -27,7 +27,7 @@
           <view class="postmark-inner"></view>
           <view class="postmark-text">
             <text class="postmark-city">{{ item.snapshot.city.substring(0,4).toUpperCase() }}</text>
-            <text class="postmark-date">{{ dotDate(item.sentAt) }}</text>
+            <text class="postmark-date">{{ formatDotDate(item.sentAt) }}</text>
           </view>
         </view>
         <view class="hero-fade"></view>
@@ -57,9 +57,9 @@
               <text class="pback-title">POST CARD · 明信片</text>
               <text class="pback-series">来自 {{ item.snapshot.locationName }}</text>
             </view>
-            <view class="pback-stamp" :style="{ borderColor: stampColor(item.snapshot.stampDesign) }">
-              <text class="pback-stamp-dot" :style="{ color: stampColor(item.snapshot.stampDesign) }">✦</text>
-              <text class="pback-stamp-name" :style="{ color: stampColor(item.snapshot.stampDesign) }">{{ stampName(item.snapshot.stampDesign) }}</text>
+            <view class="pback-stamp" :style="{ borderColor: getStampColor(item.snapshot.stampDesign) }">
+              <text class="pback-stamp-dot" :style="{ color: getStampColor(item.snapshot.stampDesign) }">✦</text>
+              <text class="pback-stamp-name" :style="{ color: getStampColor(item.snapshot.stampDesign) }">{{ getStampName(item.snapshot.stampDesign) }}</text>
             </view>
           </view>
           <view class="pback-rule"></view>
@@ -108,21 +108,9 @@ import { onLoad } from '@dcloudio/uni-app'
 import { MailApi, type MailingItem } from '@/services/api'
 import { StampDesigns } from '@/config/app'
 import { IconBack, IconEnvelope } from '@/components/icons'
+import { formatDotDate, getStampColor, getStampName } from '@/utils/stamp'
 
 const item = ref<MailingItem | null>(null)
-
-function stampColor(id: string): string {
-  return (StampDesigns as any[]).find(s => s.id === id)?.color ?? '#8E8775'
-}
-
-function stampName(id: string): string {
-  return (StampDesigns as any[]).find(s => s.id === id)?.name ?? '经典'
-}
-
-function dotDate(ts: number): string {
-  const d = new Date(ts)
-  return `${String(d.getMonth() + 1).padStart(2, '0')}·${String(d.getDate()).padStart(2, '0')}`
-}
 
 function fullDate(ts: number): string {
   const d = new Date(ts)

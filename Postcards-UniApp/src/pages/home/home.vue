@@ -4,7 +4,7 @@
     <view class="postal-header">
       <view class="header-perf"></view>
       <text class="header-kicker">INBOX · 旅笺 · 收件箱</text>
-      <text class="header-title">今日 {{ padNum(postcards.length) }} 张</text>
+      <text class="header-title">今日 {{ padNumber(postcards.length) }} 张</text>
       <text class="header-title">来自远方的笺</text>
       <text class="header-subtitle">{{ postcards.length }} 张明信片 · {{ travels.length }} 段旅程 · 一个仍在路上的你</text>
     </view>
@@ -48,7 +48,7 @@
               </view>
               <view class="postmark">
                 <text class="pm-city">{{ latestPostcard.city.substring(0, 2) }}</text>
-                <text class="pm-date">{{ dotDate(latestPostcard.recordedAt) }}</text>
+                <text class="pm-date">{{ formatDotDate(latestPostcard.recordedAt) }}</text>
                 <text class="pm-year">2024</text>
               </view>
             </view>
@@ -62,19 +62,19 @@
       <view class="section-pad">
         <view class="stats-row">
           <view class="stat-pill">
-            <text class="stat-n">{{ padNum(travels.length) }}</text>
+            <text class="stat-n">{{ padNumber(travels.length) }}</text>
             <text class="stat-lbl">JOURNEYS</text>
           </view>
           <view class="stat-pill">
-            <text class="stat-n">{{ padNum(postcards.length) }}</text>
+            <text class="stat-n">{{ padNumber(postcards.length) }}</text>
             <text class="stat-lbl">CARDS</text>
           </view>
           <view class="stat-pill stat-red">
-            <text class="stat-n">{{ padNum(favoritesCount) }}</text>
+            <text class="stat-n">{{ padNumber(favoritesCount) }}</text>
             <text class="stat-lbl">LOVED</text>
           </view>
           <view class="stat-pill">
-            <text class="stat-n">{{ padNum(cityCount) }}</text>
+            <text class="stat-n">{{ padNumber(cityCount) }}</text>
             <text class="stat-lbl">CITIES</text>
           </view>
         </view>
@@ -121,8 +121,8 @@
             <view class="progress-fill" :style="{ width: progressPercent + '%' }"></view>
           </view>
           <view class="journey-dates">
-            <text class="journey-mono">{{ dotDate(currentTravel.startDate) }} · 启程</text>
-            <text class="journey-mono">{{ dotDate(currentTravel.endDate) }} · 归程</text>
+            <text class="journey-mono">{{ formatDotDate(currentTravel.startDate) }} · 启程</text>
+            <text class="journey-mono">{{ formatDotDate(currentTravel.endDate) }} · 归程</text>
           </view>
         </view>
       </view>
@@ -150,7 +150,7 @@
               <view v-else class="row-thumb-grad"></view>
             </view>
             <view class="row-body">
-              <text class="row-meta">{{ card.city.toUpperCase() }} · {{ dotDate(card.recordedAt) }}</text>
+              <text class="row-meta">{{ card.city.toUpperCase() }} · {{ formatDotDate(card.recordedAt) }}</text>
               <text class="row-loc">{{ card.locationName }}</text>
               <text class="row-note">"{{ card.note }}"</text>
             </view>
@@ -158,8 +158,8 @@
               <view :class="{ 'fav-stamping': stampingFavId === card.id }" @click.stop="toggleFavoriteWithAnim(card)">
                 <IconFavorite :size="28" :color="card.isFavorite ? '#A43B2D' : '#B5AE9B'" />
               </view>
-              <view class="stamp-badge" :style="{ 'border-color': stampColor(card.stampDesign) }">
-                <text class="stamp-dot" :style="{ color: stampColor(card.stampDesign) }">✦</text>
+              <view class="stamp-badge" :style="{ 'border-color': getStampColor(card.stampDesign) }">
+                <text class="stamp-dot" :style="{ color: getStampColor(card.stampDesign) }">✦</text>
               </view>
             </view>
           </view>
@@ -184,6 +184,7 @@ import { StampDesigns } from '@/config/app'
 import { DateUtil } from '@/utils/date'
 import type { Postcard } from '@/model/Postcard'
 import { IconFavorite, IconImage } from '@/components/icons'
+import { formatDotDate, padNumber, getStampColor } from '@/utils/stamp'
 
 const store = usePostcardStore()
 const isOpeningEnvelope = ref(false)
@@ -219,19 +220,6 @@ const progressPercent = computed(() => {
   const elapsed = Date.now() - currentTravel.value.startDate
   return Math.min(100, Math.max(0, (elapsed / total) * 100))
 })
-
-function padNum(n: number): string {
-  return String(n).padStart(2, '0')
-}
-
-function dotDate(ts: number): string {
-  const d = new Date(ts)
-  return `${String(d.getMonth() + 1).padStart(2, '0')}·${String(d.getDate()).padStart(2, '0')}`
-}
-
-function stampColor(id: string): string {
-  return StampDesigns.find(s => s.id === id)?.color ?? '#8E8775'
-}
 
 function goToTimeline() {
   uni.switchTab({ url: '/pages/timeline/timeline' })

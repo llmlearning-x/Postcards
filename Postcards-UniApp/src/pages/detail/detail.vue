@@ -30,7 +30,7 @@
           <view class="postmark-inner"></view>
           <view class="postmark-text">
             <text class="postmark-city">{{ postcard.city.toUpperCase() }}</text>
-            <text class="postmark-date">{{ dotDate(postcard.recordedAt) }}</text>
+            <text class="postmark-date">{{ formatDotDate(postcard.recordedAt) }}</text>
             <text class="postmark-year">{{ yearStr(postcard.recordedAt) }}</text>
           </view>
         </view>
@@ -46,12 +46,12 @@
           <view class="pback-hd">
             <view class="pback-hd-left">
               <text class="pback-title">POST CARD · 明信片</text>
-              <text class="pback-series">SÉRIE {{ stampSeries(postcard.stampDesign) }} · {{ stampSeriesName(postcard.stampDesign) }}</text>
+              <text class="pback-series">SÉRIE {{ getStampSeries(postcard.stampDesign) }} · {{ getStampSeriesName(postcard.stampDesign) }}</text>
             </view>
             <!-- Stamp box -->
-            <view class="pback-stamp" :style="{ borderColor: stampColor(postcard.stampDesign) }">
-              <text class="pback-stamp-dot" :style="{ color: stampColor(postcard.stampDesign) }">✦</text>
-              <text class="pback-stamp-name" :style="{ color: stampColor(postcard.stampDesign) }">{{ stampName(postcard.stampDesign) }}</text>
+            <view class="pback-stamp" :style="{ borderColor: getStampColor(postcard.stampDesign) }">
+              <text class="pback-stamp-dot" :style="{ color: getStampColor(postcard.stampDesign) }">✦</text>
+              <text class="pback-stamp-name" :style="{ color: getStampColor(postcard.stampDesign) }">{{ getStampName(postcard.stampDesign) }}</text>
             </view>
           </view>
           <view class="pback-top-rule"></view>
@@ -72,7 +72,7 @@
               </view>
               <view class="pback-sig">
                 <text class="pback-sig-name">— 远方旅人</text>
-                <text class="pback-sig-date">{{ dotDate(postcard.recordedAt) }}</text>
+                <text class="pback-sig-date">{{ formatDotDate(postcard.recordedAt) }}</text>
               </view>
             </view>
 
@@ -98,7 +98,7 @@
                 <view class="pback-pm-inner"></view>
                 <view class="pback-pm-text">
                   <text class="pback-pm-city">{{ postcard.city.substring(0,2).toUpperCase() }}</text>
-                  <text class="pback-pm-date">{{ dotDate(postcard.recordedAt) }}</text>
+                  <text class="pback-pm-date">{{ formatDotDate(postcard.recordedAt) }}</text>
                 </view>
               </view>
             </view>
@@ -161,7 +161,7 @@
                   <view v-else class="journey-mini-grad"></view>
                 </view>
                 <text class="journey-mini-loc">{{ card.locationName }}</text>
-                <text class="journey-mini-date">{{ dotDate(card.recordedAt) }}</text>
+                <text class="journey-mini-date">{{ formatDotDate(card.recordedAt) }}</text>
               </view>
             </view>
           </scroll-view>
@@ -203,6 +203,7 @@ import {
   IconShare,
   IconSend,
 } from '@/components/icons'
+import { formatDotDate, getStampColor, getStampName, getStampSeries, getStampSeriesName } from '@/utils/stamp'
 
 const store = usePostcardStore()
 const postcard = ref<Postcard | null>(null)
@@ -228,11 +229,6 @@ function padNum(id: string): string {
   return match ? String(match[0]).padStart(4, '0') : '0001'
 }
 
-function dotDate(ts: number): string {
-  const d = new Date(ts)
-  return `${String(d.getMonth() + 1).padStart(2, '0')}·${String(d.getDate()).padStart(2, '0')}`
-}
-
 function yearStr(ts: number): string {
   return String(new Date(ts).getFullYear())
 }
@@ -245,22 +241,6 @@ function metaDate(ts: number): string {
 function metaTime(ts: number): string {
   const d = new Date(ts)
   return `${String(d.getHours()).padStart(2, '0')} : ${String(d.getMinutes()).padStart(2, '0')}`
-}
-
-function stampColor(id: string): string {
-  return StampDesigns.find(s => s.id === id)?.color ?? '#8E8775'
-}
-
-function stampName(id: string): string {
-  return StampDesigns.find(s => s.id === id)?.name ?? '经典'
-}
-
-function stampSeries(id: string): string {
-  return (StampDesigns.find(s => s.id === id) as any)?.series ?? 'I'
-}
-
-function stampSeriesName(id: string): string {
-  return (StampDesigns.find(s => s.id === id) as any)?.seriesName ?? '旅行'
 }
 
 function goBack() {

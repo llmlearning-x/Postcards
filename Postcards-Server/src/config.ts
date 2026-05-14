@@ -31,4 +31,8 @@ export const config = {
     baseUrl: process.env.UPLOAD_BASE_URL || 'http://localhost:3000/uploads',
     maxSizeMb: parseInt(process.env.MAX_FILE_SIZE_MB || '10'),
   },
+
+  cors: {
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  },
 }

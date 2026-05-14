@@ -258,7 +258,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { usePostcardStore } from '@/stores/postcard'
 import { useAuthStore } from '@/stores/auth'
 import { UIUtil } from '@/utils/ui'
@@ -284,6 +284,7 @@ const selectedTravelId   = ref('')
 const isSending    = ref(false)
 const sendPhase    = ref('idle')
 const nowDotDate   = ref('')
+const sendTimers: number[] = []
 
 const canSubmit = computed(() =>
   (photoPath.value || (locationName.value && city.value && note.value)) && selectedTravelId.value
@@ -373,14 +374,21 @@ async function submitPostcard() {
     return
   }
 
+  // Clear any lingering animation timers before starting new submission
+  sendTimers.forEach(clearTimeout)
+  sendTimers.length = 0
+
   let photoUrl = photoPath.value
   if (photoUrl && !photoUrl.startsWith('http')) {
     uni.showLoading({ title: '上传中…', mask: true })
     try {
       const up = await UploadApi.image(photoUrl)
       photoUrl = up.url
-    } catch {
-      // keep local path as fallback
+    } catch (err) {
+      uni.hideLoading()
+      const msg = err instanceof Error ? err.message : '图片上传失败'
+      UIUtil.showError(msg)
+      return
     } finally {
       uni.hideLoading()
     }
@@ -409,17 +417,22 @@ async function submitPostcard() {
   nowDotDate.value = `${String(d.getMonth() + 1).padStart(2, '0')}·${String(d.getDate()).padStart(2, '0')}`
   isSending.value = true
   sendPhase.value = 'sealing'
-  setTimeout(() => { sendPhase.value = 'stamping' }, 900)
-  setTimeout(() => { sendPhase.value = 'flying' }, 1700)
-  setTimeout(() => { sendPhase.value = 'done' }, 2400)
-  setTimeout(() => {
+  sendTimers.push(setTimeout(() => { sendPhase.value = 'stamping' }, 900))
+  sendTimers.push(setTimeout(() => { sendPhase.value = 'flying' }, 1700))
+  sendTimers.push(setTimeout(() => { sendPhase.value = 'done' }, 2400))
+  sendTimers.push(setTimeout(() => {
     isSending.value = false
     sendPhase.value = 'idle'
+    sendTimers.length = 0
     uni.switchTab({ url: '/pages/home/home' })
-  }, 3800)
+  }, 3800))
 }
 
 onMounted(() => store.initData())
+onUnmounted(() => {
+  sendTimers.forEach(clearTimeout)
+  sendTimers.length = 0
+})
 </script>
 
 <style lang="scss" scoped>

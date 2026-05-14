@@ -18,7 +18,7 @@
       <template v-if="mode === 'pick-recipient'">
         <!-- Postcard preview strip -->
         <view class="postcard-preview" v-if="postcard">
-          <view class="preview-stamp-dot" :style="{ background: stampColor(postcard.stampDesign) }"></view>
+          <view class="preview-stamp-dot" :style="{ background: getStampColor(postcard.stampDesign) }"></view>
           <view class="preview-info">
             <text class="preview-loc">{{ postcard.locationName }}</text>
             <text class="preview-sub">{{ postcard.city }} · {{ postcard.country }}</text>
@@ -149,7 +149,7 @@
               class="pc-row"
               @click="postcard = pc"
             >
-              <view class="pc-stamp" :style="{ background: stampColor(pc.stampDesign) }"></view>
+              <view class="pc-stamp" :style="{ background: getStampColor(pc.stampDesign) }"></view>
               <view class="pc-info">
                 <text class="pc-loc">{{ pc.locationName }}</text>
                 <text class="pc-sub">{{ pc.city }} · {{ pc.country }}</text>
@@ -166,7 +166,7 @@
             <view class="section-rule"></view>
           </view>
           <view class="postcard-preview">
-            <view class="preview-stamp-dot" :style="{ background: stampColor(postcard.stampDesign) }"></view>
+            <view class="preview-stamp-dot" :style="{ background: getStampColor(postcard.stampDesign) }"></view>
             <view class="preview-info">
               <text class="preview-loc">{{ postcard.locationName }}</text>
               <text class="preview-sub">{{ postcard.city }} · {{ postcard.country }}</text>
@@ -210,6 +210,7 @@ import { usePostcardStore } from '@/stores/postcard'
 import { StampDesigns } from '@/config/app'
 import type { Postcard } from '@/model/Postcard'
 import { IconBack, IconSearch, IconSend } from '@/components/icons'
+import { getStampColor } from '@/utils/stamp'
 
 const store = usePostcardStore()
 
@@ -229,10 +230,6 @@ const sending      = ref(false)
 const allPostcards = computed(() => store.postcards)
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
-
-function stampColor(id: string): string {
-  return (StampDesigns as any[]).find(s => s.id === id)?.color ?? '#8E8775'
-}
 
 function onSearchInput() {
   if (searchTimer) clearTimeout(searchTimer)

@@ -11,7 +11,9 @@ interface LoginBody    { mailboxNo: string; password: string }
 export async function authRoutes(app: FastifyInstance) {
 
   // ── 注册（生成专属邮箱号作为登录 ID）────────────────────────────
-  app.post<{ Body: RegisterBody }>('/auth/register', async (req, reply) => {
+  app.post<{ Body: RegisterBody }>('/auth/register', {
+    config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
+  }, async (req, reply) => {
     const { nickname, password } = req.body
 
     if (!nickname?.trim()) {
@@ -48,7 +50,9 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   // ── 登录（用邮箱号 CN-XXXXXX + 密码）───────────────────────────
-  app.post<{ Body: LoginBody }>('/auth/login', async (req, reply) => {
+  app.post<{ Body: LoginBody }>('/auth/login', {
+    config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
+  }, async (req, reply) => {
     const { mailboxNo, password } = req.body
     if (!mailboxNo || !password) {
       return reply.code(400).send({ error: '请输入邮箱号和密码' })
@@ -74,7 +78,9 @@ export async function authRoutes(app: FastifyInstance) {
   })
 
   // ── 刷新 Token ──────────────────────────────────────────────────
-  app.post('/auth/refresh', async (req, reply) => {
+  app.post('/auth/refresh', {
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } },
+  }, async (req, reply) => {
     const { refreshToken } = req.body as { refreshToken: string }
     if (!refreshToken) return reply.code(400).send({ error: '缺少 refreshToken' })
 

@@ -49,7 +49,7 @@ export async function userRoutes(app: FastifyInstance) {
       `SELECT id, nickname, mailbox_no, avatar_url FROM users
        WHERE mailbox_no = ? OR nickname LIKE ?
        LIMIT 10`,
-      [keyword, `%${q.trim()}%`]
+      [keyword, `%${keyword}%`]
     )
     return reply.send(users.map(toPublic))
   })

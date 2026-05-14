@@ -55,7 +55,7 @@
           <view class="mail-content">
             <view class="mail-content-top">
               <text class="sender-name">{{ item.sender.nickname }}</text>
-              <text class="mail-date">{{ fmtDate(item.sentAt) }}</text>
+              <text class="mail-date">{{ formatRelativeDate(item.sentAt) }}</text>
             </view>
             <text class="mail-mailbox">{{ item.sender.mailboxNo }}</text>
             <text class="mail-preview">
@@ -65,7 +65,7 @@
           </view>
 
           <!-- Stamp indicator -->
-          <view class="stamp-dot" :style="{ background: stampColor(item.snapshot.stampDesign) }"></view>
+          <view class="stamp-dot" :style="{ background: getStampColor(item.snapshot.stampDesign) }"></view>
         </view>
       </view>
 
@@ -80,15 +80,12 @@ import { onShow } from '@dcloudio/uni-app'
 import { MailApi, type MailingItem, type InboxResponse } from '@/services/api'
 import { StampDesigns } from '@/config/app'
 import { IconBack, IconEnvelope } from '@/components/icons'
+import { getStampColor } from '@/utils/stamp'
 
 const loading = ref(true)
 const inbox = ref<InboxResponse>({ unreadCount: 0, items: [] })
 
-function stampColor(id: string): string {
-  return (StampDesigns as any[]).find(s => s.id === id)?.color ?? '#8E8775'
-}
-
-function fmtDate(ts: number): string {
+function formatRelativeDate(ts: number): string {
   const d = new Date(ts)
   return `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
 }

@@ -4,6 +4,7 @@ import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import multipart from '@fastify/multipart'
 import staticFiles from '@fastify/static'
+import rateLimit from '@fastify/rate-limit'
 import path from 'path'
 import { config } from './config'
 import { authRoutes } from './routes/auth'
@@ -27,8 +28,20 @@ const app = Fastify({
 async function bootstrap() {
   // ── 插件注册 ──────────────────────────────────────────────────────
   await app.register(cors, {
-    origin: true,
+    origin: config.cors.origin,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  })
+
+  await app.register(rateLimit, {
+    max: 100,
+    timeWindow: '1 minute',
+    keyGenerator: (req) => req.ip,
+    errorResponseBuilder: (req, context) => ({
+      statusCode: 429,
+      error: 'Too Many Requests',
+      message: `请求过于频繁，请稍后再试。限制：${context.max} 次 / ${context.after}`,
+      retryAfter: context.after,
+    }),
   })
 
   await app.register(jwt, {
@@ -63,6 +76,22 @@ async function bootstrap() {
   await app.listen({ port: config.port, host: config.host })
   console.log(`🚀  Server running on http://${config.host}:${config.port}`)
 }
+
+// ── 优雅关闭 ─────────────────────────────────────────────────────────
+async function shutdown(signal: string) {
+  console.log(`\n${signal} received. Shutting down gracefully...`)
+  try {
+    await app.close()
+    console.log('Server closed.')
+    process.exit(0)
+  } catch (err) {
+    console.error('Error during shutdown:', err)
+    process.exit(1)
+  }
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+process.on('SIGINT', () => shutdown('SIGINT'))
 
 bootstrap().catch(err => {
   console.error(err)
