@@ -50,7 +50,8 @@
             </view>
             <!-- Stamp box -->
             <view class="pback-stamp" :style="{ borderColor: getStampColor(postcard.stampDesign) }">
-              <text class="pback-stamp-dot" :style="{ color: getStampColor(postcard.stampDesign) }">✦</text>
+              <image v-if="postcard.stampImageUrl" :src="postcard.stampImageUrl" class="pback-stamp-img" mode="aspectFill" />
+              <text v-else class="pback-stamp-dot" :style="{ color: getStampColor(postcard.stampDesign) }">✦</text>
               <text class="pback-stamp-name" :style="{ color: getStampColor(postcard.stampDesign) }">{{ getStampName(postcard.stampDesign) }}</text>
             </view>
           </view>

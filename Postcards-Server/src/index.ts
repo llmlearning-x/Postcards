@@ -59,6 +59,13 @@ async function bootstrap() {
     decorateReply: false,
   })
 
+  // 静态文件服务 — 提供 stamps 目录下的邮票图片
+  await app.register(staticFiles, {
+    root: config.stamps.dir,
+    prefix: '/stamps/',
+    decorateReply: false,
+  })
+
   // ── 路由注册（统一加 /api 前缀）──────────────────────────────────
   await app.register(authRoutes,     { prefix: '/api' })
   await app.register(userRoutes,     { prefix: '/api' })

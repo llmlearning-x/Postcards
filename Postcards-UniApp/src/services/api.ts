@@ -198,6 +198,7 @@ export interface PostcardDto {
   country: string
   note: string
   stampDesign: string
+  stampImageUrl: string
   isFavorite: boolean
   recordedAt: number
   createdAt: number

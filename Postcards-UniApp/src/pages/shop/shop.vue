@@ -113,7 +113,8 @@
         <view class="sheet-preview">
           <view class="sheet-stamp-frame" :style="{ borderColor: buying.color }">
             <view class="sheet-stamp-art" :style="{ background: buying.color + '18' }">
-              <text class="sheet-glyph" :style="{ color: buying.color }">✦</text>
+              <image v-if="buying.imageUrl" :src="buying.imageUrl" class="stamp-img" mode="aspectFill" />
+              <text v-else class="sheet-glyph" :style="{ color: buying.color }">✦</text>
             </view>
             <view class="sheet-stamp-bar" :style="{ background: buying.color }">
               <text class="sheet-bar-name">{{ buying.name }}</text>

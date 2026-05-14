@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { requireAuth, userId } from '../middleware/auth'
 import { query, queryOne, execute } from '../db/client'
 import { newId } from '../utils/id'
+import { resolveStampImageUrl } from '../utils/stampImages'
 import { addPoints, RECORD_BONUS } from '../utils/points'
 
 export async function postcardRoutes(app: FastifyInstance) {
@@ -99,6 +100,7 @@ function toCamel(row: any) {
     country:      row.country,
     note:         row.note,
     stampDesign:  row.stamp_design,
+    stampImageUrl: resolveStampImageUrl(row.stamp_design, null),
     isFavorite:   row.is_favorite === 1,
     recordedAt:   row.recorded_at,
     createdAt:    row.created_at,

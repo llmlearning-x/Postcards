@@ -32,6 +32,11 @@ export const config = {
     maxSizeMb: parseInt(process.env.MAX_FILE_SIZE_MB || '10'),
   },
 
+  stamps: {
+    dir:     path.join(process.cwd(), 'stamps'),
+    baseUrl: process.env.STAMPS_BASE_URL || 'http://localhost:3000/stamps',
+  },
+
   cors: {
     origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   },

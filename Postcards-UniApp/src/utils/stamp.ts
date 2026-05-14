@@ -30,3 +30,5 @@ export function getStampSeries(id: string): string {
 export function getStampSeriesName(id: string): string {
   return StampDesigns.find(s => s.id === id)?.seriesName ?? '旅行'
 }
+
+/** 邮票图片统一由后端 STAMPS_BASE_URL 提供，前端直接使用 stamp.imageUrl */
