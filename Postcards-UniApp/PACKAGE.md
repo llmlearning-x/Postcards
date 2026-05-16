@@ -5,7 +5,7 @@
 | 材料 | 路径 | 状态 |
 |------|------|------|
 | 构建资源 | `dist/build/app/` | 已生成 |
-| 签名证书 | `postcards.keystore` | 已生成 |
+| 签名证书 | `postcards.keystore` | 本地保存，不提交 Git |
 | 应用图标 | `src/static/logo.png` | 已生成 (1024x1024) |
 | 应用配置 | `manifest.json` | 已配置 |
 
@@ -15,13 +15,13 @@
 
 | 项目 | 值 |
 |------|-----|
-| 证书文件 | `postcards.keystore` |
-| 别名 (Alias) | `postcards` |
-| 密钥库密码 | `postcards2024` |
-| 私钥密码 | `postcards2024` |
+| 证书文件 | `postcards.keystore`（本地保存，不提交 Git） |
+| 别名 (Alias) | 使用本地签名证书的 alias |
+| 密钥库密码 | 使用本地安全记录中的密码 |
+| 私钥密码 | 使用本地安全记录中的密码 |
 | 算法 | SHA256withRSA |
 | 有效期 | 100 年 |
-| 指纹 (SHA256) | `85:C7:99:CE:9C:38:50:4A:DB:1D:35:A2:1C:EE:34:63:64:AB:AD:57:7B:24:11:39:2B:8E:68:3F:53:BC:D5:37` |
+| 指纹 (SHA256) | 以本地证书实际输出为准 |
 
 > 请妥善保存证书文件和密码，升级 APK 必须使用同一证书。
 
@@ -51,9 +51,9 @@
     "permissions": [...],
     "abiFilters": ["armeabi-v7a", "arm64-v8a"],
     "keystore": "postcards.keystore",
-    "storepassword": "postcards2024",
-    "alias": "postcards",
-    "keypassword": "postcards2024"
+    "storepassword": "<keystore-password>",
+    "alias": "<key-alias>",
+    "keypassword": "<key-password>"
   }
 }
 ```
@@ -77,9 +77,9 @@ manifest.json → App 权限配置 → 保持默认已勾选
 
 如使用自有证书：
 - 证书文件：点击浏览，选择项目根目录的 `postcards.keystore`
-- 证书别名：`postcards`
-- 证书私钥密码：`postcards2024`
-- 证书文件密码：`postcards2024`
+- 证书别名：填写本地签名证书 alias
+- 证书私钥密码：填写本地安全记录中的密码
+- 证书文件密码：填写本地安全记录中的密码
 
 ### 5. 等待打包完成
 - 点击「打包」
@@ -93,7 +93,7 @@ manifest.json → App 权限配置 → 保持默认已勾选
 ### Q1: 云打包提示"证书错误"
 确保证书路径正确，密码无误。可在终端验证：
 ```bash
-keytool -list -v -keystore postcards.keystore -storepass postcards2024
+keytool -list -v -keystore postcards.keystore -storepass <keystore-password>
 ```
 
 ### Q2: 应用图标未生效

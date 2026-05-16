@@ -64,7 +64,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { AuthApi, StampApi } from '@/services/api'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore, FREE_STAMP_IDS } from '@/stores/auth'
 import { usePostcardStore } from '@/stores/postcard'
 
 const authStore = useAuthStore()
@@ -96,6 +96,8 @@ async function doLogin() {
       res.accessToken,
       res.refreshToken,
     )
+    // 先清空旧邮票数据，防止跨用户残留
+    authStore.setOwnedStamps([])
     // 并行加载用户数据和邮票列表
     const [, stampRes] = await Promise.allSettled([
       postcardStore.syncFromServer(),
@@ -103,6 +105,8 @@ async function doLogin() {
     ])
     if (stampRes.status === 'fulfilled') {
       authStore.setOwnedStamps(stampRes.value.map(s => s.id))
+    } else {
+      authStore.setOwnedStamps(FREE_STAMP_IDS)
     }
     uni.switchTab({ url: '/pages/home/home' })
   } catch (e: any) {

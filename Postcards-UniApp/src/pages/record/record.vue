@@ -11,7 +11,7 @@
       <view class="form-wrap">
         <!-- Photo upload -->
         <view v-if="!photoPath" class="upload-zone" @click="selectImage">
-          <IconCamera :size="56" color="#3C604D" />
+          <IconCamera :size="56" color="rgba(255,255,255,0.9)" />
           <text class="upload-title">点击拍照或选择照片</text>
           <text class="upload-meta">4:3 · MAX 5MB</text>
         </view>
@@ -32,9 +32,10 @@
           </view>
           <view class="form-input-row">
             <input class="form-input" v-model="locationName" placeholder="点击定位或手动输入" />
-            <view class="locate-btn" @click="getLocation">
-              <IconLocation :size="28" :color="isLocating ? '#3C604D' : '#8E8775'" />
-              <text class="locate-btn-txt">定位</text>
+            <view class="locate-btn" :class="{ 'locate-btn-active': isLocating }" @click="getLocation">
+              <view v-if="isLocating" class="locate-spinner"></view>
+              <IconLocation v-else :size="28" color="#8E8775" />
+              <text class="locate-btn-txt">{{ locatingLabel }}</text>
             </view>
           </view>
         </view>
@@ -58,6 +59,16 @@
             <text class="form-lbl-cn">国家</text>
           </view>
           <input class="form-input" v-model="country" placeholder="输入国家名称" />
+        </view>
+
+        <!-- To -->
+        <view class="form-card">
+          <view class="form-label-row">
+            <text class="form-lbl-en">TO</text>
+            <text class="form-lbl-sep">·</text>
+            <text class="form-lbl-cn">收件人</text>
+          </view>
+          <input class="form-input" v-model="toName" placeholder="写给谁？（选填，默认：未来的我）" />
         </view>
 
         <!-- Note -->
@@ -85,15 +96,13 @@
             <text class="form-required">*</text>
           </view>
           <view v-if="travelOptions.length > 0" class="travel-pick-wrap">
-            <picker :range="travelOptions" range-key="label" :value="selectedTravelIdx" @change="onTravelChange">
-              <view class="travel-pick-row">
-                <view class="travel-pick-info">
-                  <text class="travel-pick-name">{{ selectedTravel?.title || '选择旅程' }}</text>
-                  <text class="travel-pick-dest">{{ selectedTravel?.destination || '' }}</text>
-                </view>
-                <text class="travel-pick-arr">›</text>
+            <view class="travel-pick-row" @click="showTravelPicker = true">
+              <view class="travel-pick-info">
+                <text class="travel-pick-name">{{ selectedTravel?.title || '选择旅程' }}</text>
+                <text class="travel-pick-dest">{{ selectedTravel?.destination || '' }}</text>
               </view>
-            </picker>
+              <text class="travel-pick-arr">›</text>
+            </view>
             <view class="travel-new-link" @click="goCreateTravel">
               <text class="travel-new-txt">+ 新建旅程</text>
             </view>
@@ -123,10 +132,10 @@
                   class="stamp-option"
                   :class="{ 'stamp-selected': stampDesign === s.id }"
                   :style="stampDesign === s.id ? { 'border-color': s.color, background: s.color + '18' } : {}"
-                  @click="stampDesign = s.id"
+                  @click="openStampPreview(s)"
                 >
                   <view class="stamp-swatch" :style="{ 'border-color': s.color }">
-                    <image v-if="s.imageUrl" :src="s.imageUrl" class="stamp-swatch-img" mode="aspectFill" />
+                    <image v-if="getStampImageUrl(s.id)" :src="getStampImageUrl(s.id)" class="stamp-swatch-img" mode="aspectFill" />
                     <text v-else class="stamp-swatch-dot" :style="{ color: s.color }">✦</text>
                   </view>
                   <text class="stamp-name" :style="stampDesign === s.id ? { color: s.color } : {}">{{ s.name }}</text>
@@ -136,54 +145,81 @@
           </view>
         </view>
 
-        <!-- Live preview — front + back -->
+        <!-- Live preview — flip card -->
         <view class="preview-section">
           <view class="preview-hd">
-            <text class="section-kicker">LIVE PREVIEW · 预览</text>
-            <text class="preview-ttl">明信片</text>
+            <view>
+              <text class="section-kicker">LIVE PREVIEW · 预览</text>
+              <text class="preview-ttl">明信片</text>
+            </view>
+            <text class="preview-flip-hint">{{ isFlipped ? '正面 ›' : '· 背面 ›' }}</text>
           </view>
           <view class="preview-rule"></view>
-          <view class="postcard-preview">
-            <!-- Front: photo -->
-            <view class="pc-photo-wrap">
-              <image v-if="photoPath" :src="photoPath" class="pc-photo" mode="aspectFill" />
-              <view v-else class="pc-photo-empty">
-                <IconImage :size="48" color="#B5AE9B" />
-              </view>
-              <view class="pc-photo-overlay">
-                <text class="pc-city-code">{{ city ? city.toUpperCase() : 'CITY' }}</text>
-              </view>
-            </view>
-            <!-- Back: divider layout -->
-            <view class="pc-back">
-              <view class="pc-back-left">
-                <text class="pc-back-label">MESSAGE · 留言</text>
-                <view class="pc-back-line"></view>
-                <text class="pc-back-note">"{{ note || '写下你的心情...' }}"</text>
-                <view class="pc-back-line"></view>
-                <view class="pc-back-line"></view>
-              </view>
-              <view class="pc-vdivider"></view>
-              <view class="pc-back-right">
-                <view class="pc-stamp-box" :style="{ 'border-color': currentStampColor }">
-                  <text class="pc-stamp-dot" :style="{ color: currentStampColor }">✦</text>
+
+          <!-- 3D flip wrapper -->
+          <view class="pc-flip-wrap" @click="isFlipped = !isFlipped">
+            <view class="pc-flip-inner" :class="{ 'pc-flipped': isFlipped }">
+
+              <!-- ── 正面：照片（无邮票，标准明信片正面只有图案） ── -->
+              <view class="pc-face pc-face-front">
+                <view class="pc-photo-wrap">
+                  <image v-if="photoPath" :src="photoPath" class="pc-photo" mode="aspectFill" />
+                  <view v-else class="pc-photo-empty">
+                    <IconImage :size="48" color="#B5AE9B" />
+                  </view>
+                  <!-- 底部渐变：城市 + 地点 -->
+                  <view class="pc-photo-bottom">
+                    <text class="pc-city-code">{{ city ? city.toUpperCase() : 'CITY' }}</text>
+                    <text class="pc-loc-code">{{ locationName || '—' }}</text>
+                  </view>
                 </view>
-                <view class="pc-addr-from">
-                  <text class="pc-addr-label">FROM</text>
-                  <text class="pc-addr-main">{{ locationName || '位置名称' }}</text>
-                  <text class="pc-addr-sub">{{ city || '城市' }}</text>
-                </view>
-                <view class="pc-addr-sep"></view>
-                <view class="pc-addr-to">
-                  <text class="pc-addr-label">TO</text>
-                  <text class="pc-addr-main">未来的我</text>
+                <view class="pc-footer">
+                  <text class="pc-footer-left">旅行邮局 · 寄往远方</text>
+                  <text class="pc-footer-right">CN — 0001</text>
                 </view>
               </view>
+
+              <!-- ── 背面：留言 + 地址 ── -->
+              <view class="pc-face pc-face-back">
+                <view class="pc-back-body">
+                  <view class="pc-back-left">
+                    <text class="pc-back-label">MESSAGE · 留言</text>
+                    <view class="pc-back-line"></view>
+                    <text class="pc-back-note">"{{ note || '写下你的心情...' }}"</text>
+                    <view class="pc-back-line"></view>
+                    <view class="pc-back-line"></view>
+                  </view>
+                  <view class="pc-vdivider"></view>
+                  <view class="pc-back-right">
+                    <view class="pc-stamp-box" :style="{ borderColor: currentStampColor }">
+                      <image v-if="getStampImageUrl(stampDesign)" :src="getStampImageUrl(stampDesign)" class="pc-stamp-img" mode="aspectFill" />
+                      <text v-else class="pc-stamp-dot" :style="{ color: currentStampColor }">✦</text>
+                    </view>
+                    <view class="pc-addr-from">
+                      <text class="pc-addr-label">FROM</text>
+                      <text class="pc-addr-main">{{ locationName || '位置名称' }}</text>
+                      <text class="pc-addr-sub">{{ city || '城市' }}</text>
+                    </view>
+                    <view class="pc-addr-sep"></view>
+                    <view class="pc-addr-to">
+                      <text class="pc-addr-label">TO</text>
+                      <text class="pc-addr-main">{{ toName || '未来的我' }}</text>
+                    </view>
+                  </view>
+                </view>
+                <view class="pc-footer">
+                  <text class="pc-footer-left">旅行邮局 · 寄往远方</text>
+                  <text class="pc-footer-right">CN — 0001</text>
+                </view>
+              </view>
+
             </view>
-            <view class="pc-footer">
-              <text class="pc-footer-left">旅行邮局 · 寄往远方</text>
-              <text class="pc-footer-right">CN — 0001</text>
-            </view>
+          </view>
+
+          <!-- 翻转指示点 -->
+          <view class="pc-flip-dots">
+            <view class="pc-flip-dot" :class="{ 'pc-flip-dot-on': !isFlipped }"></view>
+            <view class="pc-flip-dot" :class="{ 'pc-flip-dot-on': isFlipped }"></view>
           </view>
         </view>
 
@@ -193,13 +229,53 @@
           :class="{ 'submit-disabled': !canSubmit }"
           @click="submitPostcard"
         >
-          <text class="submit-txt">寄出明信片 ›</text>
+          <text class="submit-txt">保存明信片 ›</text>
         </view>
         <text class="submit-sub">POSTAGE PAID · 旅邮</text>
       </view>
 
       <view class="btm-gap"></view>
     </scroll-view>
+
+    <!-- ── 旅程选择底部弹窗 ── -->
+    <view v-if="showTravelPicker" class="tp-mask" @click.self="showTravelPicker = false">
+      <view class="tp-sheet">
+        <view class="tp-hd">
+          <text class="tp-hd-kicker">JOURNEY · 所属旅程</text>
+          <text class="tp-hd-close" @click="showTravelPicker = false">✕</text>
+        </view>
+        <scroll-view class="tp-list" scroll-y>
+          <view
+            v-for="t in store.sortedTravels"
+            :key="t.id"
+            class="tp-item"
+            :class="{ 'tp-item-active': selectedTravelId === t.id }"
+            @click="selectTravel(t.id)"
+          >
+            <view class="tp-item-body">
+              <text class="tp-item-title">{{ t.title }}</text>
+              <text class="tp-item-dest">{{ t.destination }}</text>
+            </view>
+            <view v-if="selectedTravelId === t.id" class="tp-check">
+              <text class="tp-check-mark">✓</text>
+            </view>
+          </view>
+          <view class="tp-new-item" @click="goCreateTravel">
+            <text class="tp-new-plus">＋</text>
+            <text class="tp-new-txt">新建旅程</text>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+
+    <!-- ── 邮票放大预览 ── -->
+    <StampPreviewModal
+      v-if="previewStamp"
+      :stamp="previewStamp"
+      mode="select"
+      @close="previewStamp = null"
+      @select="selectAndClose"
+    />
 
     <!-- ── 寄信动画 · 邮件寄出覆盖层 ── -->
     <view v-if="isSending" class="send-overlay">
@@ -213,7 +289,7 @@
             <text class="send-mini-city">{{ city ? city.toUpperCase() : 'CITY' }}</text>
           </view>
           <view class="send-mini-bot">
-            <text class="send-mini-to">TO · 未来的我</text>
+            <text class="send-mini-to">TO · {{ toName || '未来的我' }}</text>
             <view class="send-mini-stmp" :style="{ borderColor: currentStampColor }">
               <text class="send-mini-sdot" :style="{ color: currentStampColor }">✦</text>
             </view>
@@ -248,8 +324,14 @@
         <!-- 成功 -->
         <view class="send-ok">
           <text class="send-ok-check">✓</text>
-          <text class="send-ok-main">已寄出</text>
-          <text class="send-ok-sub">POSTED · 明信片已寄往远方</text>
+          <text class="send-ok-main">已保存</text>
+          <text class="send-ok-sub">SAVED · 明信片已加入你的收藏</text>
+          <view class="send-ok-actions">
+            <view class="send-ok-btn-primary" @click="goSend">
+              <text class="send-ok-btn-txt">寄给好友 ›</text>
+            </view>
+            <text class="send-ok-btn-ghost" @click="goHome">稍后再寄</text>
+          </view>
         </view>
 
       </view>
@@ -263,12 +345,14 @@ import { usePostcardStore } from '@/stores/postcard'
 import { useAuthStore } from '@/stores/auth'
 import { UIUtil } from '@/utils/ui'
 import { ToastMessages, StampDesigns, AppConfig } from '@/config/app'
-import { PostcardApi, UploadApi } from '@/services/api'
+import { getStampImageUrl } from '@/utils/stamp'
+import { PostcardApi, UploadApi, GeoApi } from '@/services/api'
 import {
   IconCamera,
   IconLocation,
   IconImage,
 } from '@/components/icons'
+import StampPreviewModal from '@/components/StampPreviewModal.vue'
 
 const store     = usePostcardStore()
 const authStore = useAuthStore()
@@ -278,12 +362,18 @@ const locationName = ref('')
 const city         = ref('')
 const country      = ref(AppConfig.defaultCountry)
 const note         = ref('')
+const toName       = ref('')
 const stampDesign        = ref('classic')
 const isLocating         = ref(false)
+const locatingLabel      = ref('定位')
+const isFlipped          = ref(false)
+const previewStamp       = ref<any>(null)
 const selectedTravelId   = ref('')
-const isSending    = ref(false)
-const sendPhase    = ref('idle')
-const nowDotDate   = ref('')
+const showTravelPicker   = ref(false)
+const isSending       = ref(false)
+const sendPhase       = ref('idle')
+const nowDotDate      = ref('')
+const savedPostcardId = ref('')
 const sendTimers: number[] = []
 
 const canSubmit = computed(() =>
@@ -306,7 +396,7 @@ const selectedTravel = computed(() =>
 const sendPhaseLbl = computed(() => {
   if (sendPhase.value === 'sealing')  return 'SEALING · 封装中...'
   if (sendPhase.value === 'stamping') return 'STAMPING · 盖章中...'
-  if (sendPhase.value === 'flying')   return 'DISPATCHING · 寄出中...'
+  if (sendPhase.value === 'flying')   return 'SAVING · 保存中...'
   return ''
 })
 
@@ -314,11 +404,43 @@ const currentStampColor = computed(() =>
   StampDesigns.find(s => s.id === stampDesign.value)?.color ?? '#8E8775'
 )
 
-function onTravelChange(e: any) {
-  selectedTravelId.value = store.sortedTravels[e.detail.value]?.id || ''
+function openStampPreview(s: any) {
+  previewStamp.value = s
+}
+
+function selectAndClose() {
+  if (previewStamp.value) {
+    stampDesign.value = previewStamp.value.id
+    previewStamp.value = null
+  }
+}
+
+function goHome() {
+  sendTimers.forEach(clearTimeout)
+  sendTimers.length = 0
+  isSending.value = false
+  sendPhase.value = 'idle'
+  savedPostcardId.value = ''
+  uni.switchTab({ url: '/pages/home/home' })
+}
+
+function goSend() {
+  const id = savedPostcardId.value
+  sendTimers.forEach(clearTimeout)
+  sendTimers.length = 0
+  isSending.value = false
+  sendPhase.value = 'idle'
+  savedPostcardId.value = ''
+  uni.navigateTo({ url: `/pages/send/send?postcardId=${id}` })
+}
+
+function selectTravel(id: string) {
+  selectedTravelId.value = id
+  showTravelPicker.value = false
 }
 
 function goCreateTravel() {
+  showTravelPicker.value = false
   uni.navigateTo({ url: '/pages/travel/travel' })
 }
 
@@ -352,18 +474,41 @@ function selectImage() {
 }
 
 function getLocation() {
-  isLocating.value = true
+  if (isLocating.value) return
+  isLocating.value  = true
+  locatingLabel.value = '获取位置…'
   uni.getLocation({
-    type: 'gcj02',
-    success: (res) => {
-      isLocating.value = false
-      locationName.value = `${res.latitude.toFixed(4)}°N, ${res.longitude.toFixed(4)}°E`
-      if (!city.value) city.value = '未知城市'
-      UIUtil.showSuccess(ToastMessages.success.location)
+    type: 'wgs84',
+    success: async (res) => {
+      locatingLabel.value = '解析地址…'
+      try {
+        const geo = await GeoApi.reverse(res.latitude, res.longitude)
+        locationName.value = geo.locationName
+        city.value = geo.city || city.value || '未知城市'
+        UIUtil.showSuccess('定位成功')
+      } catch {
+        // 服务端失败时兜底：填入坐标，让用户手动修改
+        locationName.value = `${res.latitude.toFixed(4)}°N, ${res.longitude.toFixed(4)}°E`
+        if (!city.value) city.value = '未知城市'
+        UIUtil.showError('地址解析失败，请手动输入')
+      } finally {
+        isLocating.value    = false
+        locatingLabel.value = '定位'
+      }
     },
-    fail: () => {
-      isLocating.value = false
-      UIUtil.showError(ToastMessages.error.location)
+    fail: async () => {
+      // GPS 失败（通常是 HTTP 环境不允许）→ 用 IP 定位兜底获取城市
+      locatingLabel.value = '获取城市…'
+      try {
+        const ipGeo = await GeoApi.ip()
+        if (!city.value) city.value = ipGeo.city
+        uni.showToast({ title: `已定位到 ${ipGeo.city}，请手动填写具体位置`, icon: 'none', duration: 3000 })
+      } catch {
+        UIUtil.showError('定位失败，请手动输入位置')
+      } finally {
+        isLocating.value    = false
+        locatingLabel.value = '定位'
+      }
     },
   })
 }
@@ -402,6 +547,7 @@ async function submitPostcard() {
     city: city.value || '未知城市',
     country: country.value || AppConfig.defaultCountry,
     note: note.value || '暂无备注',
+    toName: toName.value.trim() || null,
     stampDesign: stampDesign.value,
     isFavorite: false,
     recordedAt: Date.now(),
@@ -410,8 +556,10 @@ async function submitPostcard() {
   try {
     const serverCard = await PostcardApi.create(localCard)
     store.addPostcard(serverCard)
+    savedPostcardId.value = serverCard.id
   } catch {
     store.addPostcard(localCard)
+    savedPostcardId.value = localCard.id
   }
   const d = new Date()
   nowDotDate.value = `${String(d.getMonth() + 1).padStart(2, '0')}·${String(d.getDate()).padStart(2, '0')}`
@@ -420,15 +568,23 @@ async function submitPostcard() {
   sendTimers.push(setTimeout(() => { sendPhase.value = 'stamping' }, 900))
   sendTimers.push(setTimeout(() => { sendPhase.value = 'flying' }, 1700))
   sendTimers.push(setTimeout(() => { sendPhase.value = 'done' }, 2400))
-  sendTimers.push(setTimeout(() => {
-    isSending.value = false
-    sendPhase.value = 'idle'
-    sendTimers.length = 0
-    uni.switchTab({ url: '/pages/home/home' })
-  }, 3800))
 }
 
-onMounted(() => store.initData())
+onMounted(() => {
+  store.initData()
+  // Pre-select current travel (or first available)
+  if (!selectedTravelId.value) {
+    const travel = store.currentTravel ?? store.sortedTravels[0]
+    if (travel) selectedTravelId.value = travel.id
+  }
+  // Ensure selected stamp belongs to owned list
+  const ownedIds = authStore.ownedStamps.length > 0
+    ? authStore.ownedStamps
+    : ['classic', 'nature', 'culture', 'city', 'ocean', 'sunset']
+  if (!ownedIds.includes(stampDesign.value)) {
+    stampDesign.value = ownedIds[0] ?? 'classic'
+  }
+})
 onUnmounted(() => {
   sendTimers.forEach(clearTimeout)
   sendTimers.length = 0
@@ -444,22 +600,15 @@ onUnmounted(() => {
 }
 
 .postal-header {
-  background: $page-background;
-  padding: 100rpx 48rpx 40rpx;
-  border-bottom: 1rpx solid $line-sepia;
+  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
+  padding: 56rpx 48rpx 20rpx;
   position: relative;
   flex-shrink: 0;
 }
 
 .header-perf {
-  position: absolute;
-  top: 90rpx;
-  left: 0;
-  right: 0;
-  height: 2rpx;
-  background-image: repeating-linear-gradient(
-    90deg, $line-sepia 0, $line-sepia 8rpx, transparent 8rpx, transparent 16rpx
-  );
+  position: absolute; bottom: 0; left: 0; right: 0; height: 6rpx;
+  background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
 }
 
 .header-kicker {
@@ -467,16 +616,16 @@ onUnmounted(() => {
   font-family: $font-family-mono;
   font-size: 20rpx;
   letter-spacing: 4rpx;
-  color: $travel-blue;
-  margin-bottom: 22rpx;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 12rpx;
 }
 
 .header-title {
   display: block;
   font-family: $font-family-serif;
-  font-size: 58rpx;
+  font-size: 46rpx;
   font-weight: 400;
-  color: $ink-black;
+  color: rgba(255,255,255,0.95);
   line-height: 1.15;
 }
 
@@ -484,8 +633,8 @@ onUnmounted(() => {
   display: block;
   font-family: $font-family-serif;
   font-size: 26rpx;
-  color: $body-text;
-  margin-top: 18rpx;
+  color: rgba(255,255,255,0.7);
+  margin-top: 10rpx;
 }
 
 .content { flex: 1; overflow: hidden; }
@@ -610,6 +759,27 @@ onUnmounted(() => {
   border: 1rpx solid rgba(60, 96, 77, 0.4);
   border-radius: 6rpx;
   flex-shrink: 0;
+  transition: background 0.2s, border-color 0.2s;
+
+  &.locate-btn-active {
+    background: rgba(60, 96, 77, 0.06);
+    border-color: rgba(60, 96, 77, 0.7);
+  }
+}
+
+.locate-spinner {
+  width: 28rpx;
+  height: 28rpx;
+  border: 3rpx solid rgba(60, 96, 77, 0.2);
+  border-top-color: $travel-blue;
+  border-radius: 50%;
+  animation: locating-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes locating-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 .locate-btn-txt {
@@ -640,6 +810,228 @@ onUnmounted(() => {
   margin-top: 8rpx;
 }
 
+// ─── Journey selector ───
+.travel-pick-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.travel-pick-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8rpx 0 16rpx;
+  &:active { opacity: 0.7; }
+}
+
+.travel-pick-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.travel-pick-name {
+  font-family: $font-family-serif;
+  font-size: 32rpx;
+  color: $ink-black;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.travel-pick-dest {
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  letter-spacing: 2rpx;
+  color: $mute-text;
+}
+
+.travel-pick-arr {
+  font-family: $font-family-serif;
+  font-size: 36rpx;
+  color: $travel-blue;
+  flex-shrink: 0;
+  padding-left: 16rpx;
+}
+
+.travel-new-link {
+  border-top: 1rpx dashed $line-sepia;
+  padding-top: 16rpx;
+  margin-top: 4rpx;
+}
+
+.travel-new-txt {
+  font-family: $font-family-mono;
+  font-size: 20rpx;
+  letter-spacing: 2rpx;
+  color: $travel-blue;
+}
+
+.travel-empty-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8rpx 0;
+}
+
+.travel-empty-hint {
+  font-family: $font-family-serif;
+  font-size: 28rpx;
+  color: $mute-text;
+  font-style: italic;
+}
+
+.travel-empty-btn {
+  background: $travel-blue;
+  border-radius: 6rpx;
+  padding: 12rpx 28rpx;
+  &:active { opacity: 0.85; }
+}
+
+.travel-empty-btn-txt {
+  font-family: $font-family-serif;
+  font-size: 26rpx;
+  color: #F4EFE5;
+  letter-spacing: 2rpx;
+}
+
+// ─── 旅程选择弹窗 ───
+.tp-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 12, 8, 0.5);
+  z-index: 9000;
+  display: flex;
+  align-items: flex-end;
+  animation: tp-fade 0.18s ease both;
+}
+
+@keyframes tp-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.tp-sheet {
+  width: 100%;
+  background: $page-background;
+  border-radius: 32rpx 32rpx 0 0;
+  padding-bottom: env(safe-area-inset-bottom, 32rpx);
+  animation: tp-slide 0.24s cubic-bezier(0.32, 0.72, 0, 1) both;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes tp-slide {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.tp-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 36rpx 48rpx 24rpx;
+  border-bottom: 1rpx solid $line-sepia;
+  flex-shrink: 0;
+}
+
+.tp-hd-kicker {
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  letter-spacing: 4rpx;
+  color: $travel-blue;
+}
+
+.tp-hd-close {
+  font-size: 28rpx;
+  color: $mute-text;
+  padding: 8rpx;
+}
+
+.tp-list {
+  flex: 1;
+  overflow: hidden;
+}
+
+.tp-item {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 48rpx;
+  border-bottom: 1rpx solid $line-sepia;
+  &:active { background: rgba($travel-blue, 0.04); }
+  &.tp-item-active { background: rgba($travel-blue, 0.05); }
+}
+
+.tp-item-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.tp-item-title {
+  font-family: $font-family-serif;
+  font-size: 32rpx;
+  color: $ink-black;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  .tp-item-active & { color: $travel-blue; }
+}
+
+.tp-item-dest {
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  letter-spacing: 2rpx;
+  color: $mute-text;
+}
+
+.tp-check {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: $travel-blue;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tp-check-mark {
+  font-size: 20rpx;
+  color: #F4EFE5;
+  font-weight: bold;
+}
+
+.tp-new-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 28rpx 48rpx;
+  &:active { opacity: 0.7; }
+}
+
+.tp-new-plus {
+  font-family: $font-family-serif;
+  font-size: 36rpx;
+  color: $travel-blue;
+  line-height: 1;
+}
+
+.tp-new-txt {
+  font-family: $font-family-mono;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+  color: $travel-blue;
+}
+
 // ─── Stamp picker ───
 .stamp-series-block {
   margin-top: 16rpx;
@@ -668,6 +1060,7 @@ onUnmounted(() => {
 }
 
 .stamp-option {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -702,11 +1095,12 @@ onUnmounted(() => {
 }
 
 // ─── Postcard preview ───
-.preview-section {
-  margin-top: 8rpx;
-}
+.preview-section { margin-top: 8rpx; }
 
 .preview-hd {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
   margin-bottom: 16rpx;
 }
 
@@ -727,25 +1121,54 @@ onUnmounted(() => {
   color: $ink-black;
 }
 
+.preview-flip-hint {
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  letter-spacing: 2rpx;
+  color: $travel-blue;
+  padding-bottom: 6rpx;
+}
+
 .preview-rule {
   height: 1rpx;
   background: $line-sepia;
   margin-bottom: 24rpx;
 }
 
-.postcard-preview {
+// ── 3D flip container ──
+.pc-flip-wrap {
+  perspective: 2000rpx;
+  transform: rotate(-0.5deg);
+}
+
+.pc-flip-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
+
+  &.pc-flipped { transform: rotateY(180deg); }
+}
+
+.pc-face {
   background: $card-bg;
   border-radius: 8rpx;
   border: 1rpx solid $line-sepia;
   overflow: hidden;
   box-shadow: 0 16rpx 40rpx rgba(40, 30, 15, 0.10);
-  transform: rotate(-0.5deg);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
-// Front: photo
+.pc-face-back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+}
+
+// ── 正面 ──
 .pc-photo-wrap {
   position: relative;
-  height: 260rpx;
+  height: 320rpx;
   overflow: hidden;
   background: linear-gradient(180deg, #C9D2B6 0%, #6E8862 100%);
 }
@@ -760,24 +1183,40 @@ onUnmounted(() => {
   justify-content: center;
 }
 
-.pc-photo-overlay {
+// 底部城市条
+.pc-photo-bottom {
   position: absolute;
-  top: 16rpx;
-  right: 20rpx;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20rpx 20rpx 16rpx;
+  background: linear-gradient(to top, rgba(10,8,5,0.55) 0%, transparent 100%);
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
 }
 
 .pc-city-code {
   font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 4rpx;
-  color: rgba(244, 239, 229, 0.8);
+  font-size: 22rpx;
+  letter-spacing: 5rpx;
+  color: rgba(244, 239, 229, 0.95);
+  font-weight: 600;
 }
 
-// Back: two-column layout
-.pc-back {
+.pc-loc-code {
+  font-family: $font-family-serif;
+  font-size: 20rpx;
+  color: rgba(244, 239, 229, 0.65);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── 背面 ──
+.pc-back-body {
   display: flex;
   padding: 24rpx 24rpx 16rpx;
-  gap: 0;
   min-height: 240rpx;
 }
 
@@ -825,17 +1264,24 @@ onUnmounted(() => {
   flex-direction: column;
 }
 
+// 背面邮票（真实图案）
 .pc-stamp-box {
   width: 72rpx;
   height: 88rpx;
   border: 1rpx dashed currentColor;
   border-radius: 3rpx;
   background: $page-background;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   align-self: flex-end;
   margin-bottom: 16rpx;
+}
+
+.pc-stamp-img {
+  width: 100%;
+  height: 100%;
 }
 
 .pc-stamp-dot { font-size: 24rpx; }
@@ -896,6 +1342,28 @@ onUnmounted(() => {
   color: $mute-text;
 }
 
+// ── 翻转指示点 ──
+.pc-flip-dots {
+  display: flex;
+  justify-content: center;
+  gap: 12rpx;
+  margin-top: 20rpx;
+}
+
+.pc-flip-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: $line-sepia;
+  transition: all 0.3s;
+
+  &.pc-flip-dot-on {
+    background: $travel-blue;
+    width: 28rpx;
+    border-radius: 5rpx;
+  }
+}
+
 // ─── Submit ───
 .submit-btn {
   background: $travel-blue;
@@ -927,6 +1395,8 @@ onUnmounted(() => {
 }
 
 .btm-gap { height: 120rpx; }
+
+// stamp preview is handled by StampPreviewModal component
 
 // ─── 寄信动画 · 邮件寄出覆盖层 ───
 .send-overlay {
@@ -1163,7 +1633,10 @@ onUnmounted(() => {
   opacity: 0;
   pointer-events: none;
 
-  .phase-done & { animation: ok-appear 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .phase-done & {
+    animation: ok-appear 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    pointer-events: auto;
+  }
 }
 @keyframes ok-appear {
   from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
@@ -1186,5 +1659,29 @@ onUnmounted(() => {
   letter-spacing: 4rpx;
   color: rgba(244, 239, 229, 0.45);
   text-align: center;
+}
+.send-ok-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24rpx;
+  margin-top: 32rpx;
+}
+.send-ok-btn-primary {
+  padding: 22rpx 72rpx;
+  background: $travel-blue;
+  border-radius: 8rpx;
+}
+.send-ok-btn-txt {
+  font-family: $font-family-serif;
+  font-size: 30rpx;
+  color: #F4EFE5;
+  letter-spacing: 6rpx;
+}
+.send-ok-btn-ghost {
+  font-family: $font-family-mono;
+  font-size: 22rpx;
+  letter-spacing: 3rpx;
+  color: rgba(244, 239, 229, 0.38);
 }
 </style>

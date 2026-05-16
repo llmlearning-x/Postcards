@@ -35,17 +35,17 @@
 
       <!-- Card -->
       <view class="detail-card-wrap">
-        <!-- Sender strip -->
+        <!-- Sender/Recipient strip -->
         <view class="sender-strip">
-          <view class="sender-avatar">
-            <text class="sender-initial">{{ item.sender.nickname.slice(0, 1) }}</text>
+          <view class="sender-avatar" :class="{ 'avatar-sent': isSent }">
+            <text class="sender-initial">{{ otherParty.nickname.slice(0, 1) }}</text>
           </view>
           <view class="sender-info">
-            <text class="sender-name">{{ item.sender.nickname }}</text>
-            <text class="sender-mailbox">{{ item.sender.mailboxNo }}</text>
+            <text class="sender-name">{{ isSent ? '→ ' : '' }}{{ otherParty.nickname }}</text>
+            <text class="sender-mailbox">{{ otherParty.mailboxNo }}</text>
           </view>
           <view class="sent-time">
-            <text class="sent-label">SENT</text>
+            <text class="sent-label">{{ isSent ? 'TO' : 'FROM' }}</text>
             <text class="sent-date">{{ fullDate(item.sentAt) }}</text>
           </view>
         </view>
@@ -58,7 +58,8 @@
               <text class="pback-series">来自 {{ item.snapshot.locationName }}</text>
             </view>
             <view class="pback-stamp" :style="{ borderColor: getStampColor(item.snapshot.stampDesign) }">
-              <text class="pback-stamp-dot" :style="{ color: getStampColor(item.snapshot.stampDesign) }">✦</text>
+              <image v-if="getStampImageUrl(item.snapshot.stampDesign)" :src="getStampImageUrl(item.snapshot.stampDesign)" class="pback-stamp-img" mode="aspectFill" />
+              <text v-else class="pback-stamp-dot" :style="{ color: getStampColor(item.snapshot.stampDesign) }">✦</text>
               <text class="pback-stamp-name" :style="{ color: getStampColor(item.snapshot.stampDesign) }">{{ getStampName(item.snapshot.stampDesign) }}</text>
             </view>
           </view>
@@ -76,7 +77,7 @@
               <text class="pback-addr-sub">{{ item.snapshot.city }} · {{ item.snapshot.country }}</text>
               <view class="pback-addr-sep"></view>
               <text class="pback-addr-label">TO</text>
-              <text class="pback-addr-main">你</text>
+              <text class="pback-addr-main">{{ isSent ? otherParty.nickname : '你' }}</text>
             </view>
           </view>
 
@@ -86,13 +87,33 @@
             <view class="personal-note">
               <text class="note-label">PERSONAL NOTE · 个人留言</text>
               <text class="note-content">{{ item.personalNote }}</text>
-              <text class="note-sig">— {{ item.sender.nickname }}</text>
+              <text class="note-sig">— {{ otherParty.nickname }}</text>
             </view>
           </view>
 
           <view class="pback-footer">
             <text class="pback-footer-l">旅行邮局 · 寄往远方</text>
-            <text class="pback-footer-r">{{ item.status === 'opened' ? '已读' : '新信' }}</text>
+            <text class="pback-footer-r">{{ isSent ? sentStatusLabel(item.status) : (item.status === 'opened' ? '已读' : '新信') }}</text>
+          </view>
+        </view>
+
+        <!-- Action bar -->
+        <view class="action-bar">
+          <!-- Save to collection (inbox only) -->
+          <view
+            v-if="!isSent"
+            class="action-btn action-save"
+            :class="{ 'action-loading': saving }"
+            @click="doSave"
+          >
+            <text class="action-icon">{{ saved ? '✓' : '＋' }}</text>
+            <text class="action-txt">{{ saved ? '已存入明信片' : '存入我的明信片' }}</text>
+          </view>
+
+          <!-- Delete -->
+          <view class="action-btn action-del" @click="doDelete">
+            <text class="action-icon del-icon">✕</text>
+            <text class="action-txt del-txt">删除</text>
           </view>
         </view>
 
@@ -103,18 +124,72 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { MailApi, type MailingItem } from '@/services/api'
+import { usePostcardStore } from '@/stores/postcard'
 import { StampDesigns } from '@/config/app'
 import { IconBack, IconEnvelope } from '@/components/icons'
-import { formatDotDate, getStampColor, getStampName } from '@/utils/stamp'
+import { formatDotDate, getStampColor, getStampName, getStampImageUrl } from '@/utils/stamp'
 
-const item = ref<MailingItem | null>(null)
+const store = usePostcardStore()
+
+const item   = ref<MailingItem | null>(null)
+const isSent = ref(false)
+const saving = ref(false)
+const saved  = ref(false)
+
+// The "other party" is sender for received mail, recipient for sent mail
+const otherParty = computed(() => {
+  if (!item.value) return { nickname: '', mailboxNo: '' }
+  if (isSent.value) return (item.value as any).recipient
+  return item.value.sender
+})
+
+function sentStatusLabel(status: string): string {
+  if (status === 'opened') return '对方已读'
+  if (status === 'delivered') return '已送达'
+  return '已寄出'
+}
 
 function fullDate(ts: number): string {
   const d = new Date(ts)
   return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
+}
+
+async function doSave() {
+  if (!item.value || saving.value || saved.value) return
+  saving.value = true
+  try {
+    await MailApi.save(item.value.id)
+    saved.value = true
+    uni.showToast({ title: '已存入我的明信片 ✓', icon: 'none' })
+    // 同步 store，让明信片列表立刻反映新增的记录
+    store.syncFromServer().catch(() => {})
+  } catch (e: any) {
+    uni.showToast({ title: e.message || '保存失败', icon: 'none' })
+  } finally {
+    saving.value = false
+  }
+}
+
+function doDelete() {
+  if (!item.value) return
+  uni.showModal({
+    title: '删除邮件',
+    content: isSent.value ? '从已发送中删除这封邮件？' : '删除这封来信？',
+    confirmColor: '#C62828',
+    success: async (res) => {
+      if (!res.confirm) return
+      try {
+        await MailApi.delete(item.value!.id)
+        uni.showToast({ title: '已删除', icon: 'none' })
+        setTimeout(() => uni.navigateBack(), 600)
+      } catch (e: any) {
+        uni.showToast({ title: e.message || '删除失败', icon: 'none' })
+      }
+    },
+  })
 }
 
 function goBack() {
@@ -124,13 +199,16 @@ function goBack() {
 onLoad((opts) => {
   if (opts?.data) {
     try {
-      item.value = JSON.parse(decodeURIComponent(opts.data))
+      const parsed = JSON.parse(decodeURIComponent(opts.data))
+      isSent.value = !!parsed.isSent
+      delete parsed.isSent
+      item.value = parsed
     } catch {}
   }
 })
 
 onMounted(async () => {
-  if (item.value && !item.value.openedAt) {
+  if (item.value && !isSent.value && !item.value.openedAt) {
     MailApi.open(item.value.id).catch(() => {})
   }
 })
@@ -271,6 +349,10 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+
+  &.avatar-sent {
+    background: linear-gradient(135deg, #9C7E5A, #7A6040);
+  }
 }
 
 .sender-initial {
@@ -365,6 +447,8 @@ onMounted(async () => {
   transform: rotate(-2deg);
   flex-shrink: 0;
 }
+
+.pback-stamp-img { width: 64rpx; height: 64rpx; border-radius: 2rpx; }
 
 .pback-stamp-dot { font-size: 24rpx; }
 
@@ -494,6 +578,51 @@ onMounted(async () => {
   letter-spacing: 3rpx;
   color: $mute-text;
 }
+
+// ── Action bar ─────────────────────────────────────────────────────
+.action-bar {
+  display: flex;
+  gap: 16rpx;
+  margin: 32rpx 36rpx 0;
+}
+
+.action-btn {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  &:active { opacity: 0.8; }
+}
+
+.action-save {
+  background: $travel-blue;
+  &.action-loading { opacity: 0.6; }
+}
+
+.action-icon {
+  font-size: 28rpx;
+  color: #F4EFE5;
+}
+
+.action-txt {
+  font-family: $font-family-serif;
+  font-size: 26rpx;
+  color: #F4EFE5;
+  letter-spacing: 2rpx;
+}
+
+.action-del {
+  background: transparent;
+  border: 1rpx solid rgba(198, 40, 40, 0.3);
+  flex: 0 0 auto;
+  padding: 0 32rpx;
+}
+
+.del-icon { color: #C62828; }
+.del-txt  { color: #C62828; }
 
 .btm-gap { height: 120rpx; }
 </style>

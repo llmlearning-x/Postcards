@@ -10,5 +10,17 @@ export default defineConfig({
         additionalData: `@use "@/styles/variables.scss" as *;`
       }
     }
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://115.175.15.145',
+        changeOrigin: true,
+      },
+      '/stamps': {
+        target: 'http://115.175.15.145',
+        changeOrigin: true,
+      },
+    }
   }
 })

@@ -7,8 +7,15 @@
           <text class="hero-brand-title">旅行邮局</text>
           <text class="hero-brand-sub">CHINA POST · TRAVEL EDITION</text>
         </view>
-        <view class="hero-monogram">
-          <text class="monogram-letter">{{ userInitial }}</text>
+        <view class="hero-avatar-wrap" @click="changeAvatar">
+          <view class="hero-monogram" :class="{ 'has-avatar': avatarUrl }">
+            <image v-if="avatarUrl" :src="avatarUrl" class="avatar-img" mode="aspectFill" />
+            <text v-else class="monogram-letter">{{ userInitial }}</text>
+          </view>
+          <view class="avatar-camera-badge" :class="{ 'badge-uploading': uploadingAvatar }">
+            <view v-if="uploadingAvatar" class="avatar-spinner"></view>
+            <IconCamera v-else :size="18" color="#F4EFE5" />
+          </view>
         </view>
         <text class="hero-name">{{ userName }}</text>
         <text class="hero-rank">{{ profileTitle }}</text>
@@ -58,7 +65,14 @@
               :class="{ 'stamp-swatch-collected': ownedSet.has(stamp.id) }"
               :style="ownedSet.has(stamp.id) ? { borderColor: stamp.color } : {}"
             >
+              <image
+                v-if="getStampImageUrl(stamp.id)"
+                :src="getStampImageUrl(stamp.id)"
+                class="stamp-swatch-img"
+                mode="aspectFill"
+              />
               <text
+                v-else
                 class="stamp-swatch-icon"
                 :style="ownedSet.has(stamp.id) ? { color: stamp.color } : {}"
               >✦</text>
@@ -115,6 +129,14 @@
           <view class="section-rule"></view>
         </view>
         <view class="menu-card">
+          <view class="menu-item" @click="changeAvatar">
+            <view class="menu-item-icon">
+              <IconCamera :size="22" color="#5C5648" />
+            </view>
+            <text class="menu-item-text">修改头像</text>
+            <IconCaretRight :size="18" color="#B5AE9B" />
+          </view>
+          <view class="menu-rule"></view>
           <view class="menu-item" @click="editNickname">
             <view class="menu-item-icon">
               <IconEdit :size="22" color="#5C5648" />
@@ -180,10 +202,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { usePostcardStore } from '@/stores/postcard'
 import { useAuthStore } from '@/stores/auth'
-import { UserApi } from '@/services/api'
+import { UserApi, UploadApi } from '@/services/api'
 import { AppConfig, StampDesigns } from '@/config/app'
+import { getStampImageUrl } from '@/utils/stamp'
 import { StorageUtil } from '@/utils/storage'
 import {
+  IconCamera,
   IconEdit,
   IconReset,
   IconShield,
@@ -201,9 +225,11 @@ const authStore = useAuthStore()
 
 const FIRST_LAUNCH_KEY = 'postcards_first_launch'
 
-const userName   = ref(authStore.user?.nickname || '远方旅人')
-const joinedDays = ref(1)
-const mailboxNo  = ref(authStore.user?.mailboxNo || 'CN-000000')
+const userName        = ref(authStore.user?.nickname || '远方旅人')
+const joinedDays      = ref(1)
+const mailboxNo       = ref(authStore.user?.mailboxNo || 'CN-000000')
+const avatarUrl       = ref(authStore.user?.avatarUrl || '')
+const uploadingAvatar = ref(false)
 
 const appVersion   = AppConfig.version
 const stampDesigns = StampDesigns
@@ -231,6 +257,7 @@ const ownedStampCount = computed(() => ownedSet.value.size)
 function initProfileData() {
   userName.value  = authStore.user?.nickname || '远方旅人'
   mailboxNo.value = authStore.user?.mailboxNo || 'CN-000000'
+  avatarUrl.value = authStore.user?.avatarUrl || ''
 
   let firstLaunch = StorageUtil.get<number>(FIRST_LAUNCH_KEY, 0)
   if (firstLaunch === 0) {
@@ -241,6 +268,37 @@ function initProfileData() {
   joinedDays.value = Math.max(1, days + 1)
 
   store.initData()
+}
+
+function changeAvatar() {
+  if (uploadingAvatar.value) return
+  uni.showActionSheet({
+    itemList: ['拍照', '从相册选择'],
+    success: (res) => {
+      const sourceType = res.tapIndex === 0 ? ['camera'] : ['album']
+      uni.chooseImage({
+        count: 1,
+        sizeType: ['compressed'],
+        sourceType,
+        success: async (imgRes) => {
+          const filePath = imgRes.tempFilePaths[0]
+          uploadingAvatar.value = true
+          try {
+            const up = await UploadApi.image(filePath)
+            await UserApi.update({ avatarUrl: up.url })
+            authStore.updateUser({ avatarUrl: up.url })
+            avatarUrl.value = up.url
+            uni.showToast({ title: '头像已更新', icon: 'success' })
+          } catch (e: any) {
+            uni.showToast({ title: e.message || '上传失败，请重试', icon: 'none' })
+          } finally {
+            uploadingAvatar.value = false
+          }
+        },
+        fail: () => {},
+      })
+    },
+  })
 }
 
 function editNickname() {
@@ -379,6 +437,12 @@ onMounted(() => initProfileData())
   margin-top: 4rpx;
 }
 
+.hero-avatar-wrap {
+  position: relative;
+  margin-bottom: 24rpx;
+  &:active { opacity: 0.85; }
+}
+
 .hero-monogram {
   width: 152rpx;
   height: 152rpx;
@@ -388,8 +452,17 @@ onMounted(() => initProfileData())
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24rpx;
   box-shadow: 0 0 0 12rpx rgba(244, 239, 229, 0.06);
+  overflow: hidden;
+
+  &.has-avatar {
+    border-color: rgba(244, 239, 229, 0.55);
+  }
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
 }
 
 .monogram-letter {
@@ -397,6 +470,37 @@ onMounted(() => initProfileData())
   font-size: 72rpx;
   font-weight: 400;
   color: rgba(244, 239, 229, 0.95);
+}
+
+.avatar-camera-badge {
+  position: absolute;
+  bottom: 4rpx;
+  right: 4rpx;
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: $travel-blue;
+  border: 3rpx solid rgba(60, 96, 77, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
+
+  &.badge-uploading { background: $forest-green; }
+}
+
+.avatar-spinner {
+  width: 20rpx;
+  height: 20rpx;
+  border: 2rpx solid rgba(244, 239, 229, 0.3);
+  border-top-color: #F4EFE5;
+  border-radius: 50%;
+  animation: avatar-spin 0.7s linear infinite;
+}
+
+@keyframes avatar-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 .hero-name {
@@ -543,6 +647,13 @@ onMounted(() => initProfileData())
 
 .stamp-swatch-collected {
   opacity: 1;
+}
+
+.stamp-swatch-img {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 2rpx;
+  // opacity controlled by parent .stamp-swatch (0.45 = not owned, 1 = owned)
 }
 
 .stamp-swatch-icon {

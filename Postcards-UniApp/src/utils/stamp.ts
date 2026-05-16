@@ -1,5 +1,7 @@
 import { StampDesigns } from '@/config/app'
 
+const STAMPS_BASE = (import.meta.env.VITE_STAMPS_BASE_URL as string) || 'http://115.175.15.145/stamps'
+
 /** 格式化时间戳为 月·日（如 05·15） */
 export function formatDotDate(ts: number): string {
   const d = new Date(ts)
@@ -31,4 +33,10 @@ export function getStampSeriesName(id: string): string {
   return StampDesigns.find(s => s.id === id)?.seriesName ?? '旅行'
 }
 
-/** 邮票图片统一由后端 STAMPS_BASE_URL 提供，前端直接使用 stamp.imageUrl */
+/** 根据邮票 ID 返回图片完整 URL，找不到返回空字符串 */
+export function getStampImageUrl(id: string): string {
+  const design = StampDesigns.find(s => s.id === id)
+  if (!design?.imagePath) return ''
+  const base = STAMPS_BASE.replace(/\/$/, '')
+  return `${base}/${design.imagePath}`
+}

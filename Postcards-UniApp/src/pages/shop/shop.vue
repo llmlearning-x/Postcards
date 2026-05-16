@@ -1,15 +1,13 @@
 <template>
   <view class="page-container">
     <!-- Header -->
-    <view class="page-header">
+    <view class="postal-header">
+      <view class="header-perf"></view>
       <view class="nav-back" @click="goBack">
-        <IconBack :size="20" color="#F4EFE5" />
+        <IconBack :size="18" color="rgba(255,255,255,0.9)" />
       </view>
-      <view class="header-center">
-        <text class="header-kicker">STAMP SHOP · 集邮</text>
-        <text class="header-title">邮票商店</text>
-      </view>
-      <view style="width: 64rpx;"></view>
+      <text class="header-kicker">STAMP SHOP · 集邮</text>
+      <text class="header-title">邮票商店</text>
     </view>
 
     <scroll-view class="content" scroll-y>
@@ -25,8 +23,8 @@
           </view>
           <view class="ticket-sep"></view>
           <view class="ticket-right">
-            <view class="daily-btn" :class="{ 'daily-done': dailyClaimed }" @click="claimDaily">
-              <text class="daily-sun">☀</text>
+            <view class="daily-btn" :class="{ 'daily-done': dailyClaimed || claiming }" @click="claimDaily">
+              <IconStampSunset :size="36" color="#F4EFE5" class="daily-sun" />
               <text class="daily-txt">{{ dailyClaimed ? '已签到' : '每日签到' }}</text>
               <text v-if="!dailyClaimed" class="daily-reward">+5 PT</text>
             </view>
@@ -50,8 +48,21 @@
         </view>
       </view>
 
+      <!-- Skeleton while loading -->
+      <view v-if="loading" class="skeleton-wrap">
+        <view v-for="i in 3" :key="i" class="skeleton-section">
+          <view class="skeleton-hd">
+            <view class="skeleton-line sk-short"></view>
+            <view class="skeleton-line sk-medium"></view>
+          </view>
+          <view class="skeleton-row">
+            <view v-for="j in 4" :key="j" class="skeleton-card"></view>
+          </view>
+        </view>
+      </view>
+
       <!-- Stamp series sections -->
-      <view v-for="group in stampGroups" :key="group.series" class="series-section">
+      <view v-if="!loading" v-for="group in stampGroups" :key="group.series" class="series-section">
         <view class="series-hd">
           <text class="series-roman">SÉRIE {{ group.series }}</text>
           <text class="series-name-txt">{{ group.seriesName }}</text>
@@ -67,7 +78,7 @@
               v-for="stamp in group.items"
               :key="stamp.id"
               class="stamp-card"
-              @click="onStampTap(stamp)"
+              @click="previewStamp = stamp"
             >
               <!-- Stamp body (perforated frame effect) -->
               <view
@@ -105,6 +116,15 @@
 
       <view class="btm-gap"></view>
     </scroll-view>
+
+    <!-- Stamp detail preview (longpress) -->
+    <StampPreviewModal
+      v-if="previewStamp"
+      :stamp="previewStamp"
+      mode="shop"
+      @close="previewStamp = null"
+      @buy="openBuyFromPreview"
+    />
 
     <!-- Purchase bottom sheet -->
     <view v-if="buying" class="sheet-mask" @click.self="buying = null">
@@ -170,16 +190,28 @@ import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useAuthStore } from '@/stores/auth'
 import { StampApi, PointsApi, type StampItem } from '@/services/api'
-import { IconBack } from '@/components/icons'
+import { StorageUtil } from '@/utils/storage'
+import { IconBack, IconStampSunset } from '@/components/icons'
+import StampPreviewModal from '@/components/StampPreviewModal.vue'
 
 const authStore = useAuthStore()
 
-const stamps      = ref<StampItem[]>([])
-const points      = ref(authStore.user?.points ?? 0)
-const guideOpen   = ref(false)
-const dailyClaimed = ref(false)
-const buying      = ref<StampItem | null>(null)
-const confirming  = ref(false)
+const stamps       = ref<StampItem[]>([])
+const points       = ref(authStore.user?.points ?? 0)
+const guideOpen    = ref(false)
+const claiming     = ref(false)
+const buying       = ref<StampItem | null>(null)
+const confirming   = ref(false)
+const previewStamp = ref<StampItem | null>(null)
+const loading      = ref(true)
+
+// key 绑定 userId，避免同设备换账号时拿到其他用户的签到状态
+function todayKey(): string {
+  const uid = authStore.user?.id ?? 'guest'
+  const d   = new Date()
+  return `daily_claimed_${uid}_${d.getUTCFullYear()}-${d.getUTCMonth() + 1}-${d.getUTCDate()}`
+}
+const dailyClaimed = ref(StorageUtil.get<boolean>(todayKey(), false))
 
 const stampGroups = computed(() => {
   const map: Record<string, {
@@ -203,44 +235,52 @@ const earnItems = [
 ]
 
 async function loadData() {
+  loading.value = true
   try {
-    stamps.value = await StampApi.all()
+    const [stampsRes] = await Promise.all([
+      StampApi.all(),
+      PointsApi.me().then(res => {
+        points.value = res.points
+        authStore.updatePoints(res.points)
+      }).catch(() => {}),
+    ])
+    stamps.value = stampsRes
   } catch {}
-  try {
-    const res = await PointsApi.me()
-    points.value = res.points
-    authStore.updatePoints(res.points)
-  } catch {}
+  loading.value = false
+}
+
+function markDailyClaimed() {
+  dailyClaimed.value = true
+  StorageUtil.set(todayKey(), true)
 }
 
 async function claimDaily() {
-  if (dailyClaimed.value) return
+  if (dailyClaimed.value || claiming.value) return
+  claiming.value = true
   try {
     const res = await PointsApi.daily()
     points.value = res.points
     authStore.updatePoints(res.points)
-    dailyClaimed.value = true
+    markDailyClaimed()
     uni.showToast({ title: `签到成功 +${res.delta} PT`, icon: 'success' })
   } catch (e: any) {
     if (e.message?.includes('今日')) {
-      dailyClaimed.value = true
+      markDailyClaimed()
       uni.showToast({ title: '今日已签到', icon: 'none' })
     } else {
-      uni.showToast({ title: e.message || '签到失败', icon: 'none' })
+      uni.showToast({ title: e.message || '签到失败，请重试', icon: 'none' })
     }
+  } finally {
+    claiming.value = false
   }
 }
 
-function onStampTap(stamp: StampItem) {
-  if (stamp.isOwned) {
-    uni.showToast({ title: '已拥有此邮票', icon: 'none' })
-    return
+function openBuyFromPreview() {
+  const stamp = previewStamp.value
+  previewStamp.value = null
+  if (stamp && !stamp.isOwned && !stamp.isFree) {
+    buying.value = stamp
   }
-  if (stamp.isFree) {
-    uni.showToast({ title: '免费邮票自动解锁', icon: 'none' })
-    return
-  }
-  buying.value = stamp
 }
 
 async function confirmPurchase() {
@@ -265,7 +305,11 @@ async function confirmPurchase() {
 
 function goBack() { uni.navigateBack() }
 
-onShow(() => { loadData() })
+onShow(() => {
+  // Re-check date key each show — handles midnight crossover
+  dailyClaimed.value = StorageUtil.get<boolean>(todayKey(), false)
+  loadData()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -275,33 +319,28 @@ onShow(() => { loadData() })
 }
 
 // ── Header ──
-.page-header {
+.postal-header {
   background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 56rpx 40rpx 36rpx;
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-}
-.nav-back {
-  width: 64rpx; height: 64rpx;
-  border-radius: 50%;
-  background: rgba(244,239,229,0.12);
-  display: flex; align-items: center; justify-content: center;
+  padding: 100rpx 48rpx 20rpx;
+  position: relative;
   flex-shrink: 0;
 }
-.header-center { flex: 1; }
+.header-perf {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 6rpx;
+  background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
+}
+.nav-back {
+  position: absolute; top: 52rpx; left: 48rpx;
+  width: 64rpx; height: 64rpx;
+  display: flex; align-items: center; justify-content: center;
+}
 .header-kicker {
-  display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx; letter-spacing: 4rpx;
-  color: rgba(244,239,229,0.65);
-  margin-bottom: 6rpx;
+  display: block; font-family: $font-family-mono;
+  font-size: 20rpx; letter-spacing: 4rpx; color: rgba(255,255,255,0.65); margin-bottom: 12rpx;
 }
 .header-title {
-  display: block;
-  font-family: $font-family-serif;
-  font-size: 40rpx;
-  color: #F4EFE5;
+  display: block; font-family: $font-family-serif;
+  font-size: 46rpx; font-weight: 400; color: rgba(255,255,255,0.95); line-height: 1.15; letter-spacing: -1rpx;
 }
 
 .content { height: calc(100vh - 200rpx); }
@@ -486,6 +525,7 @@ onShow(() => { loadData() })
   align-items: center;
   gap: 12rpx;
   flex-shrink: 0;
+  position: relative;
 }
 .stamp-body {
   width: 156rpx;
@@ -541,6 +581,41 @@ onShow(() => { loadData() })
 .stamp-status-price { color: $mute-text; }
 
 .btm-gap { height: 120rpx; }
+
+// ── Skeleton ──
+@keyframes sk-shimmer {
+  0%   { background-position: -600rpx 0; }
+  100% { background-position: 600rpx 0; }
+}
+.skeleton-wrap { padding: 0 0 40rpx; }
+.skeleton-section { margin-top: 40rpx; }
+.skeleton-hd {
+  display: flex;
+  gap: 16rpx;
+  align-items: center;
+  padding: 0 40rpx;
+  margin-bottom: 24rpx;
+}
+.skeleton-row {
+  display: flex;
+  gap: 24rpx;
+  padding: 0 40rpx;
+  overflow: hidden;
+}
+.skeleton-line, .skeleton-card {
+  border-radius: 6rpx;
+  background: linear-gradient(90deg, $line-sepia 25%, $paper-beige 50%, $line-sepia 75%);
+  background-size: 1200rpx 100%;
+  animation: sk-shimmer 1.4s infinite linear;
+}
+.sk-short  { width: 80rpx;  height: 20rpx; }
+.sk-medium { width: 120rpx; height: 28rpx; }
+.skeleton-card {
+  width: 156rpx;
+  height: 210rpx;
+  flex-shrink: 0;
+  border-radius: 4rpx;
+}
 
 // ── Purchase Sheet ──
 .sheet-mask {

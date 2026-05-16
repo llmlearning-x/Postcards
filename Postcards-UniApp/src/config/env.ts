@@ -7,11 +7,18 @@
  * 生产构建前必须在 .env.production 中配置正确的 HTTPS 域名。
  */
 
+// Vite statically replaces import.meta.env.VITE_API_BASE_URL with the literal string at build time.
+// Do NOT use `typeof import.meta` — Vite compiles that into a `new URL()` shim that crashes
+// in the Android native JS engine (URL is not defined in JSCore).
 // @ts-ignore — uni-app vite environment, import.meta.env may not be typed
-const env = (typeof import.meta !== 'undefined' && (import.meta as any).env) || {}
+const rawUrl: string = (import.meta.env.VITE_API_BASE_URL as string) || ''
 
-export const API_BASE_URL: string = (env.VITE_API_BASE_URL as string) || ''
-
-if (!API_BASE_URL && typeof window !== 'undefined') {
-  console.warn('[env] VITE_API_BASE_URL 未配置，API 请求将使用开发回退地址')
-}
+// 在 App 原生环境中，相对路径无法解析，必须使用绝对地址
+// #ifndef H5
+export const API_BASE_URL: string = rawUrl.startsWith('http')
+  ? rawUrl
+  : `http://115.175.15.145${rawUrl}`
+// #endif
+// #ifdef H5
+export const API_BASE_URL: string = rawUrl
+// #endif

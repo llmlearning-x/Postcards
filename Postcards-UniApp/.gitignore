@@ -9,6 +9,7 @@ unpackage/
 # IDE
 .idea/
 .vscode/
+.hbuilderx/
 *.iml
 
 # OS

@@ -71,6 +71,34 @@
       }
     },
     {
+      "path": "pages/travels/travels",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "旅程列表"
+      }
+    },
+    {
+      "path": "pages/postcards/postcards",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "我的明信片"
+      }
+    },
+    {
+      "path": "pages/points/points",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "积分明细"
+      }
+    },
+    {
+      "path": "pages/board/board",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "旅行公告栏"
+      }
+    },
+    {
       "path": "pages/auth/login",
       "style": {
         "navigationStyle": "custom",

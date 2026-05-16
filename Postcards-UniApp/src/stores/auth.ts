@@ -14,9 +14,10 @@ export interface AuthUser {
 export const FREE_STAMP_IDS = ['classic', 'nature', 'culture', 'city', 'ocean', 'sunset']
 
 export const useAuthStore = defineStore('auth', () => {
-  const user        = ref<AuthUser | null>(StorageUtil.get('auth_user', null))
-  const token       = ref<string>(StorageUtil.get('auth_token', ''))
-  const ownedStamps = ref<string[]>(StorageUtil.get('auth_owned_stamps', []))
+  const user             = ref<AuthUser | null>(StorageUtil.get('auth_user', null))
+  const token            = ref<string>(StorageUtil.get('auth_token', ''))
+  const ownedStamps      = ref<string[]>(StorageUtil.get('auth_owned_stamps', []))
+  const favoriteStampIds = ref<string[]>(StorageUtil.get('auth_fav_stamps', []))
 
   const isLoggedIn = computed(() => !!token.value && !!user.value)
 
@@ -54,18 +55,29 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  function toggleFavoriteStamp(id: string) {
+    const next = favoriteStampIds.value.includes(id)
+      ? favoriteStampIds.value.filter(s => s !== id)
+      : [...favoriteStampIds.value, id]
+    favoriteStampIds.value = next
+    StorageUtil.set('auth_fav_stamps', next)
+  }
+
   function logout() {
-    user.value        = null
-    token.value       = ''
-    ownedStamps.value = []
+    user.value             = null
+    token.value            = ''
+    ownedStamps.value      = []
+    favoriteStampIds.value = []
     StorageUtil.remove('auth_user')
     StorageUtil.remove('auth_token')
     StorageUtil.remove('auth_refresh')
     StorageUtil.remove('auth_owned_stamps')
+    StorageUtil.remove('auth_fav_stamps')
   }
 
   return {
-    user, token, ownedStamps, isLoggedIn,
-    setSession, updateUser, updatePoints, setOwnedStamps, addOwnedStamp, logout,
+    user, token, ownedStamps, favoriteStampIds, isLoggedIn,
+    setSession, updateUser, updatePoints, setOwnedStamps, addOwnedStamp,
+    toggleFavoriteStamp, logout,
   }
 })

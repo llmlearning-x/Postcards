@@ -31,9 +31,17 @@ $dawn-yellow:     #FFD700;
 $warm-white:      #FFFFFF;
 
 // ─── Typography ───
-$font-family-serif:   'Georgia', 'Noto Serif SC', 'Songti SC', '宋体', serif;
+//
+// serif:  Playfair Display 覆盖 Latin 字形（展示级衬线）；
+//         中文字符自动 fallback 到 Noto Serif SC（思源宋体）。
+//         单一字体栈即可完成中英混排，无需额外处理。
+//
+// mono:   Courier Prime 替代 Courier New，专为屏幕重新设计的打字机字体，
+//         用于邮编、邮戳、FROM/TO 标签等所有"邮局感"排版。
+//
+$font-family-serif:   'Playfair Display', 'Noto Serif SC', Georgia, serif;
 $font-family-sans:    -apple-system, 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
-$font-family-mono:    'Courier New', 'SF Mono', Menlo, monospace;
+$font-family-mono:    'Courier Prime', 'Courier New', monospace;
 
 // ─── Spacing ───
 $spacing-xs: 4px;

@@ -1,15 +1,13 @@
 <template>
   <view class="page-container">
     <!-- Header -->
-    <view class="page-header">
+    <view class="postal-header">
+      <view class="header-perf"></view>
       <view class="nav-back" @click="goBack">
-        <IconBack :size="20" color="#F4EFE5" />
+        <IconBack :size="18" color="rgba(255,255,255,0.9)" />
       </view>
-      <view class="header-center">
-        <text class="header-kicker">MAIL · 寄出</text>
-        <text class="header-title">寄明信片</text>
-      </view>
-      <view style="width: 64rpx;"></view>
+      <text class="header-kicker">MAIL · 寄出</text>
+      <text class="header-title">寄明信片</text>
     </view>
 
     <scroll-view class="content" scroll-y>
@@ -18,7 +16,15 @@
       <template v-if="mode === 'pick-recipient'">
         <!-- Postcard preview strip -->
         <view class="postcard-preview" v-if="postcard">
-          <view class="preview-stamp-dot" :style="{ background: getStampColor(postcard.stampDesign) }"></view>
+          <view class="preview-thumb">
+            <image
+              v-if="postcard.photoUrl"
+              :src="postcard.photoUrl"
+              class="preview-thumb-img"
+              mode="aspectFill"
+            />
+            <view v-else class="preview-thumb-grad"></view>
+          </view>
           <view class="preview-info">
             <text class="preview-loc">{{ postcard.locationName }}</text>
             <text class="preview-sub">{{ postcard.city }} · {{ postcard.country }}</text>
@@ -26,10 +32,45 @@
           <text class="preview-tag">即将寄出</text>
         </view>
 
-        <!-- Step 1: Search recipient -->
+        <!-- Step 1: Pick recipient -->
         <view class="section" v-if="!recipient">
+
+          <!-- Contacts list -->
           <view class="section-hd">
-            <text class="section-kicker">RECIPIENT · 收件人</text>
+            <text class="section-kicker">CONTACTS · 联系人</text>
+            <view class="section-rule"></view>
+          </view>
+
+          <view class="contacts-loading" v-if="contactsLoading">
+            <text class="contacts-loading-txt">加载中…</text>
+          </view>
+
+          <view class="contacts-list" v-else-if="contacts.length > 0">
+            <view
+              v-for="c in contacts"
+              :key="c.id"
+              class="contact-row"
+              @click="selectContact(c)"
+            >
+              <view class="user-avatar">
+                <image v-if="c.avatarUrl" :src="c.avatarUrl" class="avatar-img" mode="aspectFill" />
+                <text v-else class="user-initial">{{ (c.remarkName || c.nickname).slice(0, 1) }}</text>
+              </view>
+              <view class="user-info">
+                <text class="user-name">{{ c.remarkName || c.nickname }}</text>
+                <text class="user-mailbox">{{ c.mailboxNo }}</text>
+              </view>
+              <text class="user-select-arr">›</text>
+            </view>
+          </view>
+
+          <view class="contacts-empty" v-else>
+            <text class="contacts-empty-txt">暂无联系人</text>
+          </view>
+
+          <!-- Search for other users -->
+          <view class="section-hd" style="margin-top: 40rpx;">
+            <text class="section-kicker">SEARCH · 搜索其他用户</text>
             <view class="section-rule"></view>
           </view>
 
@@ -39,9 +80,11 @@
               <input
                 class="search-input"
                 v-model="searchQ"
-                placeholder="输入邮箱号 CN-XXXXXX 或昵称"
+                placeholder="输入 6 位邮箱号"
                 :placeholder-style="'color:#B5AE9B'"
                 @input="onSearchInput"
+                type="number"
+                maxlength="6"
               />
               <text class="search-clear" v-if="searchQ" @click="searchQ = ''; searchResults = []">✕</text>
             </view>
@@ -65,8 +108,11 @@
             </view>
           </view>
 
-          <view class="search-empty" v-if="searchQ.length >= 3 && searchResults.length === 0 && !searching">
-            <text class="search-empty-txt">未找到匹配用户</text>
+          <view class="search-empty" v-if="searchQ && !isValidMailboxNo(searchQ)">
+            <text class="search-empty-txt">请输入 6 位数字邮箱号</text>
+          </view>
+          <view class="search-empty" v-else-if="isValidMailboxNo(searchQ) && searchResults.length === 0 && !searching">
+            <text class="search-empty-txt">未找到该邮箱号对应的用户</text>
           </view>
         </view>
 
@@ -149,10 +195,32 @@
               class="pc-row"
               @click="postcard = pc"
             >
-              <view class="pc-stamp" :style="{ background: getStampColor(pc.stampDesign) }"></view>
+              <!-- Photo thumbnail -->
+              <view class="pc-thumb">
+                <image
+                  v-if="pc.photoUrl"
+                  :src="pc.photoUrl"
+                  class="pc-thumb-img"
+                  mode="aspectFill"
+                />
+                <view v-else class="pc-thumb-grad"></view>
+                <!-- Mini stamp badge -->
+                <view class="pc-stamp-badge" :style="{ borderColor: getStampColor(pc.stampDesign) }">
+                  <image
+                    v-if="getStampImageUrl(pc.stampDesign)"
+                    :src="getStampImageUrl(pc.stampDesign)"
+                    class="pc-stamp-badge-img"
+                    mode="aspectFill"
+                  />
+                  <view v-else class="pc-stamp-badge-color" :style="{ background: getStampColor(pc.stampDesign) }"></view>
+                </view>
+              </view>
+
+              <!-- Info -->
               <view class="pc-info">
                 <text class="pc-loc">{{ pc.locationName }}</text>
                 <text class="pc-sub">{{ pc.city }} · {{ pc.country }}</text>
+                <text class="pc-date">{{ formatPostmarkDate(pc.recordedAt) }}</text>
               </view>
               <text class="pc-arr">›</text>
             </view>
@@ -166,7 +234,15 @@
             <view class="section-rule"></view>
           </view>
           <view class="postcard-preview">
-            <view class="preview-stamp-dot" :style="{ background: getStampColor(postcard.stampDesign) }"></view>
+            <view class="preview-thumb">
+              <image
+                v-if="postcard.photoUrl"
+                :src="postcard.photoUrl"
+                class="preview-thumb-img"
+                mode="aspectFill"
+              />
+              <view v-else class="preview-thumb-grad"></view>
+            </view>
             <view class="preview-info">
               <text class="preview-loc">{{ postcard.locationName }}</text>
               <text class="preview-sub">{{ postcard.city }} · {{ postcard.country }}</text>
@@ -205,12 +281,17 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { UserApi, MailApi, type ApiUser } from '@/services/api'
+import { UserApi, MailApi, ContactsApi, type ApiUser, type ContactItem } from '@/services/api'
 import { usePostcardStore } from '@/stores/postcard'
-import { StampDesigns } from '@/config/app'
 import type { Postcard } from '@/model/Postcard'
 import { IconBack, IconSearch, IconSend } from '@/components/icons'
-import { getStampColor } from '@/utils/stamp'
+import { getStampColor, getStampImageUrl } from '@/utils/stamp'
+
+const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+function formatPostmarkDate(ts: number): string {
+  const d = new Date(ts)
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`
+}
 
 const store = usePostcardStore()
 
@@ -218,31 +299,61 @@ const store = usePostcardStore()
 // 'pick-postcard'  = came from contacts (recipientId given)
 const mode = ref<'pick-recipient' | 'pick-postcard'>('pick-recipient')
 
-const postcardId   = ref('')
-const postcard     = ref<Postcard | null>(null)
-const searchQ      = ref('')
-const searching    = ref(false)
+const postcardId    = ref('')
+const postcard      = ref<Postcard | null>(null)
+const searchQ       = ref('')
+const searching     = ref(false)
 const searchResults = ref<ApiUser[]>([])
-const recipient    = ref<ApiUser | null>(null)
-const personalNote = ref('')
-const sending      = ref(false)
+const recipient     = ref<ApiUser | null>(null)
+const personalNote  = ref('')
+const sending       = ref(false)
+
+const contacts        = ref<ContactItem[]>([])
+const contactsLoading = ref(false)
+
+async function loadContacts() {
+  contactsLoading.value = true
+  try {
+    contacts.value = await ContactsApi.list()
+  } catch {
+    // silently fail — user can still search
+  } finally {
+    contactsLoading.value = false
+  }
+}
+
+function selectContact(c: ContactItem) {
+  recipient.value = {
+    id:        c.contactId,
+    nickname:  c.remarkName || c.nickname,
+    mailboxNo: c.mailboxNo,
+    avatarUrl: c.avatarUrl ?? null,
+  }
+}
 
 const allPostcards = computed(() => store.postcards)
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
+function isValidMailboxNo(s: string): boolean {
+  return /^\d{6}$/.test(s.trim())
+}
+
 function onSearchInput() {
   if (searchTimer) clearTimeout(searchTimer)
-  if (searchQ.value.trim().length < 3) { searchResults.value = []; return }
-  searchTimer = setTimeout(doSearch, 400)
+  if (!isValidMailboxNo(searchQ.value)) { searchResults.value = []; return }
+  searchTimer = setTimeout(doSearch, 300)
 }
 
 async function doSearch() {
   searching.value = true
   try {
     searchResults.value = await UserApi.search(searchQ.value.trim())
-  } catch {
+  } catch (e: any) {
     searchResults.value = []
+    if (e.message && !e.message.includes('格式')) {
+      uni.showToast({ title: e.message || '搜索失败，请重试', icon: 'none' })
+    }
   } finally {
     searching.value = false
   }
@@ -259,7 +370,8 @@ async function doSend() {
   try {
     await MailApi.send(postcard.value.id, recipient.value.id, personalNote.value.trim() || undefined)
     uni.showToast({ title: '已寄出！', icon: 'success' })
-    setTimeout(() => uni.navigateBack(), 1500)
+    // sending stays true — prevents double-submit during navigation
+    setTimeout(() => uni.navigateBack(), 800)
   } catch (e: any) {
     uni.showToast({ title: e.message || '寄出失败', icon: 'none' })
     sending.value = false
@@ -290,6 +402,9 @@ onMounted(() => {
   if (postcardId.value) {
     postcard.value = store.getPostcardById(postcardId.value) || null
   }
+  if (mode.value === 'pick-recipient') {
+    loadContacts()
+  }
 })
 </script>
 
@@ -299,40 +414,28 @@ onMounted(() => {
   background: $page-background;
 }
 
-.page-header {
+.postal-header {
   background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 56rpx 40rpx 36rpx;
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-}
-
-.nav-back {
-  width: 64rpx; height: 64rpx;
-  border-radius: 50%;
-  background: rgba(244,239,229,0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 100rpx 48rpx 20rpx;
+  position: relative;
   flex-shrink: 0;
 }
-
-.header-center { flex: 1; }
-
-.header-kicker {
-  display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 4rpx;
-  color: rgba(244,239,229,0.65);
-  margin-bottom: 6rpx;
+.header-perf {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 6rpx;
+  background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
 }
-
+.nav-back {
+  position: absolute; top: 52rpx; left: 48rpx;
+  width: 64rpx; height: 64rpx;
+  display: flex; align-items: center; justify-content: center;
+}
+.header-kicker {
+  display: block; font-family: $font-family-mono;
+  font-size: 20rpx; letter-spacing: 4rpx; color: rgba(255,255,255,0.65); margin-bottom: 12rpx;
+}
 .header-title {
-  display: block;
-  font-family: $font-family-serif;
-  font-size: 40rpx;
-  color: #F4EFE5;
+  display: block; font-family: $font-family-serif;
+  font-size: 46rpx; font-weight: 400; color: rgba(255,255,255,0.95); line-height: 1.15; letter-spacing: -1rpx;
 }
 
 .content { height: calc(100vh - 200rpx); }
@@ -342,25 +445,43 @@ onMounted(() => {
   background: $card-bg;
   border: 1rpx solid $line-sepia;
   border-radius: 8rpx;
-  padding: 20rpx 24rpx;
+  padding: 16rpx 20rpx;
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: 20rpx;
+  overflow: hidden;
 }
 
-.preview-stamp-dot {
-  width: 16rpx; height: 16rpx;
-  border-radius: 50%;
+.preview-thumb {
+  width: 100rpx;
+  height: 72rpx;
+  border-radius: 6rpx;
+  overflow: hidden;
   flex-shrink: 0;
+  position: relative;
 }
 
-.preview-info { flex: 1; }
+.preview-thumb-img {
+  width: 100%;
+  height: 100%;
+}
+
+.preview-thumb-grad {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #C9D2B6 0%, #6E8862 50%, #3C604D 100%);
+}
+
+.preview-info { flex: 1; min-width: 0; }
 
 .preview-loc {
   display: block;
   font-family: $font-family-serif;
   font-size: 28rpx;
   color: $ink-black;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .preview-sub {
@@ -369,6 +490,7 @@ onMounted(() => {
   font-size: 18rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
+  margin-top: 4rpx;
 }
 
 .preview-tag {
@@ -376,6 +498,7 @@ onMounted(() => {
   font-size: 16rpx;
   letter-spacing: 2rpx;
   color: $travel-blue;
+  flex-shrink: 0;
 }
 
 .section { margin: 32rpx 40rpx 0; }
@@ -400,6 +523,54 @@ onMounted(() => {
   flex: 1;
   height: 1rpx;
   background: $line-sepia;
+}
+
+// ── Contacts list in pick-recipient mode ──────────────────
+.contacts-loading {
+  padding: 32rpx 0;
+  text-align: center;
+}
+
+.contacts-loading-txt {
+  font-family: $font-family-serif;
+  font-size: 26rpx;
+  color: $mute-text;
+}
+
+.contacts-list {
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  border-radius: 8rpx;
+  overflow: hidden;
+  margin-bottom: 8rpx;
+}
+
+.contact-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 20rpx 24rpx;
+  border-bottom: 1rpx solid $line-sepia;
+
+  &:last-child { border-bottom: none; }
+  &:active { background: rgba($travel-blue, 0.05); }
+}
+
+.avatar-img {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+}
+
+.contacts-empty {
+  padding: 24rpx 0;
+}
+
+.contacts-empty-txt {
+  font-family: $font-family-serif;
+  font-size: 26rpx;
+  color: $mute-text;
+  font-style: italic;
 }
 
 .search-wrap { margin-bottom: 16rpx; }
@@ -595,17 +766,56 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 20rpx;
-  padding: 24rpx;
+  padding: 20rpx 24rpx;
   border-bottom: 1rpx solid $line-sepia;
 
   &:last-child { border-bottom: none; }
   &:active { background: rgba($travel-blue, 0.04); }
 }
 
-.pc-stamp {
-  width: 16rpx; height: 16rpx;
-  border-radius: 50%;
+// Photo thumbnail
+.pc-thumb {
+  width: 110rpx;
+  height: 80rpx;
+  border-radius: 6rpx;
+  overflow: hidden;
   flex-shrink: 0;
+  position: relative;
+}
+
+.pc-thumb-img {
+  width: 100%;
+  height: 100%;
+}
+
+.pc-thumb-grad {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #C9D2B6 0%, #6E8862 50%, #3C604D 100%);
+}
+
+// Mini stamp badge (bottom-right of thumb)
+.pc-stamp-badge {
+  position: absolute;
+  bottom: 4rpx;
+  right: 4rpx;
+  width: 32rpx;
+  height: 32rpx;
+  border: 2rpx solid currentColor;
+  border-radius: 2rpx;
+  overflow: hidden;
+  background: $paper-beige;
+}
+
+.pc-stamp-badge-img {
+  width: 100%;
+  height: 100%;
+}
+
+.pc-stamp-badge-color {
+  width: 100%;
+  height: 100%;
+  opacity: 0.8;
 }
 
 .pc-info { flex: 1; min-width: 0; }
@@ -627,6 +837,16 @@ onMounted(() => {
   font-size: 18rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
+}
+
+.pc-date {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 1rpx;
+  color: $mute-text;
+  opacity: 0.6;
+  margin-top: 6rpx;
 }
 
 .pc-arr {

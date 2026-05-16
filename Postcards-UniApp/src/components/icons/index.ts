@@ -1,6 +1,3 @@
-// Re-export Phosphor Icons for enterprise-grade iconography
-// Phosphor Icons - MIT License, 7000+ icons, professional design
-// All icons sourced from @phosphor-icons/core assets — zero hand-written SVG
 export {
   PhHouse as IconHome,
   PhClockCounterClockwise as IconTimeline,
@@ -34,13 +31,10 @@ export {
   PhCrown as IconCrown,
   PhEnvelope as IconEnvelope,
   PhArticle as IconArticle,
-  // Stamp design icons — mapped from Phosphor Icons core assets
   PhColumns as IconStampCulture,
   PhWaves as IconStampSea,
   PhSun as IconStampSunset,
-  // Brand icon — mailbox for splash screen
   PhMailbox as IconMailbox,
-  // Profile page icons
   PhInfo as IconInfo,
   PhArrowCounterClockwise as IconReset,
   PhShieldCheck as IconShield,

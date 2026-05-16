@@ -33,10 +33,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { usePostcardStore } from '@/stores/postcard'
 import { StampApi } from '@/services/api'
+
+const _dummy = ref(0)
 
 onMounted(async () => {
   const authStore = useAuthStore()
@@ -45,7 +47,6 @@ onMounted(async () => {
   await new Promise(r => setTimeout(r, 1500))
 
   if (authStore.isLoggedIn) {
-    // 并行同步明信片和邮票
     postcardStore.syncFromServer().catch(() => {})
     StampApi.my().then(stamps => authStore.setOwnedStamps(stamps.map(s => s.id))).catch(() => {})
     uni.switchTab({ url: '/pages/home/home' })
@@ -67,7 +68,6 @@ onMounted(async () => {
   overflow: hidden;
 }
 
-// Airmail border stripes
 .airmail-top,
 .airmail-bottom {
   position: absolute;
@@ -96,7 +96,6 @@ onMounted(async () => {
   gap: 0;
 }
 
-// Perforated stamp
 .stamp-frame {
   position: relative;
   width: 264rpx;
@@ -156,7 +155,6 @@ onMounted(async () => {
   color: rgba(244, 239, 229, 0.7);
 }
 
-// Perforation holes (simulated with circles)
 .stamp-perf {
   position: absolute;
   background: repeating-linear-gradient(

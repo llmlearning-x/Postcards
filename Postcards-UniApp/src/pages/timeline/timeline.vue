@@ -37,21 +37,29 @@
                   :class="{ 'rail-dot-first': idx === 0 && groupedPostcards[0] === group }"
                 ></view>
                 <view class="letter-row" @click="viewPostcard(card)">
-                  <view class="row-thumb">
-                    <image v-if="card.photoUrl" :src="card.photoUrl" class="row-thumb-img" mode="aspectFill" />
-                    <view v-else class="row-thumb-grad"></view>
-                  </view>
-                  <view class="row-body">
-                    <text class="row-meta">{{ card.city.toUpperCase() }} · {{ formatDotDate(card.recordedAt) }}</text>
-                    <text class="row-loc">{{ card.locationName }}</text>
-                    <text class="row-note">"{{ card.note }}"</text>
-                  </view>
-                  <view class="row-trail">
-                    <view @click.stop="toggleFavorite(card.id)">
-                      <IconFavorite :size="28" :color="card.isFavorite ? '#A43B2D' : '#B5AE9B'" />
+                  <!-- Full-width photo -->
+                  <view class="row-photo">
+                    <image v-if="card.photoUrl" :src="card.photoUrl" class="row-photo-img" mode="aspectFill" />
+                    <view v-else class="row-photo-grad"></view>
+                    <!-- Postmark overlay -->
+                    <view class="row-postmark">
+                      <text class="row-pm-city">{{ card.city.toUpperCase() }}</text>
+                      <text class="row-pm-date">{{ formatDotDate(card.recordedAt) }}</text>
                     </view>
-                    <view class="stamp-badge" :style="{ 'border-color': getStampColor(card.stampDesign) }">
-                      <text class="stamp-dot" :style="{ color: getStampColor(card.stampDesign) }">✦</text>
+                    <!-- Stamp badge -->
+                    <view class="row-stamp" :style="{ 'border-color': getStampColor(card.stampDesign) }">
+                      <image v-if="getStampImageUrl(card.stampDesign)" :src="getStampImageUrl(card.stampDesign)" class="row-stamp-img" mode="aspectFill" />
+                      <text v-else class="row-stamp-dot" :style="{ color: getStampColor(card.stampDesign) }">✦</text>
+                    </view>
+                  </view>
+                  <!-- Text body -->
+                  <view class="row-body">
+                    <view class="row-body-main">
+                      <text class="row-loc">{{ card.locationName }}</text>
+                      <text class="row-note" v-if="card.note">"{{ card.note }}"</text>
+                    </view>
+                    <view class="row-fav" @click.stop="toggleFavorite(card.id)">
+                      <IconFavorite :size="32" :color="card.isFavorite ? '#A43B2D' : '#C8C0B0'" />
                     </view>
                   </view>
                 </view>
@@ -75,18 +83,22 @@
       <view class="btm-gap"></view>
     </scroll-view>
   </view>
+
+  <PostcardFlipModal :postcard="activeCard" @close="activeCard = null" />
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { usePostcardStore } from '@/stores/postcard'
 import { StampDesigns } from '@/config/app'
 import type { Postcard } from '@/model/Postcard'
 import { IconImage, IconFavorite } from '@/components/icons'
-import { formatDotDate, getStampColor } from '@/utils/stamp'
+import { formatDotDate, getStampColor, getStampImageUrl } from '@/utils/stamp'
+import PostcardFlipModal from '@/components/PostcardFlipModal.vue'
 
 const store = usePostcardStore()
 const postcards = computed(() => store.sortedPostcards)
+const activeCard = ref<Postcard | null>(null)
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
@@ -120,7 +132,7 @@ const groupedPostcards = computed<GroupedPostcard[]>(() => {
 })
 
 function viewPostcard(card: Postcard) {
-  uni.navigateTo({ url: `/pages/detail/detail?id=${card.id}` })
+  activeCard.value = card
 }
 
 function toggleFavorite(id: string) {
@@ -144,26 +156,15 @@ onMounted(() => store.initData())
 }
 
 .postal-header {
-  background: $page-background;
-  padding: 100rpx 48rpx 40rpx;
-  border-bottom: 1rpx solid $line-sepia;
+  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
+  padding: 56rpx 48rpx 20rpx;
   position: relative;
   flex-shrink: 0;
 }
 
 .header-perf {
-  position: absolute;
-  top: 90rpx;
-  left: 0;
-  right: 0;
-  height: 2rpx;
-  background-image: repeating-linear-gradient(
-    90deg,
-    $line-sepia 0,
-    $line-sepia 8rpx,
-    transparent 8rpx,
-    transparent 16rpx
-  );
+  position: absolute; bottom: 0; left: 0; right: 0; height: 6rpx;
+  background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
 }
 
 .header-kicker {
@@ -171,16 +172,16 @@ onMounted(() => store.initData())
   font-family: $font-family-mono;
   font-size: 20rpx;
   letter-spacing: 4rpx;
-  color: $travel-blue;
-  margin-bottom: 22rpx;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 12rpx;
 }
 
 .header-title {
   display: block;
   font-family: $font-family-serif;
-  font-size: 58rpx;
+  font-size: 46rpx;
   font-weight: 400;
-  color: $ink-black;
+  color: rgba(255,255,255,0.95);
   line-height: 1.15;
   letter-spacing: -1rpx;
 }
@@ -189,8 +190,8 @@ onMounted(() => store.initData())
   display: block;
   font-family: $font-family-serif;
   font-size: 26rpx;
-  color: $body-text;
-  margin-top: 18rpx;
+  color: rgba(255,255,255,0.7);
+  margin-top: 10rpx;
 }
 
 .content {
@@ -304,56 +305,102 @@ onMounted(() => store.initData())
 
 // ─── Letter row card ───
 .letter-row {
-  display: flex;
-  gap: 24rpx;
-  padding: 24rpx;
   background: $card-bg;
   border-radius: 8rpx;
   border: 1rpx solid $line-sepia;
-  align-items: stretch;
-}
-
-.row-thumb {
-  width: 136rpx;
-  height: 136rpx;
-  border-radius: 6rpx;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
-.row-thumb-img { width: 100%; height: 100%; }
+// ─── Full-width photo ───
+.row-photo {
+  width: 100%;
+  height: 320rpx;
+  position: relative;
+  overflow: hidden;
+}
 
-.row-thumb-grad {
+.row-photo-img { width: 100%; height: 100%; }
+
+.row-photo-grad {
   width: 100%;
   height: 100%;
-  background: linear-gradient(180deg, #C9D2B6 0%, #6E8862 100%);
+  background: linear-gradient(160deg, #C9D2B6 0%, #6E8862 100%);
 }
 
-.row-body {
-  flex: 1;
+// Postmark overlay (bottom-left of photo)
+.row-postmark {
+  position: absolute;
+  bottom: 20rpx;
+  left: 20rpx;
+  background: rgba(20, 15, 10, 0.45);
+  border: 1rpx solid rgba(244, 239, 229, 0.3);
+  border-radius: 4rpx;
+  padding: 8rpx 16rpx;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  min-width: 0;
-  gap: 8rpx;
+  align-items: center;
+  gap: 2rpx;
 }
 
-.row-meta {
+.row-pm-city {
   font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-size: 14rpx;
   letter-spacing: 3rpx;
-  color: $mute-text;
+  color: rgba(244, 239, 229, 0.85);
 }
 
-.row-loc {
+.row-pm-date {
   font-family: $font-family-serif;
-  font-size: 30rpx;
-  font-weight: 500;
-  color: $ink-black;
+  font-size: 26rpx;
+  color: rgba(244, 239, 229, 0.95);
   line-height: 1.1;
 }
 
+// Stamp badge (top-right of photo)
+.row-stamp {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  width: 56rpx;
+  height: 70rpx;
+  border: 1rpx dashed currentColor;
+  background: rgba(251, 248, 241, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3rpx;
+}
+
+.row-stamp-img { width: 48rpx; height: 48rpx; border-radius: 2rpx; }
+.row-stamp-dot { font-size: 24rpx; }
+
+// ─── Text body below photo ───
+.row-body {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  gap: 16rpx;
+}
+
+.row-body-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.row-loc {
+  display: block;
+  font-family: $font-family-serif;
+  font-size: 32rpx;
+  font-weight: 500;
+  color: $ink-black;
+  margin-bottom: 6rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .row-note {
+  display: block;
   font-family: $font-family-serif;
   font-style: italic;
   font-size: 24rpx;
@@ -363,26 +410,7 @@ onMounted(() => store.initData())
   white-space: nowrap;
 }
 
-.row-trail {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: space-between;
-  padding-left: 8rpx;
-}
-
-.stamp-badge {
-  width: 44rpx;
-  height: 54rpx;
-  border: 1rpx dashed currentColor;
-  background: $paper-beige;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 2rpx;
-}
-
-.stamp-dot { font-size: 20rpx; }
+.row-fav { flex-shrink: 0; padding: 8rpx; }
 
 // ─── Timeline end ───
 .timeline-end {

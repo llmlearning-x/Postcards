@@ -102,7 +102,7 @@
                   @click="stampDesign = stamp.id"
                 >
                   <view class="stamp-swatch" :style="{ borderColor: stamp.color }">
-                    <image v-if="stamp.imageUrl" :src="stamp.imageUrl" class="stamp-swatch-img" mode="aspectFill" />
+                    <image v-if="getStampImageUrl(stamp.id)" :src="getStampImageUrl(stamp.id)" class="stamp-swatch-img" mode="aspectFill" />
                     <text v-else class="stamp-swatch-dot" :style="{ color: stamp.color }">✦</text>
                   </view>
                   <text
@@ -138,6 +138,7 @@ import { usePostcardStore } from '@/stores/postcard'
 import { useAuthStore } from '@/stores/auth'
 import { UIUtil } from '@/utils/ui'
 import { ToastMessages, StampDesigns, AppConfig } from '@/config/app'
+import { getStampImageUrl } from '@/utils/stamp'
 import { PostcardApi, UploadApi } from '@/services/api'
 import type { Postcard } from '@/model/Postcard'
 import {

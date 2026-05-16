@@ -5,6 +5,7 @@ import { TravelStatus } from '@/model/Travel'
 import type { Postcard } from '@/model/Postcard'
 import { mockTravels, mockPostcards } from '@/data/mockData'
 import { StorageUtil } from '@/utils/storage'
+// mockTravels / mockPostcards kept for resetData() (dev helper only)
 import { AppConfig } from '@/config/app'
 import { TravelApi, PostcardApi } from '@/services/api'
 
@@ -35,15 +36,8 @@ export const usePostcardStore = defineStore('postcard', () => {
       const savedTravels = StorageUtil.get<Travel[]>(AppConfig.storageKeys.TRAVELS, [])
       const savedPostcards = StorageUtil.get<Postcard[]>(AppConfig.storageKeys.POSTCARDS, [])
 
-      if (savedTravels.length === 0 && savedPostcards.length === 0) {
-        // 如果没有存储数据，使用模拟数据
-        travels.value = mockTravels
-        postcards.value = mockPostcards
-        saveToStorage()
-      } else {
-        travels.value = savedTravels
-        postcards.value = savedPostcards
-      }
+      travels.value   = savedTravels
+      postcards.value = savedPostcards
     } catch (err) {
       console.error('Load from storage error:', err)
       error.value = '数据加载失败'
@@ -149,16 +143,20 @@ export const usePostcardStore = defineStore('postcard', () => {
   }
 
   async function syncFromServer(): Promise<void> {
+    isLoading.value = true
     try {
       const [remoteTravels, remotePostcards] = await Promise.all([
         TravelApi.list(),
         PostcardApi.list(),
       ])
-      travels.value = remoteTravels as Travel[]
-      postcards.value = remotePostcards as Postcard[]
+      travels.value   = remoteTravels as unknown as Travel[]
+      postcards.value = remotePostcards as unknown as Postcard[]
       saveToStorage()
-    } catch {
-      // keep local data on network error
+      error.value = null
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : '同步失败'
+    } finally {
+      isLoading.value = false
     }
   }
 

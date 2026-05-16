@@ -30,7 +30,7 @@ There are no test or lint commands configured — TypeScript type checking is th
 ## Android APK Packaging
 
 Packaging requires HBuilderX (cloud build). See `PACKAGE.md` for the full guide. Key info:
-- Keystore: `postcards.keystore`, alias `postcards`, password `postcards2024`
+- Keystore: keep `postcards.keystore` and passwords outside Git; use local release credentials only
 - App ID: `__UNI__AFB5F4A`, package name `com.postcards.app`
 - Supports `armeabi-v7a` and `arm64-v8a`
 

@@ -81,9 +81,12 @@
 import { ref, computed } from 'vue'
 import { AuthApi } from '@/services/api'
 import { useAuthStore, FREE_STAMP_IDS } from '@/stores/auth'
+import { usePostcardStore } from '@/stores/postcard'
+import { StorageUtil } from '@/utils/storage'
 import { IconBack } from '@/components/icons'
 
-const authStore = useAuthStore()
+const authStore     = useAuthStore()
+const postcardStore = usePostcardStore()
 
 const nickname    = ref('')
 const password    = ref('')
@@ -109,7 +112,11 @@ async function doRegister() {
       res.accessToken,
       res.refreshToken,
     )
-    authStore.setOwnedStamps(FREE_STAMP_IDS) // 注册时自动获得 Series I 全部邮票
+    authStore.setOwnedStamps(FREE_STAMP_IDS)
+    // 清空本地缓存，确保新用户看到真实空数据
+    postcardStore.syncFromServer().catch(() => {})
+    // 标记新用户，home 页会显示引导
+    StorageUtil.set('is_new_user', true)
     newMailboxNo.value = res.user.mailboxNo
     registered.value = true
   } catch (e: any) {

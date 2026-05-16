@@ -50,7 +50,7 @@
             </view>
             <!-- Stamp box -->
             <view class="pback-stamp" :style="{ borderColor: getStampColor(postcard.stampDesign) }">
-              <image v-if="postcard.stampImageUrl" :src="postcard.stampImageUrl" class="pback-stamp-img" mode="aspectFill" />
+              <image v-if="getStampImageUrl(postcard.stampDesign)" :src="getStampImageUrl(postcard.stampDesign)" class="pback-stamp-img" mode="aspectFill" />
               <text v-else class="pback-stamp-dot" :style="{ color: getStampColor(postcard.stampDesign) }">✦</text>
               <text class="pback-stamp-name" :style="{ color: getStampColor(postcard.stampDesign) }">{{ getStampName(postcard.stampDesign) }}</text>
             </view>
@@ -140,6 +140,30 @@
           </view>
         </view>
 
+        <!-- Public board toggle -->
+        <view class="public-toggle" :class="{ 'public-toggle-on': isPublic }" @click="togglePublic">
+          <view class="public-toggle-left">
+            <IconGlobe :size="22" :color="isPublic ? '#2E7D58' : '#8E8775'" />
+            <view class="public-toggle-text">
+              <text class="public-toggle-main">{{ isPublic ? '已投入旅行公告栏' : '投入旅行公告栏' }}</text>
+              <text class="public-toggle-sub">{{ isPublic ? '正在公开展示，点击撤出' : '与旅行者们分享这张明信片' }}</text>
+            </view>
+          </view>
+          <view class="public-pill" :class="{ 'public-pill-on': isPublic }">
+            <text class="public-pill-txt">{{ isPublic ? '公开' : '私密' }}</text>
+          </view>
+        </view>
+
+        <!-- Print teaser card -->
+        <view class="print-teaser" @click="showPrintModal = true">
+          <view class="print-teaser-left">
+            <text class="print-teaser-kicker">COMING SOON · 即将上线</text>
+            <text class="print-teaser-title">印出来，寄给远方的 TA</text>
+            <text class="print-teaser-sub">将这张明信片真正印刷并邮寄出去</text>
+          </view>
+          <view class="print-teaser-arrow">›</view>
+        </view>
+
         <!-- Journey context strip -->
         <view class="journey-strip" v-if="journeyCards.length > 0">
           <view class="journey-strip-hd">
@@ -173,6 +197,41 @@
     </scroll-view>
   </view>
 
+  <!-- Print interest modal -->
+  <view v-if="showPrintModal" class="modal-mask" @click.self="showPrintModal = false">
+    <view class="modal-sheet">
+      <view class="modal-handle"></view>
+
+      <view class="modal-stamp-deco">
+        <text class="modal-stamp-char">印</text>
+      </view>
+
+      <text class="modal-kicker">PRINT & MAIL · 实物明信片</text>
+      <text class="modal-title">把这张明信片真正寄出去</text>
+      <text class="modal-desc">我们正在开发实物印刷服务——把你在旅途中记录的明信片，真正印刷出来，邮寄给你爱的人。</text>
+
+      <view class="modal-steps">
+        <view class="modal-step">
+          <text class="modal-step-num">01</text>
+          <text class="modal-step-txt">选择明信片，填写收件人地址</text>
+        </view>
+        <view class="modal-step">
+          <text class="modal-step-num">02</text>
+          <text class="modal-step-txt">我们印刷并贴上真实邮票</text>
+        </view>
+        <view class="modal-step">
+          <text class="modal-step-num">03</text>
+          <text class="modal-step-txt">3-5 天送达，附带你的手写留言</text>
+        </view>
+      </view>
+
+      <view class="modal-btn" :class="{ 'modal-btn-done': printInterestDone }" @click="registerPrintInterest">
+        <text class="modal-btn-txt">{{ printInterestDone ? '✓ 已登记，上线第一时间通知你' : '我想要这个功能 →' }}</text>
+      </view>
+      <text class="modal-cancel" @click="showPrintModal = false">稍后再说</text>
+    </view>
+  </view>
+
   <!-- Empty state -->
   <view class="empty-state" v-else>
     <view class="float-nav-empty">
@@ -203,23 +262,29 @@ import {
   IconEdit,
   IconShare,
   IconSend,
+  IconGlobe,
 } from '@/components/icons'
-import { formatDotDate, getStampColor, getStampName, getStampSeries, getStampSeriesName } from '@/utils/stamp'
+import { formatDotDate, getStampColor, getStampName, getStampSeries, getStampSeriesName, getStampImageUrl } from '@/utils/stamp'
+import { PostcardApi, FeedbackApi } from '@/services/api'
 
 const store = usePostcardStore()
 const postcard = ref<Postcard | null>(null)
 const postcardId = ref('')
 const cardRevealed = ref(false)
 const stampingFav  = ref(false)
+const isPublic     = ref(false)
+const isTogglingPublic = ref(false)
+const showPrintModal    = ref(false)
+const printInterestDone = ref(false)
 
 const travelTitle = computed(() => {
-  if (!postcard.value) return ''
+  if (!postcard.value || !postcard.value.travelId) return '来信明信片'
   const travel = store.travels.find(t => t.id === postcard.value!.travelId)
   return travel?.title || '旅行'
 })
 
 const journeyCards = computed(() => {
-  if (!postcard.value) return []
+  if (!postcard.value || !postcard.value.travelId) return []
   return store.postcards.filter(
     p => p.travelId === postcard.value!.travelId && p.id !== postcard.value!.id
   ).slice(0, 6)
@@ -315,6 +380,32 @@ function viewPostcard(card: Postcard) {
   uni.navigateTo({ url: `/pages/detail/detail?id=${card.id}` })
 }
 
+async function registerPrintInterest() {
+  if (printInterestDone.value) return
+  try {
+    await FeedbackApi.interest('print_postcard', postcard.value?.id)
+    printInterestDone.value = true
+  } catch {
+    uni.showToast({ title: '登记失败，请稍后重试', icon: 'none' })
+  }
+}
+
+async function togglePublic() {
+  if (!postcard.value || isTogglingPublic.value) return
+  isTogglingPublic.value = true
+  const next = !isPublic.value
+  try {
+    await PostcardApi.togglePublic(postcard.value.id, next)
+    isPublic.value = next
+    store.updatePostcard(postcard.value.id, { isPublic: next })
+    uni.showToast({ title: next ? '已投入公告栏' : '已撤出公告栏', icon: 'none' })
+  } catch (e: any) {
+    uni.showToast({ title: e.message || '操作失败', icon: 'none' })
+  } finally {
+    isTogglingPublic.value = false
+  }
+}
+
 onLoad((options) => {
   if (options?.id) postcardId.value = options.id
 })
@@ -323,6 +414,7 @@ onMounted(() => {
   store.initData()
   if (postcardId.value) {
     postcard.value = store.getPostcardById(postcardId.value) || null
+    isPublic.value = postcard.value?.isPublic ?? false
   }
   setTimeout(() => { cardRevealed.value = true }, 120)
 })
@@ -535,6 +627,13 @@ onMounted(() => {
   justify-content: center;
   gap: 8rpx;
   transform: rotate(-2deg);
+}
+
+.pback-stamp-img {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 2rpx;
+  flex-shrink: 0;
 }
 
 .pback-stamp-dot { font-size: 28rpx; }
@@ -784,6 +883,77 @@ onMounted(() => {
   color: $mute-text;
 }
 
+// ─── Public board toggle ───
+.public-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16rpx;
+  padding: 24rpx 28rpx;
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  border-radius: 6rpx;
+  gap: 16rpx;
+
+  &.public-toggle-on {
+    background: rgba(46, 125, 88, 0.04);
+    border-color: rgba(46, 125, 88, 0.3);
+  }
+}
+
+.public-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.public-toggle-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.public-toggle-main {
+  display: block;
+  font-family: $font-family-serif;
+  font-size: 26rpx;
+  color: $ink-black;
+  margin-bottom: 4rpx;
+}
+
+.public-toggle-sub {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 1rpx;
+  color: $mute-text;
+}
+
+.public-pill {
+  flex-shrink: 0;
+  padding: 6rpx 20rpx;
+  border-radius: 20rpx;
+  background: $paper-beige;
+  border: 1rpx solid $line-sepia;
+}
+
+.public-pill-on {
+  background: rgba(46, 125, 88, 0.12);
+  border-color: rgba(46, 125, 88, 0.4);
+}
+
+.public-pill-txt {
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  letter-spacing: 1rpx;
+  color: $mute-text;
+
+  .public-pill-on & {
+    color: $travel-blue;
+  }
+}
+
 // ─── Journey context ───
 .journey-strip {
   margin-top: 48rpx;
@@ -912,6 +1082,183 @@ onMounted(() => {
 }
 
 .btm-gap { height: 120rpx; }
+
+// ─── Print teaser ───
+.print-teaser {
+  display: flex;
+  align-items: center;
+  margin-top: 16rpx;
+  padding: 28rpx;
+  background: linear-gradient(135deg, #FFF8F0 0%, #FFF3E6 100%);
+  border: 1rpx dashed rgba(180, 120, 60, 0.35);
+  border-radius: 6rpx;
+  gap: 16rpx;
+
+  &:active { opacity: 0.85; }
+}
+
+.print-teaser-left { flex: 1; }
+
+.print-teaser-kicker {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 3rpx;
+  color: rgba(180, 120, 60, 0.8);
+  margin-bottom: 8rpx;
+}
+
+.print-teaser-title {
+  display: block;
+  font-family: $font-family-serif;
+  font-size: 28rpx;
+  color: #5C3A1E;
+  margin-bottom: 4rpx;
+}
+
+.print-teaser-sub {
+  display: block;
+  font-family: $font-family-mono;
+  font-size: 16rpx;
+  letter-spacing: 1rpx;
+  color: rgba(92, 58, 30, 0.6);
+}
+
+.print-teaser-arrow {
+  font-family: $font-family-serif;
+  font-size: 48rpx;
+  color: rgba(180, 120, 60, 0.5);
+}
+
+// ─── Print modal ───
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 12, 8, 0.6);
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+}
+
+.modal-sheet {
+  width: 100%;
+  background: $card-bg;
+  border-radius: 24rpx 24rpx 0 0;
+  padding: 16rpx 48rpx 80rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.modal-handle {
+  width: 64rpx;
+  height: 6rpx;
+  background: $line-sepia;
+  border-radius: 3rpx;
+  margin-bottom: 8rpx;
+}
+
+.modal-stamp-deco {
+  width: 112rpx;
+  height: 112rpx;
+  border: 2rpx dashed rgba(180, 120, 60, 0.4);
+  border-radius: 8rpx;
+  background: rgba(180, 120, 60, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-stamp-char {
+  font-family: $font-family-serif;
+  font-size: 56rpx;
+  color: rgba(180, 120, 60, 0.8);
+}
+
+.modal-kicker {
+  font-family: $font-family-mono;
+  font-size: 18rpx;
+  letter-spacing: 4rpx;
+  color: $mute-text;
+}
+
+.modal-title {
+  font-family: $font-family-serif;
+  font-size: 40rpx;
+  color: $ink-black;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.modal-desc {
+  font-family: $font-family-serif;
+  font-size: 26rpx;
+  color: $body-text;
+  text-align: center;
+  line-height: 1.8;
+  max-width: 520rpx;
+}
+
+.modal-steps {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  background: $paper-beige;
+  border-radius: 8rpx;
+  padding: 24rpx;
+  margin: 4rpx 0;
+}
+
+.modal-step {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.modal-step-num {
+  font-family: $font-family-mono;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+  color: rgba(180, 120, 60, 0.7);
+  width: 48rpx;
+  flex-shrink: 0;
+}
+
+.modal-step-txt {
+  font-family: $font-family-serif;
+  font-size: 26rpx;
+  color: $body-text;
+  line-height: 1.5;
+}
+
+.modal-btn {
+  width: 100%;
+  background: #7A4A20;
+  border-radius: 8rpx;
+  padding: 30rpx 0;
+  text-align: center;
+  margin-top: 8rpx;
+
+  &:active { opacity: 0.85; }
+  &.modal-btn-done { background: $travel-blue; }
+}
+
+.modal-btn-txt {
+  font-family: $font-family-serif;
+  font-size: 30rpx;
+  color: #F4EFE5;
+  letter-spacing: 2rpx;
+}
+
+.modal-cancel {
+  font-family: $font-family-mono;
+  font-size: 20rpx;
+  letter-spacing: 2rpx;
+  color: $mute-text;
+  padding: 8rpx;
+}
 
 // ── 收藏邮戳动画 ──
 .fav-stamping { animation: fav-press 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
