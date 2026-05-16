@@ -4,7 +4,7 @@
 // ─── Brand greens — deeper, lower-chroma postal greens ───
 $travel-blue:     #3C604D;   // primary postal — refined, not neon
 $forest-green:    #2C4A3A;   // gradient terminus / pressed state
-$green-soft:      #E8EEE9;   // 8% tint surface
+$green-soft:      #DDE8E1;   // tinted surface, visible on mobile
 $alive-green:     #5E8C4F;   // in-progress / live green (not neon)
 
 // ─── Accent — vermillion postmark / hand-stamp red ───
@@ -12,18 +12,18 @@ $stamp-red:       #A43B2D;
 $red-soft:        #F4E2DE;
 
 // ─── Surface — warm, tactile paper ───
-$page-background: #F4EFE5;   // base paper, warm off-white
-$card-bg:         #FBF8F1;   // off-white card (never pure white)
-$card-warm:       #F8F3E7;   // alt card for variety
-$paper-beige:     #EDE5D1;   // stamp paper / inset surface
-$line-sepia:      #E0D8C4;   // hairlines / dividers
-$rule-color:      #D5CCB2;   // stronger rule when needed
+$page-background: #F1E8D8;   // base paper, warmer and clearer against cards
+$card-bg:         #FFFDF7;   // lifted card surface
+$card-warm:       #F8F0E1;   // alt card for variety
+$paper-beige:     #E6D8B8;   // stamp paper / inset surface
+$line-sepia:      #C9B996;   // visible borders / dividers
+$rule-color:      #A99368;   // stronger editorial rules
 
 // ─── Text ───
 $ink-black:       #222019;   // warm near-black
-$body-text:       #5C5648;   // secondary / body
-$mute-text:       #8E8775;   // captions / muted
-$whisper:         #B5AE9B;   // tertiary / decorative
+$body-text:       #4D473B;   // secondary / body
+$mute-text:       #706753;   // captions / muted
+$whisper:         #998E76;   // tertiary / decorative
 
 // ─── Legacy aliases (keep for compatibility) ───
 $postal-mint:     #B2DFDB;
@@ -39,9 +39,17 @@ $warm-white:      #FFFFFF;
 // mono:   Courier Prime 替代 Courier New，专为屏幕重新设计的打字机字体，
 //         用于邮编、邮戳、FROM/TO 标签等所有"邮局感"排版。
 //
-$font-family-serif:   'Playfair Display', 'Noto Serif SC', Georgia, serif;
+$font-family-serif:  'Playfair Display', 'Noto Serif SC', Georgia, serif;
 $font-family-sans:    -apple-system, 'PingFang SC', 'Hiragino Sans GB', system-ui, sans-serif;
 $font-family-mono:    'Courier Prime', 'Courier New', monospace;
+
+// Semantic typography roles.
+// Display keeps the postcard/editorial mood; body/action favor mobile readability.
+$font-family-display: $font-family-serif;
+$font-family-body:    $font-family-sans;
+$font-family-label:   $font-family-sans;
+$font-family-action:  $font-family-sans;
+$font-family-code:    $font-family-mono;
 
 // ─── Spacing ───
 $spacing-xs: 4px;
@@ -58,6 +66,6 @@ $radius-xl:   16px;
 $radius-full: 9999px;
 
 // ─── Shadows — minimal and warm ───
-$shadow-sm: 0 2px 8px rgba(40, 30, 15, 0.06);
-$shadow-md: 0 8px 24px rgba(40, 30, 15, 0.08);
-$shadow-lg: 0 16px 40px rgba(40, 30, 15, 0.10);
+$shadow-sm: 0 6px 18px rgba(40, 30, 15, 0.10), 0 1px 2px rgba(40, 30, 15, 0.08);
+$shadow-md: 0 14px 34px rgba(40, 30, 15, 0.14), 0 2px 6px rgba(40, 30, 15, 0.08);
+$shadow-lg: 0 24px 56px rgba(40, 30, 15, 0.18), 0 4px 12px rgba(40, 30, 15, 0.10);

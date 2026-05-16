@@ -48,5 +48,7 @@ export {
   PhStorefront as IconShop,
   PhStar as IconStar,
   PhLockSimple as IconLock,
+  PhEye as IconEye,
+  PhEyeSlash as IconEyeSlash,
   PhUsers as IconContacts,
 } from '@phosphor-icons/vue'

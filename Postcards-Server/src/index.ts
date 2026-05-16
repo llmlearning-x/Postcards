@@ -15,6 +15,8 @@ import { mailingRoutes } from './routes/mailings'
 import { stampRoutes } from './routes/stamps'
 import { uploadRoutes } from './routes/upload'
 import { pointsRoutes } from './routes/points'
+import { geoRoutes } from './routes/geo'
+import { feedbackRoutes } from './routes/feedback'
 
 const app = Fastify({
   logger: {
@@ -26,6 +28,12 @@ const app = Fastify({
 })
 
 async function bootstrap() {
+  // 允许空 JSON body（Content-Type: application/json 但 body 为空）
+  app.addContentTypeParser('application/json', { parseAs: 'string' }, (_req, body: string, done) => {
+    if (!body || body.trim() === '') { done(null, {}); return }
+    try { done(null, JSON.parse(body)) } catch (e: any) { e.statusCode = 400; done(e) }
+  })
+
   // ── 插件注册 ──────────────────────────────────────────────────────
   await app.register(cors, {
     origin: config.cors.origin,
@@ -75,6 +83,8 @@ async function bootstrap() {
   await app.register(stampRoutes,    { prefix: '/api' })
   await app.register(pointsRoutes,   { prefix: '/api' })
   await app.register(uploadRoutes,   { prefix: '/api' })
+  await app.register(geoRoutes,      { prefix: '/api' })
+  await app.register(feedbackRoutes, { prefix: '/api' })
 
   // ── 健康检查 ───────────────────────────────────────────────────────
   app.get('/health', async () => ({ status: 'ok', ts: Date.now() }))

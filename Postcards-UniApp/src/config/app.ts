@@ -1,6 +1,6 @@
 // 应用配置
 export const AppConfig = {
-  name: '旅行邮局',
+  name: '旅行邮箱',
   version: '1.0.0',
   storageKeys: {
     TRAVELS: 'postcards_travels',

@@ -1,14 +1,10 @@
 <template>
   <view class="page-container">
-    <!-- Header -->
-    <view class="postal-header">
-      <view class="header-perf"></view>
-      <view class="nav-back" @click="goBack">
-        <IconBack :size="18" color="rgba(255,255,255,0.9)" />
-      </view>
-      <text class="header-kicker">MAIL · 寄出</text>
-      <text class="header-title">寄明信片</text>
-    </view>
+    <PostalHeader
+      kicker="MAIL · 寄出"
+      title="寄明信片"
+      fallback-url="/pages/home/home"
+    />
 
     <scroll-view class="content" scroll-y>
 
@@ -75,44 +71,12 @@
           </view>
 
           <view class="search-wrap">
-            <view class="search-bar">
-              <IconSearch :size="20" color="#B5AE9B" />
-              <input
-                class="search-input"
-                v-model="searchQ"
-                placeholder="输入 6 位邮箱号"
-                :placeholder-style="'color:#B5AE9B'"
-                @input="onSearchInput"
-                type="number"
-                maxlength="6"
-              />
-              <text class="search-clear" v-if="searchQ" @click="searchQ = ''; searchResults = []">✕</text>
-            </view>
-          </view>
-
-          <view class="search-results" v-if="searchResults.length > 0">
-            <view
-              v-for="u in searchResults"
-              :key="u.id"
-              class="user-row"
-              @click="selectRecipient(u)"
-            >
-              <view class="user-avatar">
-                <text class="user-initial">{{ u.nickname.slice(0, 1) }}</text>
-              </view>
-              <view class="user-info">
-                <text class="user-name">{{ u.nickname }}</text>
-                <text class="user-mailbox">{{ u.mailboxNo }}</text>
-              </view>
-              <text class="user-select-arr">›</text>
-            </view>
-          </view>
-
-          <view class="search-empty" v-if="searchQ && !isValidMailboxNo(searchQ)">
-            <text class="search-empty-txt">请输入 6 位数字邮箱号</text>
-          </view>
-          <view class="search-empty" v-else-if="isValidMailboxNo(searchQ) && searchResults.length === 0 && !searching">
-            <text class="search-empty-txt">未找到该邮箱号对应的用户</text>
+            <UserSearchPanel
+              action-label="选择"
+              done-label="已选择"
+              :existing-user-ids="recipient ? [recipient.id] : []"
+              @select="selectRecipient"
+            />
           </view>
         </view>
 
@@ -185,7 +149,12 @@
           </view>
 
           <view class="pc-empty" v-if="allPostcards.length === 0">
-            <text class="pc-empty-txt">你还没有记录过明信片，先去记录一张吧</text>
+            <text class="pc-empty-kicker">NO POSTCARDS</text>
+            <text class="pc-empty-title">还没有可寄出的明信片</text>
+            <text class="pc-empty-txt">先记录一张明信片，再回来寄给好友。</text>
+            <view class="pc-empty-btn" @click="goRecord">
+              <text class="pc-empty-btn-txt">去记录明信片 ›</text>
+            </view>
           </view>
 
           <view class="pc-list" v-else>
@@ -281,10 +250,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { UserApi, MailApi, ContactsApi, type ApiUser, type ContactItem } from '@/services/api'
+import { MailApi, ContactsApi, type ApiUser, type ContactItem } from '@/services/api'
 import { usePostcardStore } from '@/stores/postcard'
 import type { Postcard } from '@/model/Postcard'
-import { IconBack, IconSearch, IconSend } from '@/components/icons'
+import PostalHeader from '@/components/PostalHeader.vue'
+import UserSearchPanel from '@/components/UserSearchPanel.vue'
+import { IconSend } from '@/components/icons'
+import { safeBack } from '@/utils/navigation'
 import { getStampColor, getStampImageUrl } from '@/utils/stamp'
 
 const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
@@ -301,9 +273,6 @@ const mode = ref<'pick-recipient' | 'pick-postcard'>('pick-recipient')
 
 const postcardId    = ref('')
 const postcard      = ref<Postcard | null>(null)
-const searchQ       = ref('')
-const searching     = ref(false)
-const searchResults = ref<ApiUser[]>([])
 const recipient     = ref<ApiUser | null>(null)
 const personalNote  = ref('')
 const sending       = ref(false)
@@ -333,35 +302,8 @@ function selectContact(c: ContactItem) {
 
 const allPostcards = computed(() => store.postcards)
 
-let searchTimer: ReturnType<typeof setTimeout> | null = null
-
-function isValidMailboxNo(s: string): boolean {
-  return /^\d{6}$/.test(s.trim())
-}
-
-function onSearchInput() {
-  if (searchTimer) clearTimeout(searchTimer)
-  if (!isValidMailboxNo(searchQ.value)) { searchResults.value = []; return }
-  searchTimer = setTimeout(doSearch, 300)
-}
-
-async function doSearch() {
-  searching.value = true
-  try {
-    searchResults.value = await UserApi.search(searchQ.value.trim())
-  } catch (e: any) {
-    searchResults.value = []
-    if (e.message && !e.message.includes('格式')) {
-      uni.showToast({ title: e.message || '搜索失败，请重试', icon: 'none' })
-    }
-  } finally {
-    searching.value = false
-  }
-}
-
 function selectRecipient(u: ApiUser) {
   recipient.value = u
-  searchResults.value = []
 }
 
 async function doSend() {
@@ -371,7 +313,7 @@ async function doSend() {
     await MailApi.send(postcard.value.id, recipient.value.id, personalNote.value.trim() || undefined)
     uni.showToast({ title: '已寄出！', icon: 'success' })
     // sending stays true — prevents double-submit during navigation
-    setTimeout(() => uni.navigateBack(), 800)
+    setTimeout(() => safeBack('/pages/inbox/inbox'), 800)
   } catch (e: any) {
     uni.showToast({ title: e.message || '寄出失败', icon: 'none' })
     sending.value = false
@@ -379,7 +321,11 @@ async function doSend() {
 }
 
 function goBack() {
-  uni.navigateBack()
+  safeBack('/pages/home/home')
+}
+
+function goRecord() {
+  uni.switchTab({ url: '/pages/record/record' })
 }
 
 onLoad((opts) => {
@@ -412,33 +358,11 @@ onMounted(() => {
 .page-container {
   min-height: 100vh;
   background: $page-background;
+  display: flex;
+  flex-direction: column;
 }
 
-.postal-header {
-  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 100rpx 48rpx 20rpx;
-  position: relative;
-  flex-shrink: 0;
-}
-.header-perf {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 6rpx;
-  background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
-}
-.nav-back {
-  position: absolute; top: 52rpx; left: 48rpx;
-  width: 64rpx; height: 64rpx;
-  display: flex; align-items: center; justify-content: center;
-}
-.header-kicker {
-  display: block; font-family: $font-family-mono;
-  font-size: 20rpx; letter-spacing: 4rpx; color: rgba(255,255,255,0.65); margin-bottom: 12rpx;
-}
-.header-title {
-  display: block; font-family: $font-family-serif;
-  font-size: 46rpx; font-weight: 400; color: rgba(255,255,255,0.95); line-height: 1.15; letter-spacing: -1rpx;
-}
-
-.content { height: calc(100vh - 200rpx); }
+.content { flex: 1; overflow: hidden; }
 
 .postcard-preview {
   margin: 28rpx 40rpx 0;
@@ -476,7 +400,7 @@ onMounted(() => {
 
 .preview-loc {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $ink-black;
   overflow: hidden;
@@ -486,16 +410,16 @@ onMounted(() => {
 
 .preview-sub {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
   margin-top: 4rpx;
 }
 
 .preview-tag {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $travel-blue;
   flex-shrink: 0;
@@ -511,9 +435,9 @@ onMounted(() => {
 }
 
 .section-kicker {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: $travel-blue;
   white-space: nowrap;
   flex-shrink: 0;
@@ -532,7 +456,7 @@ onMounted(() => {
 }
 
 .contacts-loading-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $mute-text;
 }
@@ -567,55 +491,13 @@ onMounted(() => {
 }
 
 .contacts-empty-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $mute-text;
   font-style: italic;
 }
 
 .search-wrap { margin-bottom: 16rpx; }
-
-.search-bar {
-  background: $card-bg;
-  border: 1rpx solid $line-sepia;
-  border-radius: 8rpx;
-  padding: 20rpx 24rpx;
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-}
-
-.search-input {
-  flex: 1;
-  font-family: $font-family-serif;
-  font-size: 28rpx;
-  color: $ink-black;
-  height: 48rpx;
-}
-
-.search-clear {
-  font-family: $font-family-mono;
-  font-size: 24rpx;
-  color: $mute-text;
-}
-
-.search-results {
-  background: $card-bg;
-  border: 1rpx solid $line-sepia;
-  border-radius: 8rpx;
-  overflow: hidden;
-}
-
-.user-row {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  padding: 24rpx;
-  border-bottom: 1rpx solid $line-sepia;
-
-  &:last-child { border-bottom: none; }
-  &:active { background: rgba($travel-blue, 0.04); }
-}
 
 .user-avatar {
   width: 72rpx; height: 72rpx;
@@ -628,7 +510,7 @@ onMounted(() => {
 }
 
 .user-initial {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 30rpx;
   color: #F4EFE5;
 }
@@ -637,7 +519,7 @@ onMounted(() => {
 
 .user-name {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $ink-black;
   margin-bottom: 6rpx;
@@ -645,27 +527,10 @@ onMounted(() => {
 
 .user-mailbox {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $travel-blue;
-}
-
-.user-select-arr {
-  font-family: $font-family-serif;
-  font-size: 40rpx;
-  color: $mute-text;
-}
-
-.search-empty {
-  padding: 40rpx;
-  text-align: center;
-}
-
-.search-empty-txt {
-  font-family: $font-family-serif;
-  font-size: 26rpx;
-  color: $mute-text;
 }
 
 .selected-recipient {
@@ -679,9 +544,9 @@ onMounted(() => {
 }
 
 .change-btn {
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 2rpx;
+  font-family: $font-family-action;
+  font-size: 24rpx;
+  letter-spacing: 0;
   color: $mute-text;
 }
 
@@ -696,8 +561,8 @@ onMounted(() => {
 .note-input {
   width: 100%;
   min-height: 120rpx;
-  font-family: $font-family-serif;
-  font-style: italic;
+  font-family: $font-family-body;
+  font-style: normal;
   font-size: 28rpx;
   color: $ink-black;
   line-height: 1.75;
@@ -706,8 +571,8 @@ onMounted(() => {
 .note-count {
   display: block;
   text-align: right;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   color: $mute-text;
   margin-top: 12rpx;
 }
@@ -727,15 +592,15 @@ onMounted(() => {
 }
 
 .action-btn-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-action;
   font-size: 32rpx;
-  letter-spacing: 8rpx;
+  letter-spacing: 2rpx;
   color: #F4EFE5;
 }
 
 .recipient-tag {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $travel-blue;
   padding: 4rpx 12rpx;
@@ -744,15 +609,55 @@ onMounted(() => {
 }
 
 .pc-empty {
-  padding: 40rpx 0;
+  padding: 48rpx 32rpx;
   text-align: center;
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  border-radius: 8rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.pc-empty-kicker {
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+  color: $travel-blue;
+}
+
+.pc-empty-title {
+  font-family: $font-family-body;
+  font-size: 34rpx;
+  color: $ink-black;
 }
 
 .pc-empty-txt {
-  font-family: $font-family-serif;
-  font-size: 26rpx;
+  font-family: $font-family-body;
+  font-size: 24rpx;
   color: $mute-text;
   line-height: 1.6;
+}
+
+.pc-empty-btn {
+  margin-top: 8rpx;
+  min-width: 240rpx;
+  height: 72rpx;
+  border-radius: 8rpx;
+  background: $travel-blue;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:active { background: $forest-green; }
+}
+
+.pc-empty-btn-txt {
+  font-family: $font-family-action;
+  font-size: 26rpx;
+  color: #F4EFE5;
+  letter-spacing: 0;
 }
 
 .pc-list {
@@ -822,7 +727,7 @@ onMounted(() => {
 
 .pc-loc {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $ink-black;
   margin-bottom: 4rpx;
@@ -833,16 +738,16 @@ onMounted(() => {
 
 .pc-sub {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
 }
 
 .pc-date {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $mute-text;
   opacity: 0.6;
@@ -850,7 +755,7 @@ onMounted(() => {
 }
 
 .pc-arr {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 40rpx;
   color: $mute-text;
 }

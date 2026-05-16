@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { requireAuth, userId } from '../middleware/auth'
 import { query, queryOne } from '../db/client'
-import { addPoints, DAILY_BONUS } from '../utils/points'
+import { addPoints, todayStartMs, DAILY_BONUS, DAILY_EARN_CAP } from '../utils/points'
 
 const REASON_LABELS: Record<string, string> = {
   register_bonus:  '注册奖励',
@@ -13,16 +13,30 @@ const REASON_LABELS: Record<string, string> = {
 
 export async function pointsRoutes(app: FastifyInstance) {
 
-  // GET /points/me — balance + recent transaction log
+  // GET /points/me — balance + recent transaction log + daily cap info
   app.get('/points/me', { preHandler: requireAuth }, async (req, reply) => {
-    const uid  = userId(req)
-    const user = await queryOne<any>('SELECT points FROM users WHERE id = ?', [uid])
-    const log  = await query<any>(
-      'SELECT delta, reason, created_at FROM points_log WHERE user_id = ? ORDER BY created_at DESC LIMIT 20',
-      [uid]
-    )
+    const uid      = userId(req)
+    const todayTs  = todayStartMs()
+
+    const [user, log, earnedRow] = await Promise.all([
+      queryOne<any>('SELECT points FROM users WHERE id = ?', [uid]),
+      query<any>(
+        'SELECT delta, reason, created_at FROM points_log WHERE user_id = ? ORDER BY created_at DESC LIMIT 30',
+        [uid]
+      ),
+      query<{ earned: number }>(
+        `SELECT COALESCE(SUM(delta), 0) AS earned FROM points_log
+         WHERE user_id = ? AND delta > 0 AND reason NOT IN ('register_bonus') AND created_at >= ?`,
+        [uid, todayTs]
+      ),
+    ])
+
+    const todayEarned = earnedRow[0]?.earned ?? 0
+
     return reply.send({
-      points: user?.points ?? 0,
+      points:       user?.points ?? 0,
+      dailyCap:     DAILY_EARN_CAP,
+      todayEarned:  todayEarned,
       log: log.map((r: any) => ({
         delta:     r.delta,
         reason:    REASON_LABELS[r.reason] ?? r.reason,
@@ -37,9 +51,7 @@ export async function pointsRoutes(app: FastifyInstance) {
     config: { rateLimit: { max: 3, timeWindow: '1 minute' } },
   }, async (req, reply) => {
     const uid     = userId(req)
-    const today   = new Date()
-    today.setHours(0, 0, 0, 0)
-    const todayTs = today.getTime()
+    const todayTs = todayStartMs()
 
     const already = await queryOne<any>(
       `SELECT id FROM points_log WHERE user_id = ? AND reason = 'daily_bonus' AND created_at >= ?`,
@@ -47,8 +59,8 @@ export async function pointsRoutes(app: FastifyInstance) {
     )
     if (already) return reply.code(400).send({ error: '今日签到积分已领取' })
 
-    await addPoints(uid, DAILY_BONUS, 'daily_bonus')
+    const { added, capped } = await addPoints(uid, DAILY_BONUS, 'daily_bonus')
     const user = await queryOne<any>('SELECT points FROM users WHERE id = ?', [uid])
-    return reply.send({ points: user!.points, delta: DAILY_BONUS })
+    return reply.send({ points: user!.points, delta: added, capped })
   })
 }

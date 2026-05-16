@@ -213,26 +213,26 @@ onShow(() => { if (store.travels.length === 0) store.initData() })
 
 .header-kicker {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 4rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: rgba(255,255,255,0.65);
   margin-bottom: 12rpx;
 }
 
 .header-title {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 46rpx;
-  font-weight: 400;
+  font-weight: 700;
   color: rgba(255,255,255,0.95);
   line-height: 1.15;
-  letter-spacing: -1rpx;
+  letter-spacing: 0;
 }
 
 .header-subtitle {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: rgba(255,255,255,0.7);
   margin-top: 10rpx;
@@ -288,9 +288,9 @@ onShow(() => { if (store.travels.length === 0) store.initData() })
 }
 
 .bp-kicker {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $mute-text;
 }
 
@@ -301,8 +301,8 @@ onShow(() => { if (store.travels.length === 0) store.initData() })
 }
 
 .bp-status-txt {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
 }
 
@@ -325,15 +325,15 @@ onShow(() => { if (store.travels.length === 0) store.initData() })
 
 .bp-field-lbl {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 4rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: $mute-text;
   margin-bottom: 6rpx;
 }
 
 .bp-city-code {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 44rpx;
   font-weight: 400;
   color: $ink-black;
@@ -369,7 +369,7 @@ onShow(() => { if (store.travels.length === 0) store.initData() })
 
 .bp-dest-name {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 44rpx;
   font-weight: 400;
   color: $ink-black;
@@ -380,7 +380,7 @@ onShow(() => { if (store.travels.length === 0) store.initData() })
 // ── Journey title ──
 .bp-title {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-style: italic;
   font-size: 28rpx;
   color: $body-text;
@@ -444,14 +444,14 @@ onShow(() => { if (store.travels.length === 0) store.initData() })
 }
 
 .bp-stub-lbl {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
 }
 
 .bp-stub-val {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $ink-black;
   font-weight: 500;
@@ -477,13 +477,13 @@ onShow(() => { if (store.travels.length === 0) store.initData() })
 }
 
 .bp-current-dot {
-  font-size: 14rpx;
+  font-size: 22rpx;
   color: $travel-blue;
 }
 
 .bp-current-lbl {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $travel-blue;
 }
@@ -497,7 +497,7 @@ onShow(() => { if (store.travels.length === 0) store.initData() })
 }
 
 .empty-main {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 32rpx;
   color: $body-text;
   margin-top: 28rpx;
@@ -505,7 +505,7 @@ onShow(() => { if (store.travels.length === 0) store.initData() })
 }
 
 .empty-sub {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $mute-text;
   margin-bottom: 40rpx;
@@ -519,10 +519,10 @@ onShow(() => { if (store.travels.length === 0) store.initData() })
 }
 
 .empty-btn-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $card-bg;
-  letter-spacing: 4rpx;
+  letter-spacing: 2rpx;
 }
 
 .btm-gap { height: 120rpx; }

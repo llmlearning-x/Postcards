@@ -207,21 +207,21 @@ onMounted(loadData)
 
 .header-kicker {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 4rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: rgba(255,255,255,0.65);
   margin-bottom: 16rpx;
 }
 
 .header-title {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 52rpx;
-  font-weight: 400;
+  font-weight: 700;
   color: rgba(255,255,255,0.95);
   line-height: 1.15;
-  letter-spacing: -1rpx;
+  letter-spacing: 0;
   margin-bottom: 16rpx;
 }
 
@@ -232,7 +232,7 @@ onMounted(loadData)
 }
 
 .header-balance {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 72rpx;
   font-weight: 400;
   color: rgba(255, 255, 255, 0.95);
@@ -241,9 +241,9 @@ onMounted(loadData)
 }
 
 .header-balance-lbl {
-  font-family: $font-family-mono;
+  font-family: $font-family-code;
   font-size: 24rpx;
-  letter-spacing: 4rpx;
+  letter-spacing: 2rpx;
   color: rgba(255, 255, 255, 0.6);
 }
 
@@ -270,8 +270,8 @@ onMounted(loadData)
 }
 
 .daily-cap-txt {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: rgba(255, 255, 255, 0.65);
 }
@@ -318,7 +318,7 @@ onMounted(loadData)
 }
 
 .action-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $ink-black;
   letter-spacing: 1rpx;
@@ -364,15 +364,15 @@ onMounted(loadData)
 .earn-rule:last-child { border-right: none; }
 
 .earn-label {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   color: $mute-text;
   white-space: nowrap;
 }
 
 .earn-pt {
-  font-family: $font-family-serif;
-  font-size: 22rpx;
+  font-family: $font-family-body;
+  font-size: 24rpx;
   color: $travel-blue;
   font-weight: 500;
 }
@@ -393,16 +393,16 @@ onMounted(loadData)
 
 .section-kicker {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $travel-blue;
   margin-bottom: 8rpx;
 }
 
 .section-ttl {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 38rpx;
   font-weight: 500;
   color: $ink-black;
@@ -452,7 +452,7 @@ onMounted(loadData)
 
 .log-reason {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $ink-black;
   line-height: 1.3;
@@ -460,15 +460,15 @@ onMounted(loadData)
 
 .log-date {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $mute-text;
   margin-top: 4rpx;
 }
 
 .log-delta {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 30rpx;
   font-weight: 500;
   flex-shrink: 0;
@@ -513,14 +513,14 @@ onMounted(loadData)
 }
 
 .empty-main {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 32rpx;
   color: $body-text;
   margin-bottom: 12rpx;
 }
 
 .empty-sub {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 24rpx;
   color: $mute-text;
   text-align: center;

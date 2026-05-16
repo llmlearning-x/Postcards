@@ -1,17 +1,16 @@
 <template>
   <view class="page-container">
-    <!-- Header -->
-    <view class="postal-header">
-      <view class="header-perf"></view>
-      <view class="nav-back" @click="goBack">
-        <IconBack :size="18" color="rgba(255,255,255,0.9)" />
-      </view>
-      <view class="header-add" @click="openAddSheet">
-        <IconPlus :size="20" color="rgba(255,255,255,0.9)" />
-      </view>
-      <text class="header-kicker">CONTACTS · 通讯录</text>
-      <text class="header-title">我的联系人</text>
-    </view>
+    <PostalHeader
+      kicker="CONTACTS · 通讯录"
+      title="我的联系人"
+      fallback-url="/pages/profile/profile"
+    >
+      <template #right>
+        <view class="header-add" @click.stop="openAddSheet">
+          <IconPlus :size="20" color="rgba(255,255,255,0.9)" />
+        </view>
+      </template>
+    </PostalHeader>
 
     <scroll-view class="content" scroll-y>
       <!-- Loading -->
@@ -90,66 +89,12 @@
       <view class="sheet-handle"></view>
       <text class="sheet-title">添加联系人</text>
 
-      <view class="search-bar">
-        <IconSearch :size="16" color="#8A8070" />
-        <input
-          class="search-input"
-          v-model="searchQ"
-          placeholder="输入 6 位邮箱号"
-          placeholder-style="color:#B5AE9B"
-          @input="onSearchInput"
-          confirm-type="search"
-          type="number"
-          maxlength="6"
-        />
-        <view class="search-clear" v-if="searchQ" @click="clearSearch">
-          <IconX :size="14" color="#8A8070" />
-        </view>
-      </view>
-
-      <!-- Search loading -->
-      <view class="search-hint" v-if="searching">
-        <text class="search-hint-txt">搜索中…</text>
-      </view>
-
-      <!-- Search prompt -->
-      <view class="search-hint" v-else-if="!searchQ">
-        <text class="search-hint-txt">请输入对方的完整邮箱号，如 CN-123456</text>
-      </view>
-
-      <!-- 格式不对 -->
-      <view class="search-hint" v-else-if="searchQ && !isValidMailboxNo(searchQ)">
-        <text class="search-hint-txt">请输入 6 位数字</text>
-      </view>
-
-      <!-- No results -->
-      <view class="search-hint" v-else-if="searchQ && searchResults.length === 0 && !searching">
-        <text class="search-hint-txt">未找到该邮箱号对应的用户</text>
-      </view>
-
-      <!-- Results -->
-      <scroll-view class="search-results" scroll-y v-else-if="searchResults.length > 0">
-        <view
-          v-for="u in searchResults"
-          :key="u.id"
-          class="result-row"
-        >
-          <view class="result-avatar">
-            <text class="result-initial">{{ u.nickname.slice(0, 1) }}</text>
-          </view>
-          <view class="result-info">
-            <text class="result-name">{{ u.nickname }}</text>
-            <text class="result-mailbox">{{ u.mailboxNo }}</text>
-          </view>
-          <view
-            class="add-btn"
-            :class="{ 'add-btn-done': isContact(u.id) }"
-            @click="addContact(u)"
-          >
-            <text class="add-btn-txt">{{ isContact(u.id) ? '已添加' : '添加' }}</text>
-          </view>
-        </view>
-      </scroll-view>
+      <UserSearchPanel
+        :existing-user-ids="existingContactIds"
+        action-label="添加"
+        done-label="已添加"
+        @select="addContact"
+      />
     </view>
 
     <!-- ── Remark edit modal ── -->
@@ -173,10 +118,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { ContactsApi, type ContactItem, UserApi } from '@/services/api'
-import { IconBack, IconPlus, IconSend, IconMore, IconSearch, IconX, IconContacts, IconEnvelope } from '@/components/icons'
+import { ContactsApi, type ApiUser, type ContactItem } from '@/services/api'
+import PostalHeader from '@/components/PostalHeader.vue'
+import UserSearchPanel from '@/components/UserSearchPanel.vue'
+import { IconPlus, IconSend, IconMore, IconContacts, IconEnvelope } from '@/components/icons'
 
 const contacts     = ref<ContactItem[]>([])
 const loading      = ref(true)
@@ -184,15 +131,12 @@ const loadError    = ref('')
 
 // ── Add sheet ─────────────────────────────────────────────
 const showAddSheet  = ref(false)
-const searchQ       = ref('')
-const searching     = ref(false)
-const searchResults = ref<any[]>([])
-let   searchTimer: ReturnType<typeof setTimeout> | null = null
 
 // ── Remark modal ──────────────────────────────────────────
 const showRemarkModal = ref(false)
 const remarkTarget    = ref<ContactItem | null>(null)
 const remarkInput     = ref('')
+const existingContactIds = computed(() => contacts.value.map(c => c.contactId))
 
 function initial(c: ContactItem): string {
   return (c.remarkName || c.nickname).slice(0, 1)
@@ -217,48 +161,13 @@ async function load() {
 // ── Add contact ───────────────────────────────────────────
 function openAddSheet() {
   showAddSheet.value = true
-  searchQ.value      = ''
-  searchResults.value = []
 }
 
 function closeAddSheet() {
   showAddSheet.value = false
-  if (searchTimer) clearTimeout(searchTimer)
 }
 
-function clearSearch() {
-  searchQ.value       = ''
-  searchResults.value = []
-}
-
-function isValidMailboxNo(s: string): boolean {
-  return /^\d{6}$/.test(s.trim())
-}
-
-function onSearchInput() {
-  if (searchTimer) clearTimeout(searchTimer)
-  const q = searchQ.value.trim()
-  if (!q) { searchResults.value = []; return }
-  // 只有完整邮箱号格式才触发搜索
-  if (!isValidMailboxNo(q)) { searchResults.value = []; return }
-  searchTimer = setTimeout(doSearch, 300)
-}
-
-async function doSearch() {
-  const q = searchQ.value.trim()
-  if (!isValidMailboxNo(q)) return
-  searching.value = true
-  try {
-    searchResults.value = await UserApi.search(q)
-  } catch (e: any) {
-    searchResults.value = []
-    uni.showToast({ title: e.message || '搜索失败，请重试', icon: 'none' })
-  } finally {
-    searching.value = false
-  }
-}
-
-async function addContact(u: any) {
+async function addContact(u: ApiUser) {
   if (isContact(u.id)) return
   try {
     const item = await ContactsApi.add(u.id)
@@ -342,10 +251,6 @@ async function confirmRemark() {
   }
 }
 
-function goBack() {
-  uni.navigateBack()
-}
-
 onShow(load)
 </script>
 
@@ -353,36 +258,14 @@ onShow(load)
 .page-container {
   min-height: 100vh;
   background: $page-background;
+  display: flex;
+  flex-direction: column;
 }
 
-.postal-header {
-  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 100rpx 48rpx 20rpx;
-  position: relative;
-  flex-shrink: 0;
-}
-.header-perf {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 6rpx;
-  background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
-}
-.nav-back {
-  position: absolute; top: 52rpx; left: 48rpx;
-  width: 64rpx; height: 64rpx;
-  display: flex; align-items: center; justify-content: center;
-}
 .header-add {
-  position: absolute; top: 52rpx; right: 48rpx;
   width: 64rpx; height: 64rpx;
   display: flex; align-items: center; justify-content: center;
   &:active { opacity: 0.6; }
-}
-.header-kicker {
-  display: block; font-family: $font-family-mono;
-  font-size: 20rpx; letter-spacing: 4rpx; color: rgba(255,255,255,0.65); margin-bottom: 12rpx;
-}
-.header-title {
-  display: block; font-family: $font-family-serif;
-  font-size: 46rpx; font-weight: 400; color: rgba(255,255,255,0.95); line-height: 1.15; letter-spacing: -1rpx;
 }
 
 .perf-line {
@@ -401,7 +284,7 @@ onShow(load)
   margin: 0 4rpx;
 }
 
-.content { height: calc(100vh - 220rpx); }
+.content { flex: 1; overflow: hidden; }
 
 // ── States ──────────────────────────────────────────────────
 .state-center {
@@ -413,7 +296,7 @@ onShow(load)
 }
 
 .state-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $mute-text;
 }
@@ -422,7 +305,7 @@ onShow(load)
   padding: 16rpx 48rpx;
   background: $travel-blue;
   border-radius: 8rpx;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: #F4EFE5;
 }
@@ -446,13 +329,13 @@ onShow(load)
 }
 
 .empty-title {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 32rpx;
   color: $ink-black;
 }
 
 .empty-sub {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 24rpx;
   color: $mute-text;
   text-align: center;
@@ -472,7 +355,7 @@ onShow(load)
 }
 
 .empty-add-txt {
-  font-family: $font-family-mono;
+  font-family: $font-family-code;
   font-size: 26rpx;
   color: #F4EFE5;
   letter-spacing: 2rpx;
@@ -486,8 +369,8 @@ onShow(load)
 }
 
 .contact-count-txt {
-  font-family: $font-family-mono;
-  font-size: 20rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
 }
@@ -517,7 +400,7 @@ onShow(load)
 .avatar-img { width: 80rpx; height: 80rpx; border-radius: 50%; }
 
 .avatar-initial {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 32rpx;
   color: #F4EFE5;
 }
@@ -532,7 +415,7 @@ onShow(load)
 }
 
 .contact-name {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 30rpx;
   color: $ink-black;
   overflow: hidden;
@@ -541,8 +424,8 @@ onShow(load)
 }
 
 .contact-real-name {
-  font-family: $font-family-serif;
-  font-size: 22rpx;
+  font-family: $font-family-body;
+  font-size: 24rpx;
   color: $mute-text;
   flex-shrink: 0;
 }
@@ -554,20 +437,20 @@ onShow(load)
 }
 
 .contact-mailbox {
-  font-family: $font-family-mono;
-  font-size: 20rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $travel-blue;
 }
 
 .contact-sep {
-  font-size: 18rpx;
+  font-size: 22rpx;
   color: $mute-text;
 }
 
 .contact-mail-count {
-  font-family: $font-family-mono;
-  font-size: 20rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   color: $mute-text;
 }
 
@@ -600,8 +483,8 @@ onShow(load)
 }
 
 .send-btn-txt {
-  font-family: $font-family-mono;
-  font-size: 22rpx;
+  font-family: $font-family-code;
+  font-size: 24rpx;
   letter-spacing: 1rpx;
   color: #F4EFE5;
 }
@@ -650,127 +533,11 @@ onShow(load)
 }
 
 .sheet-title {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 36rpx;
   color: $ink-black;
   margin-bottom: 28rpx;
   display: block;
-}
-
-.search-bar {
-  height: 80rpx;
-  background: $page-background;
-  border: 1rpx solid $line-sepia;
-  border-radius: 40rpx;
-  padding: 0 24rpx;
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  margin-bottom: 24rpx;
-  flex-shrink: 0;
-}
-
-.search-input {
-  flex: 1;
-  font-family: $font-family-serif;
-  font-size: 28rpx;
-  color: $ink-black;
-  background: transparent;
-}
-
-.search-clear {
-  width: 40rpx; height: 40rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.search-hint {
-  padding: 40rpx 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.search-hint-txt {
-  font-family: $font-family-serif;
-  font-size: 26rpx;
-  color: $mute-text;
-  font-style: italic;
-}
-
-.search-results {
-  flex: 1;
-  overflow: hidden;
-}
-
-.result-row {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid $line-sepia;
-}
-
-.result-avatar {
-  width: 72rpx; height: 72rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, $travel-blue, $forest-green);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.result-initial {
-  font-family: $font-family-serif;
-  font-size: 28rpx;
-  color: #F4EFE5;
-}
-
-.result-info { flex: 1; min-width: 0; }
-
-.result-name {
-  display: block;
-  font-family: $font-family-serif;
-  font-size: 28rpx;
-  color: $ink-black;
-  margin-bottom: 4rpx;
-}
-
-.result-mailbox {
-  display: block;
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 2rpx;
-  color: $travel-blue;
-}
-
-.add-btn {
-  height: 56rpx;
-  padding: 0 28rpx;
-  background: $travel-blue;
-  border-radius: 28rpx;
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  &:active { opacity: 0.8; }
-}
-
-.add-btn-done {
-  background: transparent;
-  border: 1rpx solid $line-sepia;
-}
-
-.add-btn-txt {
-  font-family: $font-family-mono;
-  font-size: 22rpx;
-  letter-spacing: 1rpx;
-  color: #F4EFE5;
-
-  .add-btn-done & {
-    color: $mute-text;
-  }
 }
 
 // ── Remark modal ────────────────────────────────────────────
@@ -787,7 +554,7 @@ onShow(load)
 
 .modal-title {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 34rpx;
   color: $ink-black;
   margin-bottom: 10rpx;
@@ -795,7 +562,7 @@ onShow(load)
 
 .modal-sub {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 24rpx;
   color: $mute-text;
   margin-bottom: 36rpx;
@@ -809,7 +576,7 @@ onShow(load)
   border: 1rpx solid $line-sepia;
   border-radius: 12rpx;
   padding: 0 24rpx;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $ink-black;
   box-sizing: border-box;
@@ -828,7 +595,7 @@ onShow(load)
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: $font-family-mono;
+  font-family: $font-family-code;
   font-size: 26rpx;
   letter-spacing: 2rpx;
   &:active { opacity: 0.8; }

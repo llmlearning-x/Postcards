@@ -13,7 +13,24 @@
         </view>
       </view>
 
-      <!-- Stats row inside hero -->
+    </view>
+
+    <scroll-view class="content" scroll-y>
+
+      <!-- Primary action -->
+      <view class="focus-card">
+        <view class="focus-copy">
+          <text class="focus-kicker">TODAY · 今日</text>
+          <text class="focus-title">{{ focusTitle }}</text>
+          <text class="focus-sub">{{ focusSubtitle }}</text>
+        </view>
+        <view class="focus-action" @click="goPrimaryAction">
+          <IconCamera :size="30" color="#F4EFE5" />
+          <text class="focus-action-txt">{{ primaryActionText }}</text>
+        </view>
+      </view>
+
+      <!-- Stats row -->
       <view class="hero-stats">
         <view class="stat-item stat-item-tap" @click="goTravels">
           <text class="stat-num">{{ store.travels.length }}</text>
@@ -31,46 +48,27 @@
         </view>
         <view class="stat-sep"></view>
         <view class="stat-item stat-item-tap" @click="goPoints">
-          <text class="stat-num" style="color: #C4E0CB;">{{ user?.points ?? 0 }}</text>
+          <text class="stat-num stat-num-points">{{ user?.points ?? 0 }}</text>
           <text class="stat-lbl">积分</text>
         </view>
       </view>
-    </view>
-
-    <scroll-view class="content" scroll-y>
 
       <!-- Quick actions -->
       <view class="actions-row">
-        <view class="action-btn" @click="goRecord">
-          <view class="action-icon"><IconCamera :size="44" color="#2E7D58" /></view>
-          <text class="action-lbl">记录</text>
-        </view>
         <view class="action-btn" @click="goInbox">
-          <view class="action-icon"><IconInbox :size="44" color="#2E7D58" /></view>
+          <view class="action-icon"><IconInbox :size="34" color="#3C604D" /></view>
           <text class="action-lbl">收件箱</text>
           <view class="action-badge" v-if="unreadCount > 0">
             <text class="action-badge-txt">{{ unreadCount > 9 ? '9+' : unreadCount }}</text>
           </view>
         </view>
         <view class="action-btn" @click="goSend">
-          <view class="action-icon"><IconSend :size="44" color="#2E7D58" /></view>
+          <view class="action-icon"><IconSend :size="34" color="#3C604D" /></view>
           <text class="action-lbl">寄出</text>
         </view>
         <view class="action-btn" @click="goContacts">
-          <view class="action-icon"><IconContacts :size="44" color="#2E7D58" /></view>
+          <view class="action-icon"><IconContacts :size="34" color="#3C604D" /></view>
           <text class="action-lbl">通讯录</text>
-        </view>
-      </view>
-
-      <!-- Board banner -->
-      <view class="board-banner" @click="goBoard">
-        <view class="board-banner-left">
-          <text class="board-banner-kicker">BULLETIN BOARD · 公告栏</text>
-          <text class="board-banner-title">旅行公告栏</text>
-          <text class="board-banner-sub">看看旅行者们都在哪里</text>
-        </view>
-        <view class="board-banner-right">
-          <text class="board-banner-glyph">✦</text>
         </view>
       </view>
 
@@ -126,6 +124,16 @@
         </scroll-view>
       </view>
 
+      <!-- Board banner -->
+      <view class="board-banner" @click="goBoard">
+        <view class="board-banner-left">
+          <text class="board-banner-kicker">BULLETIN BOARD · 公告栏</text>
+          <text class="board-banner-title">旅行公告栏</text>
+          <text class="board-banner-sub">看看旅行者们都在哪里</text>
+        </view>
+        <text class="board-banner-link">查看 ›</text>
+      </view>
+
       <!-- All travels list (when no current travel or as secondary) -->
       <view class="section" v-if="store.travels.length > 0">
         <view class="section-hd">
@@ -154,8 +162,8 @@
         <text class="empty-glyph">✦</text>
         <text class="empty-title">开始你的第一段旅程</text>
         <text class="empty-sub">记录每一张明信片，留住旅途中的美好时光</text>
-        <view class="empty-btn" @click="goRecord">
-          <text class="empty-btn-txt">记录第一张明信片 →</text>
+        <view class="empty-btn" @click="goCreateTravel">
+          <text class="empty-btn-txt">创建第一段旅程 →</text>
         </view>
       </view>
 
@@ -175,13 +183,6 @@
       <text class="ob-kicker">STEP {{ obStep + 1 }} / {{ onboardingSteps.length }}</text>
       <text class="ob-title">{{ onboardingSteps[obStep].title }}</text>
       <text class="ob-desc">{{ onboardingSteps[obStep].desc }}</text>
-
-      <!-- 邮箱号展示（仅第 0 步）-->
-      <view v-if="obStep === 0" class="ob-mailbox">
-        <text class="ob-mailbox-lbl">YOUR MAILBOX NO.</text>
-        <text class="ob-mailbox-val">{{ user?.mailboxNo }}</text>
-        <text class="ob-mailbox-tip">这是你的唯一编号，好友通过它找到你</text>
-      </view>
 
       <!-- 点指示器 -->
       <view class="ob-dots">
@@ -226,14 +227,14 @@ const obStep = ref(0)
 
 const onboardingSteps = [
   {
-    icon: '邮',
-    title: '欢迎来到旅行邮局',
-    desc: '这是你的专属邮箱号，好友通过它给你寄明信片。请妥善保管，它也是你的登录凭证。',
+    icon: '旅',
+    title: '先创建一段旅程',
+    desc: '每张明信片都会归属到旅程里。先定下目的地，后面记录地点、照片和心情会更自然。',
   },
   {
-    icon: '旅',
-    title: '记录你的旅程',
-    desc: '先创建一段旅程，再记录旅途中的明信片。每张明信片可附上照片、位置和心情备注。',
+    icon: '片',
+    title: '记录第一张明信片',
+    desc: '旅途中到达一个地点时，拍照或手动填写位置，就能把这一刻保存成明信片。',
   },
   {
     icon: '寄',
@@ -282,6 +283,20 @@ const recentPostcards = computed(() => store.sortedPostcards.slice(0, 8))
 
 const recentTravels = computed(() => store.sortedTravels.slice(0, 5))
 
+const focusTitle = computed(() =>
+  store.currentTravel ? `记录「${store.currentTravel.title}」` : '先创建你的第一段旅程'
+)
+
+const focusSubtitle = computed(() =>
+  store.currentTravel
+    ? `${store.currentTravel.destination} · ${postcardCountForTravel(store.currentTravel.id)} 张明信片`
+    : '有了旅程后，每张明信片都会自动归档到路线上'
+)
+
+const primaryActionText = computed(() =>
+  store.currentTravel || store.travels.length > 0 ? '记录此刻' : '创建旅程'
+)
+
 function postcardCountForTravel(travelId: string): number {
   return store.postcards.filter(p => p.travelId === travelId).length
 }
@@ -292,7 +307,16 @@ function formatDate(ts: number): string {
 }
 
 // ── Navigation ────────────────────────────────────────────────────
+function goPrimaryAction() {
+  if (store.currentTravel || store.travels.length > 0) {
+    goRecord()
+  } else {
+    goCreateTravel()
+  }
+}
+
 function goRecord()     { uni.switchTab({ url: '/pages/record/record' }) }
+function goCreateTravel() { uni.navigateTo({ url: '/pages/travel/travel' }) }
 function goTravels()    { uni.navigateTo({ url: '/pages/travels/travels' }) }
 function goPostcards()  { uni.navigateTo({ url: '/pages/postcards/postcards' }) }
 function goPoints()     { uni.navigateTo({ url: '/pages/points/points' }) }
@@ -312,6 +336,7 @@ function goSend() {
     uni.navigateTo({ url: `/pages/send/send?postcardId=${first.id}` })
   } else {
     uni.showToast({ title: '先记录一张明信片吧', icon: 'none' })
+    setTimeout(goRecord, 650)
   }
 }
 
@@ -356,31 +381,31 @@ onShow(() => {
 // ── Hero ──────────────────────────────────────────────────────────
 .hero {
   background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 72rpx 40rpx 0;
-  border-radius: 0 0 48rpx 48rpx;
+  padding: 72rpx 40rpx 38rpx;
+  border-radius: 0 0 36rpx 36rpx;
 }
 
 .hero-inner {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 40rpx;
+  margin-bottom: 0;
 }
 
 .hero-left {}
 
 .hero-greeting {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: rgba(244,239,229,0.65);
   margin-bottom: 8rpx;
 }
 
 .hero-name {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-display;
   font-size: 48rpx;
   color: #F4EFE5;
 }
@@ -392,27 +417,96 @@ onShow(() => {
 
 .date-month {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: rgba(244,239,229,0.55);
 }
 
 .date-day {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-display;
   font-size: 72rpx;
   color: rgba(244,239,229,0.9);
   line-height: 1;
 }
 
+// ── Primary focus ─────────────────────────────────────────────────
+.focus-card {
+  margin: 30rpx 32rpx 0;
+  background: $card-bg;
+  border: 2rpx solid rgba($travel-blue, 0.34);
+  border-radius: 12rpx;
+  padding: 30rpx;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  box-shadow: $shadow-md;
+}
+
+.focus-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.focus-kicker {
+  display: block;
+  font-family: $font-family-action;
+  font-size: 22rpx;
+  letter-spacing: 0;
+  color: $travel-blue;
+  margin-bottom: 8rpx;
+}
+
+.focus-title {
+  display: block;
+  font-family: $font-family-body;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: $ink-black;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.focus-sub {
+  display: block;
+  font-family: $font-family-body;
+  font-size: 24rpx;
+  color: $mute-text;
+  line-height: 1.45;
+  margin-top: 8rpx;
+}
+
+.focus-action {
+  height: 92rpx;
+  padding: 0 30rpx;
+  border-radius: 8rpx;
+  background: $travel-blue;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-shrink: 0;
+  &:active { background: $forest-green; }
+}
+
+.focus-action-txt {
+  font-family: $font-family-action;
+  font-size: 28rpx;
+  color: #F4EFE5;
+  white-space: nowrap;
+}
+
 .hero-stats {
   display: flex;
   align-items: center;
-  background: rgba(0,0,0,0.15);
-  border-radius: 16rpx 16rpx 0 0;
-  padding: 24rpx 32rpx;
-  margin: 0 -40rpx;
+  background: $card-bg;
+  border: 2rpx solid $line-sepia;
+  border-radius: 12rpx;
+  padding: 20rpx 24rpx;
+  margin: 22rpx 32rpx 0;
+  box-shadow: $shadow-sm;
 }
 
 .stat-item {
@@ -427,46 +521,53 @@ onShow(() => {
 
 .stat-num {
   display: block;
-  font-family: $font-family-serif;
-  font-size: 36rpx;
-  color: #F4EFE5;
+  font-family: $font-family-body;
+  font-size: 30rpx;
+  color: $ink-black;
   margin-bottom: 4rpx;
+}
+
+.stat-num-points {
+  color: $travel-blue;
 }
 
 .stat-lbl {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 2rpx;
-  color: rgba(244,239,229,0.55);
+  font-family: $font-family-action;
+  font-size: 22rpx;
+  letter-spacing: 0;
+  color: $mute-text;
 }
 
 .stat-sep {
   width: 1rpx;
-  height: 48rpx;
-  background: rgba(244,239,229,0.2);
+  height: 40rpx;
+  background: $line-sepia;
 }
 
 // ── Content ───────────────────────────────────────────────────────
-.content { height: calc(100vh - 340rpx); }
+.content { height: calc(100vh - 226rpx); }
 
 // ── Quick actions ─────────────────────────────────────────────────
 .actions-row {
   display: flex;
   gap: 0;
-  margin: 32rpx 40rpx 0;
+  margin: 22rpx 32rpx 0;
   background: $card-bg;
-  border: 1rpx solid $line-sepia;
+  border: 2rpx solid $line-sepia;
   border-radius: 12rpx;
   overflow: hidden;
+  box-shadow: $shadow-sm;
 }
 
 .action-btn {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  padding: 28rpx 0 24rpx;
+  justify-content: center;
+  gap: 10rpx;
+  padding: 24rpx 0;
   position: relative;
   border-right: 1rpx solid $line-sepia;
 
@@ -475,16 +576,13 @@ onShow(() => {
 }
 
 .action-icon {
-  font-size: 36rpx;
-  color: $travel-blue;
-  margin-bottom: 10rpx;
   line-height: 1;
 }
 
 .action-lbl {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 1rpx;
+  font-family: $font-family-action;
+  font-size: 24rpx;
+  letter-spacing: 0;
   color: $mute-text;
 }
 
@@ -503,20 +601,21 @@ onShow(() => {
 }
 
 .action-badge-txt {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   color: #F4EFE5;
 }
 
 // ── Board banner ──────────────────────────────────────────────────
 .board-banner {
-  margin: 24rpx 40rpx 0;
-  background: linear-gradient(135deg, #2E7D58 0%, #1A5C3F 100%);
+  margin: 26rpx 32rpx 0;
+  background: rgba($travel-blue, 0.07);
+  border: 2rpx solid rgba($travel-blue, 0.22);
   border-radius: 12rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 28rpx 32rpx;
+  padding: 24rpx 26rpx;
   overflow: hidden;
   position: relative;
 
@@ -527,59 +626,56 @@ onShow(() => {
 
 .board-banner-kicker {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 3rpx;
-  color: rgba(244,239,229,0.6);
+  font-family: $font-family-action;
+  font-size: 22rpx;
+  letter-spacing: 0;
+  color: $mute-text;
   margin-bottom: 8rpx;
 }
 
 .board-banner-title {
   display: block;
-  font-family: $font-family-serif;
-  font-size: 36rpx;
-  color: #F4EFE5;
+  font-family: $font-family-body;
+  font-size: 30rpx;
+  color: $ink-black;
   margin-bottom: 6rpx;
 }
 
 .board-banner-sub {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 1rpx;
-  color: rgba(244,239,229,0.65);
+  font-family: $font-family-body;
+  font-size: 24rpx;
+  letter-spacing: 0;
+  color: $mute-text;
 }
 
-.board-banner-right {
+.board-banner-link {
+  font-family: $font-family-action;
+  font-size: 24rpx;
+  letter-spacing: 0;
+  color: $travel-blue;
   flex-shrink: 0;
-  width: 80rpx;
-  height: 80rpx;
-  border: 1rpx solid rgba(244,239,229,0.25);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.board-banner-glyph {
-  font-size: 36rpx;
-  color: rgba(244,239,229,0.7);
 }
 
 // ── Section ───────────────────────────────────────────────────────
-.section { margin: 32rpx 40rpx 0; }
+.section { margin: 38rpx 32rpx 0; }
 
 .section-hd {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: 14rpx;
   margin-bottom: 20rpx;
+  padding: 16rpx 18rpx;
+  border-left: 8rpx solid $travel-blue;
+  background: rgba($travel-blue, 0.08);
+  border-radius: 8rpx;
 }
 
 .section-kicker {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-action;
+  font-size: 24rpx;
+  font-weight: 700;
+  letter-spacing: 0;
   color: $travel-blue;
   white-space: nowrap;
   flex-shrink: 0;
@@ -587,14 +683,13 @@ onShow(() => {
 
 .section-rule {
   flex: 1;
-  height: 1rpx;
-  background: $line-sepia;
+  height: 0;
 }
 
 .section-more {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 2rpx;
+  font-family: $font-family-action;
+  font-size: 24rpx;
+  letter-spacing: 0;
   color: $mute-text;
   flex-shrink: 0;
 }
@@ -602,7 +697,7 @@ onShow(() => {
 // ── Current travel card ───────────────────────────────────────────
 .travel-card {
   background: $card-bg;
-  border: 1rpx solid $line-sepia;
+  border: 2rpx solid $line-sepia;
   border-radius: 12rpx;
   display: flex;
   align-items: stretch;
@@ -630,7 +725,7 @@ onShow(() => {
 }
 
 .travel-title {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 32rpx;
   color: $ink-black;
   flex: 1;
@@ -643,15 +738,15 @@ onShow(() => {
 }
 
 .travel-status-txt {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 1rpx;
+  font-family: $font-family-action;
+  font-size: 22rpx;
+  letter-spacing: 0;
   color: $travel-blue;
 }
 
 .travel-dest {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 24rpx;
   color: $mute-text;
   margin-bottom: 4rpx;
@@ -659,14 +754,14 @@ onShow(() => {
 
 .travel-count {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $mute-text;
 }
 
 .travel-arr {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 48rpx;
   color: $mute-text;
   padding: 0 20rpx;
@@ -690,7 +785,7 @@ onShow(() => {
   flex-direction: column;
   width: 200rpx;
   background: $card-bg;
-  border: 1rpx solid $line-sepia;
+  border: 2rpx solid $line-sepia;
   border-radius: 8rpx;
   overflow: hidden;
   flex-shrink: 0;
@@ -723,7 +818,7 @@ onShow(() => {
 
 .pc-loc {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 24rpx;
   color: $ink-black;
   overflow: hidden;
@@ -734,8 +829,9 @@ onShow(() => {
 
 .pc-city {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-body;
+  font-size: 22rpx;
+  letter-spacing: 0;
   letter-spacing: 1rpx;
   color: $mute-text;
   overflow: hidden;
@@ -746,17 +842,18 @@ onShow(() => {
 
 .pc-date {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   color: $mute-text;
 }
 
 // ── Travel list ───────────────────────────────────────────────────
 .travel-list {
   background: $card-bg;
-  border: 1rpx solid $line-sepia;
+  border: 2rpx solid $line-sepia;
   border-radius: 12rpx;
   overflow: hidden;
+  box-shadow: $shadow-sm;
 }
 
 .travel-row {
@@ -785,7 +882,7 @@ onShow(() => {
 
 .travel-row-title {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $ink-black;
   margin-bottom: 4rpx;
@@ -796,14 +893,14 @@ onShow(() => {
 
 .travel-row-dest {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $mute-text;
 }
 
 .travel-row-arr {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 40rpx;
   color: $mute-text;
 }
@@ -824,13 +921,13 @@ onShow(() => {
 }
 
 .empty-title {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 36rpx;
   color: $ink-black;
 }
 
 .empty-sub {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $mute-text;
   text-align: center;
@@ -848,7 +945,7 @@ onShow(() => {
 }
 
 .empty-btn-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-action;
   font-size: 28rpx;
   color: #F4EFE5;
 }
@@ -894,20 +991,20 @@ onShow(() => {
 }
 
 .ob-stamp-char {
-  font-family: $font-family-serif;
+  font-family: $font-family-display;
   font-size: 56rpx;
   color: $travel-blue;
 }
 
 .ob-kicker {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 4rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: $mute-text;
 }
 
 .ob-title {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 40rpx;
   color: $ink-black;
   text-align: center;
@@ -915,47 +1012,12 @@ onShow(() => {
 }
 
 .ob-desc {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $body-text;
   text-align: center;
   line-height: 1.75;
   max-width: 520rpx;
-}
-
-.ob-mailbox {
-  width: 100%;
-  background: rgba($travel-blue, 0.06);
-  border: 1rpx solid rgba($travel-blue, 0.25);
-  border-radius: 8rpx;
-  padding: 24rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8rpx;
-}
-
-.ob-mailbox-lbl {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 3rpx;
-  color: $travel-blue;
-}
-
-.ob-mailbox-val {
-  font-family: $font-family-mono;
-  font-size: 40rpx;
-  letter-spacing: 6rpx;
-  color: $ink-black;
-  font-weight: 600;
-}
-
-.ob-mailbox-tip {
-  font-family: $font-family-serif;
-  font-size: 22rpx;
-  color: $mute-text;
-  text-align: center;
-  line-height: 1.5;
 }
 
 .ob-dots {
@@ -998,16 +1060,18 @@ onShow(() => {
 }
 
 .ob-btn-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-action;
   font-size: 30rpx;
   color: #F4EFE5;
-  letter-spacing: 4rpx;
+  letter-spacing: 2rpx;
 }
 
 .ob-skip {
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 2rpx;
+  font-family: $font-family-action;
+  font-size: 24rpx;
+  letter-spacing: 0;
   color: $mute-text;
 }
 </style>
+  box-shadow: $shadow-sm;
+  box-shadow: $shadow-sm;

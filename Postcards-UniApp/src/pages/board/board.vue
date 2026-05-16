@@ -286,12 +286,12 @@ onShow(() => loadBoard(true))
   display: flex; align-items: center; justify-content: center;
 }
 .header-kicker {
-  display: block; font-family: $font-family-mono;
-  font-size: 20rpx; letter-spacing: 4rpx; color: rgba(255,255,255,0.65); margin-bottom: 12rpx;
+  display: block; font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 2rpx; color: rgba(255,255,255,0.65); margin-bottom: 12rpx;
 }
 .header-title {
-  display: block; font-family: $font-family-serif;
-  font-size: 46rpx; font-weight: 400; color: rgba(255,255,255,0.95); line-height: 1.15; letter-spacing: -1rpx;
+  display: block; font-family: $font-family-body;
+  font-size: 46rpx; font-weight: 700; color: rgba(255,255,255,0.95); line-height: 1.15; letter-spacing: 0;
 }
 
 .perf-line {
@@ -353,8 +353,8 @@ onShow(() => loadBoard(true))
 }
 
 .card-pm-city {
-  font-family: $font-family-mono;
-  font-size: 14rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: rgba(244,239,229,0.9);
 }
@@ -378,8 +378,8 @@ onShow(() => loadBoard(true))
 }
 
 .author-initial {
-  font-family: $font-family-serif;
-  font-size: 20rpx;
+  font-family: $font-family-body;
+  font-size: 22rpx;
   color: #F4EFE5;
 }
 
@@ -396,8 +396,8 @@ onShow(() => loadBoard(true))
 
 .card-loc {
   display: block;
-  font-family: $font-family-serif;
-  font-size: 22rpx;
+  font-family: $font-family-body;
+  font-size: 24rpx;
   color: $ink-black;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -407,8 +407,8 @@ onShow(() => loadBoard(true))
 
 .card-city {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $mute-text;
   overflow: hidden;
@@ -441,19 +441,19 @@ onShow(() => loadBoard(true))
 }
 
 .stamp-icon {
-  font-size: 18rpx;
+  font-size: 22rpx;
   color: $mute-text;
 }
 
 .stamp-count {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   color: $mute-text;
 }
 
 .card-mailbox {
-  font-family: $font-family-mono;
-  font-size: 14rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $mute-text;
   opacity: 0.6;
@@ -493,13 +493,13 @@ onShow(() => loadBoard(true))
 .empty-icon { font-size: 80rpx; color: $mute-text; opacity: 0.4; }
 
 .empty-title {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 30rpx;
   color: $body-text;
 }
 
 .empty-sub {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 24rpx;
   color: $mute-text;
   text-align: center;
@@ -513,7 +513,7 @@ onShow(() => loadBoard(true))
 }
 
 .load-more-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-style: italic;
   font-size: 24rpx;
   color: $mute-text;
@@ -583,15 +583,15 @@ onShow(() => loadBoard(true))
 }
 
 .modal-pm-city {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: rgba(244,239,229,0.9);
 }
 
 .modal-pm-date {
-  font-family: $font-family-serif;
-  font-size: 22rpx;
+  font-family: $font-family-body;
+  font-size: 24rpx;
   color: rgba(244,239,229,0.95);
 }
 
@@ -620,7 +620,7 @@ onShow(() => loadBoard(true))
 }
 
 .modal-initial {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: #F4EFE5;
 }
@@ -629,15 +629,15 @@ onShow(() => loadBoard(true))
 
 .modal-nickname {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $ink-black;
 }
 
 .modal-mailbox {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $travel-blue;
 }
@@ -664,7 +664,7 @@ onShow(() => loadBoard(true))
 
 .modal-loc {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 36rpx;
   color: $ink-black;
   margin-bottom: 6rpx;
@@ -672,8 +672,8 @@ onShow(() => loadBoard(true))
 
 .modal-city {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 20rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
   margin-bottom: 16rpx;
@@ -681,7 +681,7 @@ onShow(() => loadBoard(true))
 
 .modal-note {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-style: italic;
   font-size: 26rpx;
   color: $body-text;
@@ -718,7 +718,7 @@ onShow(() => loadBoard(true))
 .modal-stamp-icon { font-size: 24rpx; color: $mute-text; }
 
 .modal-stamp-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $mute-text;
 }
@@ -733,7 +733,7 @@ onShow(() => loadBoard(true))
 }
 
 .modal-add-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: #F4EFE5;
   letter-spacing: 2rpx;
@@ -748,8 +748,8 @@ onShow(() => loadBoard(true))
 }
 
 .modal-added-txt {
-  font-family: $font-family-mono;
-  font-size: 22rpx;
+  font-family: $font-family-code;
+  font-size: 24rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
 }
@@ -757,9 +757,9 @@ onShow(() => loadBoard(true))
 .modal-close {
   display: block;
   text-align: center;
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $mute-text;
   padding: 16rpx 0 32rpx;
   flex-shrink: 0;

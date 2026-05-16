@@ -35,9 +35,9 @@ export async function authRoutes(app: FastifyInstance) {
       [id, displayName, mailboxNo, passwordHash, now, now, now]
     )
 
-    // Grant registration bonus + free Series I stamps (fire-and-forget)
-    addPoints(id, REGISTER_BONUS, 'register_bonus').catch(() => {})
-    grantFreeStamps(id).catch(() => {})
+    // Grant registration bonus + free Series I stamps before responding
+    await addPoints(id, REGISTER_BONUS, 'register_bonus')
+    await grantFreeStamps(id)
 
     const accessToken  = await signAccess(app, id)
     const refreshToken = await signRefresh(app, id)

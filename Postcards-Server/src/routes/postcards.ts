@@ -25,7 +25,7 @@ export async function postcardRoutes(app: FastifyInstance) {
 
   // ── 创建明信片 ───────────────────────────────────────────────────
   app.post('/postcards', { preHandler: requireAuth }, async (req, reply) => {
-    const { travelId, photoUrl, locationName, city, country, note, stampDesign, recordedAt } = req.body as any
+    const { travelId, photoUrl, locationName, city, country, note, stampDesign, recordedAt, toName } = req.body as any
     if (!travelId || !locationName || !city) {
       return reply.code(400).send({ error: '缺少必填字段' })
     }
@@ -35,10 +35,10 @@ export async function postcardRoutes(app: FastifyInstance) {
     const id  = newId()
 
     await execute(
-      `INSERT INTO postcards (id, user_id, travel_id, photo_url, location_name, city, country, note, stamp_design, is_favorite, recorded_at, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)`,
+      `INSERT INTO postcards (id, user_id, travel_id, photo_url, location_name, city, country, note, stamp_design, to_name, is_favorite, recorded_at, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)`,
       [id, uid, travelId, photoUrl || null, locationName, city, country || '中国',
-       note || '', stampDesign || 'classic', recordedAt || now, now, now]
+       note || '', stampDesign || 'classic', toName || null, recordedAt || now, now, now]
     )
 
     const row = await queryOne('SELECT * FROM postcards WHERE id = ?', [id])
@@ -46,14 +46,14 @@ export async function postcardRoutes(app: FastifyInstance) {
     return reply.code(201).send(toCamel(row))
   })
 
-  // ── 更新明信片（含切换收藏）─────────────────────────────────────
+  // ── 更新明信片（含切换收藏 / 公开状态）────────────────────────────
   app.put<{ Params: { id: string } }>('/postcards/:id', { preHandler: requireAuth }, async (req, reply) => {
     const { id } = req.params
     const uid = userId(req)
     const row = await queryOne('SELECT id FROM postcards WHERE id = ? AND user_id = ?', [id, uid])
     if (!row) return reply.code(404).send({ error: '明信片不存在' })
 
-    const { photoUrl, locationName, city, country, note, stampDesign, isFavorite } = req.body as any
+    const { photoUrl, locationName, city, country, note, stampDesign, isFavorite, toName, isPublic } = req.body as any
     const now = Date.now()
 
     await execute(
@@ -64,16 +64,61 @@ export async function postcardRoutes(app: FastifyInstance) {
          country       = COALESCE(?, country),
          note          = COALESCE(?, note),
          stamp_design  = COALESCE(?, stamp_design),
+         to_name       = COALESCE(?, to_name),
          is_favorite   = COALESCE(?, is_favorite),
+         is_public     = COALESCE(?, is_public),
          updated_at    = ?
        WHERE id = ? AND user_id = ?`,
-      [photoUrl, locationName, city, country, note, stampDesign,
-       isFavorite !== undefined ? (isFavorite ? 1 : 0) : undefined,
+      [photoUrl ?? null, locationName ?? null, city ?? null, country ?? null,
+       note ?? null, stampDesign ?? null, toName ?? null,
+       isFavorite !== undefined ? (isFavorite ? 1 : 0) : null,
+       isPublic  !== undefined ? (isPublic  ? 1 : 0) : null,
        now, id, uid]
     )
 
     const updated = await queryOne('SELECT * FROM postcards WHERE id = ?', [id])
     return reply.send(toCamel(updated))
+  })
+
+  // ── 旅行公告栏：公开明信片列表 ──────────────────────────────────
+  app.get('/postcards/public', { preHandler: requireAuth }, async (req, reply) => {
+    const { page = '1', limit = '20' } = req.query as { page?: string; limit?: string }
+    const uid    = userId(req)
+    const offset = (Math.max(1, parseInt(page)) - 1) * Math.min(50, parseInt(limit))
+    const take   = Math.min(50, parseInt(limit))
+
+    const rows = await query<any>(
+      `SELECT p.*, u.nickname, u.mailbox_no, u.avatar_url,
+              EXISTS(SELECT 1 FROM contacts c WHERE c.user_id = ? AND c.contact_id = p.user_id) AS is_contact
+       FROM postcards p
+       JOIN users u ON u.id = p.user_id
+       WHERE p.is_public = 1
+       ORDER BY p.updated_at DESC
+       LIMIT ${take} OFFSET ${offset}`,
+      [uid]
+    )
+
+    return reply.send(rows.map(r => ({
+      ...toCamel(r),
+      isPublic:    true,
+      stampCount:  r.stamp_count,
+      author: {
+        id:        r.user_id,
+        nickname:  r.nickname,
+        mailboxNo: r.mailbox_no,
+        avatarUrl: r.avatar_url ?? null,
+        isContact: r.is_contact === 1,
+      },
+    })))
+  })
+
+  // ── 盖章 / 取消盖章 ──────────────────────────────────────────────
+  app.post<{ Params: { id: string } }>('/postcards/:id/stamp', { preHandler: requireAuth }, async (req, reply) => {
+    const { id } = req.params
+    const row = await queryOne<any>('SELECT id, stamp_count FROM postcards WHERE id = ? AND is_public = 1', [id])
+    if (!row) return reply.code(404).send({ error: '明信片不存在' })
+    await execute('UPDATE postcards SET stamp_count = stamp_count + 1 WHERE id = ?', [id])
+    return reply.send({ stampCount: row.stamp_count + 1 })
   })
 
   // ── 删除明信片 ───────────────────────────────────────────────────
@@ -99,9 +144,12 @@ function toCamel(row: any) {
     city:         row.city,
     country:      row.country,
     note:         row.note,
+    toName:       row.to_name || null,
     stampDesign:  row.stamp_design,
     stampImageUrl: resolveStampImageUrl(row.stamp_design, null),
     isFavorite:   row.is_favorite === 1,
+    isPublic:     row.is_public === 1,
+    stampCount:   row.stamp_count ?? 0,
     recordedAt:   row.recorded_at,
     createdAt:    row.created_at,
     updatedAt:    row.updated_at,

@@ -92,7 +92,7 @@
           </view>
 
           <view class="pback-footer">
-            <text class="pback-footer-l">旅行邮局 · 寄往远方</text>
+            <text class="pback-footer-l">旅行邮箱 · 寄往远方</text>
             <text class="pback-footer-r">{{ isSent ? sentStatusLabel(item.status) : (item.status === 'opened' ? '已读' : '新信') }}</text>
           </view>
         </view>
@@ -247,9 +247,9 @@ onMounted(async () => {
 }
 
 .nav-label {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: rgba(244, 239, 229, 0.9);
   text-shadow: 0 2rpx 12rpx rgba(0,0,0,0.3);
 }
@@ -310,14 +310,14 @@ onMounted(async () => {
 }
 
 .postmark-city {
-  font-family: $font-family-mono;
-  font-size: 14rpx;
-  letter-spacing: 4rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: rgba(244,239,229,0.9);
 }
 
 .postmark-date {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 30rpx;
   font-weight: 500;
   color: rgba(244,239,229,0.95);
@@ -356,7 +356,7 @@ onMounted(async () => {
 }
 
 .sender-initial {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 32rpx;
   color: #F4EFE5;
 }
@@ -365,7 +365,7 @@ onMounted(async () => {
 
 .sender-name {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $ink-black;
   margin-bottom: 4rpx;
@@ -373,9 +373,9 @@ onMounted(async () => {
 
 .sender-mailbox {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $travel-blue;
 }
 
@@ -383,17 +383,17 @@ onMounted(async () => {
 
 .sent-label {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 14rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $mute-text;
   margin-bottom: 4rpx;
 }
 
 .sent-date {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   color: $body-text;
 }
 
@@ -419,17 +419,17 @@ onMounted(async () => {
 
 .pback-title {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 4rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: $ink-black;
   margin-bottom: 6rpx;
 }
 
 .pback-series {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 14rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
 }
@@ -453,8 +453,8 @@ onMounted(async () => {
 .pback-stamp-dot { font-size: 24rpx; }
 
 .pback-stamp-name {
-  font-family: $font-family-mono;
-  font-size: 12rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
 }
 
@@ -470,16 +470,16 @@ onMounted(async () => {
 
 .pback-msg-label {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 14rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $travel-blue;
   margin-bottom: 16rpx;
 }
 
 .pback-note {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-display;
   font-style: italic;
   font-size: 26rpx;
   color: $ink-black;
@@ -501,17 +501,17 @@ onMounted(async () => {
 
 .pback-addr-label {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 14rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $travel-blue;
   margin-bottom: 6rpx;
 }
 
 .pback-addr-main {
   display: block;
-  font-family: $font-family-serif;
-  font-size: 22rpx;
+  font-family: $font-family-body;
+  font-size: 24rpx;
   font-weight: 500;
   color: $ink-black;
   margin-bottom: 4rpx;
@@ -522,8 +522,8 @@ onMounted(async () => {
 
 .pback-addr-sub {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 14rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   color: $mute-text;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -538,16 +538,16 @@ onMounted(async () => {
 
 .note-label {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 14rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $travel-blue;
   margin-bottom: 16rpx;
 }
 
 .note-content {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-display;
   font-style: italic;
   font-size: 30rpx;
   color: $ink-black;
@@ -557,8 +557,8 @@ onMounted(async () => {
 
 .note-sig {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
   text-align: right;
@@ -573,9 +573,9 @@ onMounted(async () => {
 }
 
 .pback-footer-l, .pback-footer-r {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $mute-text;
 }
 
@@ -608,7 +608,7 @@ onMounted(async () => {
 }
 
 .action-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: #F4EFE5;
   letter-spacing: 2rpx;

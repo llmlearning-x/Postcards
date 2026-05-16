@@ -174,9 +174,9 @@ function goDetail() {
 }
 
 .flip-hint {
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: rgba(255, 255, 255, 0.5);
 }
 
@@ -248,7 +248,7 @@ function goDetail() {
 }
 
 .front-city {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 44rpx;
   color: rgba(255, 255, 255, 0.95);
   letter-spacing: -1rpx;
@@ -256,8 +256,8 @@ function goDetail() {
 }
 
 .front-date {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: rgba(255, 255, 255, 0.6);
 }
@@ -281,9 +281,9 @@ function goDetail() {
 }
 
 .back-label {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $mute-text;
 }
 
@@ -359,9 +359,9 @@ function goDetail() {
 }
 
 .back-note {
-  font-family: $font-family-serif;
+  font-family: $font-family-display;
   font-style: italic;
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: $body-text;
   line-height: 1.7;
   display: -webkit-box;
@@ -395,15 +395,15 @@ function goDetail() {
 }
 
 .back-to-lbl {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-style: italic;
-  font-size: 18rpx;
+  font-size: 22rpx;
   color: $mute-text;
   display: block;
 }
 
 .back-to-name {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $ink-black;
   display: block;
@@ -414,8 +414,8 @@ function goDetail() {
 }
 
 .back-location {
-  font-family: $font-family-serif;
-  font-size: 18rpx;
+  font-family: $font-family-body;
+  font-size: 22rpx;
   color: $body-text;
   display: block;
   overflow: hidden;
@@ -425,8 +425,8 @@ function goDetail() {
 }
 
 .back-city {
-  font-family: $font-family-serif;
-  font-size: 18rpx;
+  font-family: $font-family-body;
+  font-size: 22rpx;
   color: $mute-text;
   display: block;
   overflow: hidden;
@@ -448,8 +448,8 @@ function goDetail() {
 }
 
 .back-pm-city {
-  font-family: $font-family-mono;
-  font-size: 13rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
   line-height: 1.3;
@@ -463,8 +463,8 @@ function goDetail() {
 }
 
 .back-pm-date {
-  font-family: $font-family-mono;
-  font-size: 11rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $whisper;
   line-height: 1.3;
@@ -483,9 +483,9 @@ function goDetail() {
 }
 
 .flip-btn-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $ink-black;
-  letter-spacing: 4rpx;
+  letter-spacing: 2rpx;
 }
 </style>

@@ -4,7 +4,7 @@
       "path": "pages/index/index",
       "style": {
         "navigationStyle": "custom",
-        "navigationBarTitleText": "旅行邮局"
+        "navigationBarTitleText": "旅行邮箱"
       }
     },
     {
@@ -150,7 +150,7 @@
   ],
   "globalStyle": {
     "navigationBarTextStyle": "white",
-    "navigationBarTitleText": "旅行邮局",
+    "navigationBarTitleText": "旅行邮箱",
     "navigationBarBackgroundColor": "#2E7D58",
     "backgroundColor": "#FAF7F2",
     "backgroundColorTop": "#FAF7F2",

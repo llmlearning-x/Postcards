@@ -1,19 +1,16 @@
 <template>
   <view class="page-container">
-    <!-- Header -->
-    <view class="postal-header">
-      <view class="header-perf"></view>
-      <view class="nav-back" @click="goBack">
-        <IconBack :size="18" color="rgba(255,255,255,0.9)" />
-      </view>
-      <text class="header-kicker">MAILBOX · 邮箱</text>
-      <view class="header-title-row">
-        <text class="header-title">{{ filterNickname ? filterNickname + ' 的往来' : (tab === 'inbox' ? '我的来信' : '已寄出') }}</text>
+    <PostalHeader
+      kicker="MAILBOX · 邮箱"
+      :title="filterNickname ? filterNickname + ' 的往来' : (tab === 'inbox' ? '我的来信' : '已寄出')"
+      fallback-url="/pages/profile/profile"
+    >
+      <template #title-extra>
         <view class="unread-badge" v-if="tab === 'inbox' && unreadCount > 0 && !filterContactId">
           <text class="unread-num">{{ unreadCount }}</text>
         </view>
-      </view>
-    </view>
+      </template>
+    </PostalHeader>
 
     <!-- Tabs (hidden when filtering by contact, which shows both) -->
     <view class="tab-bar" v-if="!filterContactId">
@@ -152,7 +149,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { MailApi, type MailingItem, type SentItem } from '@/services/api'
-import { IconBack, IconEnvelope, IconSend } from '@/components/icons'
+import PostalHeader from '@/components/PostalHeader.vue'
+import { safeBack } from '@/utils/navigation'
+import { IconEnvelope, IconSend } from '@/components/icons'
 import { getStampColor, getStampImageUrl } from '@/utils/stamp'
 
 const tab             = ref<'inbox' | 'sent'>('inbox')
@@ -218,7 +217,7 @@ function viewSent(item: SentItem) {
 function loadMore() {}
 
 function goBack() {
-  uni.navigateBack()
+  safeBack('/pages/profile/profile')
 }
 
 onLoad((opts) => {
@@ -238,34 +237,10 @@ onShow(() => loadAll())
 .page-container {
   min-height: 100vh;
   background: $page-background;
+  display: flex;
+  flex-direction: column;
 }
 
-.postal-header {
-  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 100rpx 48rpx 20rpx;
-  position: relative;
-  flex-shrink: 0;
-}
-.header-perf {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 6rpx;
-  background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
-}
-.nav-back {
-  position: absolute; top: 52rpx; left: 48rpx;
-  width: 64rpx; height: 64rpx;
-  display: flex; align-items: center; justify-content: center;
-}
-.header-kicker {
-  display: block; font-family: $font-family-mono;
-  font-size: 20rpx; letter-spacing: 4rpx; color: rgba(255,255,255,0.65); margin-bottom: 12rpx;
-}
-.header-title-row {
-  display: flex; align-items: center; gap: 20rpx;
-}
-.header-title {
-  display: block; font-family: $font-family-serif;
-  font-size: 52rpx; font-weight: 400; color: rgba(255,255,255,0.95); line-height: 1.15; letter-spacing: -1rpx;
-}
 .unread-badge {
   min-width: 48rpx; height: 48rpx;
   border-radius: 24rpx;
@@ -274,8 +249,8 @@ onShow(() => loadAll())
   padding: 0 14rpx; flex-shrink: 0;
 }
 .unread-num {
-  font-family: $font-family-mono;
-  font-size: 22rpx;
+  font-family: $font-family-code;
+  font-size: 24rpx;
   color: #F4EFE5;
 }
 
@@ -318,7 +293,7 @@ onShow(() => loadAll())
 }
 
 .tab-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $mute-text;
 
@@ -339,13 +314,13 @@ onShow(() => loadAll())
 }
 
 .section-label-txt {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $travel-blue;
 }
 
-.content { height: calc(100vh - 280rpx); }
+.content { flex: 1; overflow: hidden; }
 
 .loading-wrap {
   padding: 80rpx;
@@ -353,7 +328,7 @@ onShow(() => loadAll())
 }
 
 .loading-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-style: italic;
   font-size: 28rpx;
   color: $mute-text;
@@ -368,14 +343,14 @@ onShow(() => loadAll())
 }
 
 .empty-title {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 30rpx;
   color: $body-text;
   margin-top: 8rpx;
 }
 
 .empty-sub {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 24rpx;
   color: $mute-text;
   text-align: center;
@@ -466,13 +441,13 @@ onShow(() => loadAll())
 }
 
 .sender-initial-sm {
-  font-family: $font-family-serif;
-  font-size: 18rpx;
+  font-family: $font-family-body;
+  font-size: 22rpx;
   color: #F4EFE5;
 }
 
 .sender-name {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $ink-black;
   flex: 1;
@@ -482,8 +457,8 @@ onShow(() => loadAll())
 }
 
 .mail-date {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $mute-text;
   flex-shrink: 0;
@@ -491,8 +466,8 @@ onShow(() => loadAll())
 
 .mail-loc {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $mute-text;
   margin-bottom: 4rpx;
@@ -503,9 +478,9 @@ onShow(() => loadAll())
 
 .mail-note {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-style: italic;
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: $body-text;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -520,8 +495,8 @@ onShow(() => loadAll())
 }
 
 .status-txt {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
 }
 

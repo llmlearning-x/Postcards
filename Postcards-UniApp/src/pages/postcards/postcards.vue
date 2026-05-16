@@ -102,10 +102,11 @@
 
       <view v-else class="empty-state">
         <IconImage :size="80" color="#B5AE9B" />
-        <text class="empty-main">还没有明信片</text>
-        <text class="empty-sub">去记录你的第一张旅行明信片</text>
-        <view class="empty-btn" @click="goRecord">
-          <text class="empty-btn-txt">立即记录</text>
+        <text class="empty-kicker">{{ emptyKicker }}</text>
+        <text class="empty-main">{{ emptyTitle }}</text>
+        <text class="empty-sub">{{ emptySubtitle }}</text>
+        <view class="empty-btn" @click="goEmptyAction">
+          <text class="empty-btn-txt">{{ emptyActionText }}</text>
         </view>
       </view>
 
@@ -127,7 +128,17 @@ import PostcardFlipModal from '@/components/PostcardFlipModal.vue'
 
 const store = usePostcardStore()
 const postcards = computed(() => store.sortedPostcards)
+const hasTravels = computed(() => store.sortedTravels.length > 0)
 const activeCard = ref<Postcard | null>(null)
+
+const emptyKicker = computed(() => hasTravels.value ? 'FIRST POSTCARD' : 'FIRST JOURNEY')
+const emptyTitle = computed(() => hasTravels.value ? '记录第一张明信片' : '先创建一段旅程')
+const emptySubtitle = computed(() =>
+  hasTravels.value
+    ? '选择一个地点，写下此刻，第一张旅行明信片就会出现在这里。'
+    : '明信片需要归属旅程，先定下目的地会更自然。'
+)
+const emptyActionText = computed(() => hasTravels.value ? '立即记录 ›' : '创建旅程 ›')
 
 const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
 
@@ -147,6 +158,18 @@ function toggleFav(id: string) {
 
 function goRecord() {
   uni.switchTab({ url: '/pages/record/record' })
+}
+
+function goCreateTravel() {
+  uni.navigateTo({ url: '/pages/travel/travel' })
+}
+
+function goEmptyAction() {
+  if (hasTravels.value) {
+    goRecord()
+  } else {
+    goCreateTravel()
+  }
 }
 
 function goBack() {
@@ -191,26 +214,26 @@ onShow(() => { if (store.postcards.length === 0) store.initData() })
 
 .header-kicker {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 4rpx;
+  font-family: $font-family-code;
+  font-size: 24rpx;
+  letter-spacing: 1rpx;
   color: rgba(255,255,255,0.65);
   margin-bottom: 12rpx;
 }
 
 .header-title {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 46rpx;
-  font-weight: 400;
+  font-weight: 700;
   color: rgba(255,255,255,0.95);
   line-height: 1.15;
-  letter-spacing: -1rpx;
+  letter-spacing: 0;
 }
 
 .header-subtitle {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: rgba(255,255,255,0.7);
   margin-top: 10rpx;
@@ -250,8 +273,8 @@ onShow(() => { if (store.postcards.length === 0) store.initData() })
 }
 
 .pc-no {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
 }
@@ -282,16 +305,16 @@ onShow(() => { if (store.postcards.length === 0) store.initData() })
 .pc-postmark::after  { top: 65%; }
 
 .pc-pm-city {
-  font-family: $font-family-mono;
-  font-size: 14rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: $body-text;
   line-height: 1.4;
 }
 
 .pc-pm-date {
-  font-family: $font-family-mono;
-  font-size: 13rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $mute-text;
   line-height: 1.4;
@@ -336,9 +359,9 @@ onShow(() => { if (store.postcards.length === 0) store.initData() })
 }
 
 .pc-note {
-  font-family: $font-family-serif;
-  font-style: italic;
-  font-size: 20rpx;
+  font-family: $font-family-display;
+  font-style: normal;
+  font-size: 22rpx;
   color: rgba(255, 255, 255, 0.9);
   line-height: 1.5;
   display: -webkit-box;
@@ -379,9 +402,9 @@ onShow(() => { if (store.postcards.length === 0) store.initData() })
 }
 
 .pc-to-label {
-  font-family: $font-family-serif;
-  font-style: italic;
-  font-size: 20rpx;
+  font-family: $font-family-body;
+  font-style: normal;
+  font-size: 22rpx;
   color: $mute-text;
   margin-bottom: 16rpx;
   display: block;
@@ -396,7 +419,7 @@ onShow(() => { if (store.postcards.length === 0) store.initData() })
 }
 
 .pc-city {
-  font-family: $font-family-serif;
+  font-family: $font-family-display;
   font-size: 46rpx;
   font-weight: 400;
   color: $ink-black;
@@ -409,7 +432,7 @@ onShow(() => { if (store.postcards.length === 0) store.initData() })
 }
 
 .pc-loc {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 24rpx;
   color: $body-text;
   display: block;
@@ -478,21 +501,32 @@ onShow(() => { if (store.postcards.length === 0) store.initData() })
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 100rpx 40rpx;
+  padding: 96rpx 40rpx;
+  text-align: center;
+}
+
+.empty-kicker {
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+  color: $travel-blue;
+  margin-top: 28rpx;
+  margin-bottom: 10rpx;
 }
 
 .empty-main {
-  font-family: $font-family-serif;
-  font-size: 32rpx;
-  color: $body-text;
-  margin-top: 28rpx;
+  font-family: $font-family-body;
+  font-size: 36rpx;
+  color: $ink-black;
   margin-bottom: 8rpx;
 }
 
 .empty-sub {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $mute-text;
+  line-height: 1.6;
+  max-width: 520rpx;
   margin-bottom: 40rpx;
   text-align: center;
 }
@@ -504,10 +538,10 @@ onShow(() => { if (store.postcards.length === 0) store.initData() })
 }
 
 .empty-btn-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-action;
   font-size: 28rpx;
   color: $card-bg;
-  letter-spacing: 4rpx;
+  letter-spacing: 0;
 }
 
 .btm-gap { height: 120rpx; }

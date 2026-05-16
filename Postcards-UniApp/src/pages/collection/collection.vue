@@ -306,15 +306,15 @@ onShow(() => { if (store.postcards.length === 0) store.initData(); loadStamps() 
   display: flex; align-items: center; justify-content: center;
 }
 .header-kicker {
-  display: block; font-family: $font-family-mono;
-  font-size: 20rpx; letter-spacing: 4rpx; color: rgba(255,255,255,0.65); margin-bottom: 12rpx;
+  display: block; font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 2rpx; color: rgba(255,255,255,0.65); margin-bottom: 12rpx;
 }
 .header-title {
-  display: block; font-family: $font-family-serif;
-  font-size: 46rpx; font-weight: 400; color: rgba(255,255,255,0.95); line-height: 1.15; letter-spacing: -1rpx;
+  display: block; font-family: $font-family-body;
+  font-size: 46rpx; font-weight: 700; color: rgba(255,255,255,0.95); line-height: 1.15; letter-spacing: 0;
 }
 .header-subtitle {
-  display: block; font-family: $font-family-serif;
+  display: block; font-family: $font-family-body;
   font-size: 24rpx; color: rgba(255,255,255,0.7); margin-top: 10rpx;
 }
 
@@ -357,23 +357,23 @@ onShow(() => { if (store.postcards.length === 0) store.initData(); loadStamps() 
 .print-left { flex: 1; min-width: 0; }
 
 .print-kicker {
-  display: block; font-family: $font-family-mono;
-  font-size: 16rpx; letter-spacing: 3rpx; color: rgba(196,224,203,0.7); margin-bottom: 10rpx;
+  display: block; font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 1rpx; color: rgba(196,224,203,0.7); margin-bottom: 10rpx;
 }
 .print-title {
-  display: block; font-family: $font-family-serif;
+  display: block; font-family: $font-family-body;
   font-size: 44rpx; font-weight: 400; color: #F4EFE5; line-height: 1.1; margin-bottom: 12rpx;
 }
 .print-desc {
-  display: block; font-family: $font-family-serif;
-  font-size: 22rpx; color: rgba(244,239,229,0.7); line-height: 1.6; margin-bottom: 20rpx;
+  display: block; font-family: $font-family-body;
+  font-size: 24rpx; color: rgba(244,239,229,0.7); line-height: 1.6; margin-bottom: 20rpx;
 }
 .print-tag-row {
   display: flex; flex-wrap: wrap; gap: 10rpx;
 }
 .print-tag {
-  font-family: $font-family-mono;
-  font-size: 16rpx; letter-spacing: 1rpx; color: rgba(196,224,203,0.9);
+  font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 1rpx; color: rgba(196,224,203,0.9);
   border: 1rpx solid rgba(196,224,203,0.35);
   border-radius: 100rpx; padding: 4rpx 14rpx;
 }
@@ -386,8 +386,8 @@ onShow(() => { if (store.postcards.length === 0) store.initData(); loadStamps() 
   font-size: 56rpx; color: rgba(244,239,229,0.45); line-height: 1;
 }
 .print-cta {
-  font-family: $font-family-mono;
-  font-size: 18rpx; letter-spacing: 2rpx; color: rgba(196,224,203,0.9);
+  font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 2rpx; color: rgba(196,224,203,0.9);
   white-space: nowrap;
 }
 
@@ -399,23 +399,23 @@ onShow(() => { if (store.postcards.length === 0) store.initData(); loadStamps() 
 }
 .section-hd-right { display: flex; align-items: baseline; gap: 16rpx; }
 .section-kicker {
-  display: block; font-family: $font-family-mono;
-  font-size: 18rpx; letter-spacing: 3rpx; color: $travel-blue; margin-bottom: 8rpx;
+  display: block; font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 1rpx; color: $travel-blue; margin-bottom: 8rpx;
 }
 .section-ttl {
-  display: block; font-family: $font-family-serif;
+  display: block; font-family: $font-family-body;
   font-weight: 500; font-size: 38rpx; color: $ink-black; line-height: 1;
 }
 .section-badge {
-  font-family: $font-family-serif; font-size: 44rpx; color: $line-sepia; line-height: 1; letter-spacing: -1rpx;
+  font-family: $font-family-body; font-size: 44rpx; color: $line-sepia; line-height: 1; letter-spacing: -1rpx;
 }
 .section-more {
-  font-family: $font-family-mono; font-size: 20rpx; letter-spacing: 2rpx; color: $travel-blue;
+  font-family: $font-family-code; font-size: 22rpx; letter-spacing: 2rpx; color: $travel-blue;
 }
 .section-rule { height: 2rpx; background: $line-sepia; margin-bottom: 12rpx; }
 .section-hint {
-  display: block; font-family: $font-family-serif;
-  font-size: 22rpx; font-style: italic; color: $mute-text; margin-bottom: 24rpx;
+  display: block; font-family: $font-family-body;
+  font-size: 24rpx; font-style: italic; color: $mute-text; margin-bottom: 24rpx;
 }
 
 // ═══════════════════════════════════════
@@ -473,23 +473,23 @@ onShow(() => { if (store.postcards.length === 0) store.initData(); loadStamps() 
   background: rgba(20,15,10,0.55); border-radius: 4rpx; padding: 4rpx 10rpx;
   display: flex; align-items: baseline; gap: 3rpx;
 }
-.cover-count-n   { font-family: $font-family-serif; font-size: 26rpx; color: #fff; line-height: 1; }
-.cover-count-lbl { font-family: $font-family-mono; font-size: 16rpx; color: rgba(255,255,255,0.8); }
+.cover-count-n   { font-family: $font-family-body; font-size: 26rpx; color: #fff; line-height: 1; }
+.cover-count-lbl { font-family: $font-family-code; font-size: 22rpx; color: rgba(255,255,255,0.8); }
 
 .cover-info { padding: 14rpx 16rpx 10rpx; background: $card-bg; }
 .cover-dest {
-  display: block; font-family: $font-family-mono;
-  font-size: 14rpx; letter-spacing: 3rpx; color: $mute-text; margin-bottom: 4rpx;
+  display: block; font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 1rpx; color: $mute-text; margin-bottom: 4rpx;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .cover-title {
-  display: block; font-family: $font-family-serif;
+  display: block; font-family: $font-family-body;
   font-size: 28rpx; font-weight: 500; color: $ink-black; line-height: 1.2;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .cover-date {
-  display: block; font-family: $font-family-mono;
-  font-size: 14rpx; letter-spacing: 1rpx; color: $whisper; margin-top: 4rpx;
+  display: block; font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 1rpx; color: $whisper; margin-top: 4rpx;
 }
 
 // ── Stamp album ──
@@ -514,13 +514,13 @@ onShow(() => { if (store.postcards.length === 0) store.initData(); loadStamps() 
 .stamp-cover-info { padding: 12rpx 16rpx 10rpx; background: $card-bg; }
 .stamp-series-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4rpx; }
 .stamp-series-tag {
-  font-family: $font-family-mono; font-size: 14rpx; letter-spacing: 3rpx; color: $mute-text;
+  font-family: $font-family-code; font-size: 22rpx; letter-spacing: 1rpx; color: $mute-text;
 }
 .stamp-owned-count {
-  font-family: $font-family-serif; font-size: 22rpx; color: $travel-blue;
+  font-family: $font-family-body; font-size: 24rpx; color: $travel-blue;
 }
 .stamp-series-name {
-  display: block; font-family: $font-family-serif;
+  display: block; font-family: $font-family-body;
   font-size: 28rpx; font-weight: 500; color: $ink-black; line-height: 1.2;
 }
 
@@ -541,10 +541,10 @@ onShow(() => { if (store.postcards.length === 0) store.initData(); loadStamps() 
   padding: 52rpx 0; background: $card-bg;
   border: 1rpx solid $line-sepia; border-radius: 8rpx; margin-bottom: 8rpx;
 }
-.empty-main { font-family: $font-family-serif; font-size: 30rpx; color: $body-text; margin-bottom: 8rpx; }
-.empty-sub  { font-family: $font-family-serif; font-size: 22rpx; color: $mute-text; text-align: center; padding: 0 40rpx; }
+.empty-main { font-family: $font-family-body; font-size: 30rpx; color: $body-text; margin-bottom: 8rpx; }
+.empty-sub  { font-family: $font-family-body; font-size: 24rpx; color: $mute-text; text-align: center; padding: 0 40rpx; }
 .empty-link { margin-top: 20rpx; }
-.empty-link-txt { font-family: $font-family-mono; font-size: 22rpx; letter-spacing: 2rpx; color: $travel-blue; }
+.empty-link-txt { font-family: $font-family-code; font-size: 24rpx; letter-spacing: 2rpx; color: $travel-blue; }
 
 // ═══════════════════════════════════════
 //  Postcard album detail bottom sheet
@@ -565,11 +565,11 @@ onShow(() => { if (store.postcards.length === 0) store.initData(); loadStamps() 
   padding: 32rpx 40rpx 20rpx; border-bottom: 1rpx solid $line-sepia;
 }
 .sheet-kicker {
-  display: block; font-family: $font-family-mono;
-  font-size: 18rpx; letter-spacing: 3rpx; color: $travel-blue; margin-bottom: 6rpx;
+  display: block; font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 1rpx; color: $travel-blue; margin-bottom: 6rpx;
 }
 .sheet-title {
-  display: block; font-family: $font-family-serif;
+  display: block; font-family: $font-family-body;
   font-size: 40rpx; font-weight: 400; color: $ink-black; line-height: 1.2;
 }
 .sheet-close {
@@ -602,11 +602,11 @@ onShow(() => { if (store.postcards.length === 0) store.initData(); loadStamps() 
   display: flex; justify-content: space-between; align-items: flex-end;
 }
 .sheet-loc {
-  font-family: $font-family-serif; font-size: 18rpx; color: #fff;
+  font-family: $font-family-body; font-size: 22rpx; color: #fff;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;
 }
 .sheet-date {
-  font-family: $font-family-mono; font-size: 16rpx; letter-spacing: 1rpx; color: $mute-text; text-align: center;
+  font-family: $font-family-code; font-size: 22rpx; letter-spacing: 1rpx; color: $mute-text; text-align: center;
 }
 
 .btm-gap { height: 120rpx; }

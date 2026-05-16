@@ -338,18 +338,18 @@ onMounted(() => {
 
 .nav-kicker {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $mute-text;
   margin-bottom: 4rpx;
 }
 
 .nav-title {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 32rpx;
-  font-weight: 500;
+  font-weight: 700;
   color: $ink-black;
 }
 
@@ -363,9 +363,9 @@ onMounted(() => {
 }
 
 .nav-save-txt {
-  font-family: $font-family-mono;
-  font-size: 22rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 24rpx;
+  letter-spacing: 1rpx;
   color: $travel-blue;
   font-weight: 600;
 }
@@ -395,16 +395,16 @@ onMounted(() => {
 }
 
 .banner-label {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 4rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: #A37E2D;
   flex-shrink: 0;
   padding-top: 4rpx;
 }
 
 .banner-msg {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: #6A5325;
   line-height: 1.6;
@@ -450,16 +450,16 @@ onMounted(() => {
 }
 
 .upload-title {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 32rpx;
   font-weight: 500;
   color: $ink-black;
 }
 
 .upload-hint {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $mute-text;
 }
 
@@ -479,9 +479,9 @@ onMounted(() => {
 }
 
 .form-en-label {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $travel-blue;
   flex-shrink: 0;
 }
@@ -493,19 +493,19 @@ onMounted(() => {
 }
 
 .form-cn-label {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $body-text;
 }
 
 .form-required {
-  font-family: $font-family-mono;
-  font-size: 20rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   color: $stamp-red;
 }
 
 .form-input {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 30rpx;
   color: $ink-black;
   width: 100%;
@@ -519,7 +519,7 @@ onMounted(() => {
 .form-textarea {
   width: 100%;
   height: 180rpx;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-style: italic;
   font-size: 28rpx;
   color: $ink-black;
@@ -531,8 +531,8 @@ onMounted(() => {
 .textarea-count {
   display: block;
   text-align: right;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
   margin-top: 12rpx;
@@ -547,9 +547,9 @@ onMounted(() => {
 
 .stamp-series-lbl {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 14rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $mute-text;
   margin-bottom: 12rpx;
 }
@@ -593,8 +593,8 @@ onMounted(() => {
 .stamp-swatch-img { width: 100%; height: 100%; border-radius: 50%; }
 
 .stamp-option-name {
-  font-family: $font-family-serif;
-  font-size: 22rpx;
+  font-family: $font-family-body;
+  font-size: 24rpx;
   color: $body-text;
   font-weight: 500;
 }
@@ -608,11 +608,11 @@ onMounted(() => {
 }
 
 .save-btn-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   font-weight: 500;
   color: #F4EFE5;
-  letter-spacing: 12rpx;
+  letter-spacing: 2rpx;
 }
 
 .delete-btn {
@@ -624,7 +624,7 @@ onMounted(() => {
 }
 
 .delete-btn-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $stamp-red;
 }

@@ -25,7 +25,7 @@
             <text class="form-lbl-cn">旅程名称</text>
             <text class="form-required">*</text>
           </view>
-          <input class="form-input" v-model="title" placeholder="给这段旅程起个名字" :maxlength="30" />
+          <input class="form-input" v-model="title" placeholder="给这段旅程起个名字" :maxlength="30" confirm-type="next" />
         </view>
 
         <!-- 目的地 -->
@@ -36,7 +36,7 @@
             <text class="form-lbl-cn">目的地</text>
             <text class="form-required">*</text>
           </view>
-          <input class="form-input" v-model="destination" placeholder="目的地城市或地区" :maxlength="30" />
+          <input class="form-input" v-model="destination" placeholder="目的地城市或地区" :maxlength="30" confirm-type="done" />
         </view>
 
         <!-- 出发日期 -->
@@ -82,7 +82,7 @@
             <text class="form-lbl-sep">·</text>
             <text class="form-lbl-cn">旅程备忘</text>
           </view>
-          <textarea class="form-textarea" v-model="memo" placeholder="记录这段旅程的期待与计划..." :maxlength="200" />
+          <textarea class="form-textarea" v-model="memo" placeholder="记录这段旅程的期待与计划..." :maxlength="200" confirm-type="done" />
           <text class="char-count">{{ memo.length }} / 200</text>
         </view>
 
@@ -126,12 +126,12 @@
         <!-- 新建模式：出发 / 规划 -->
         <view v-if="!isEditing" class="create-actions">
           <view class="btn-depart" :class="{ 'btn-dis': !canSave }" @click="createOngoing">
-            <text class="btn-depart-txt">出发 · DEPART ›</text>
-            <text class="btn-depart-sub">立即出发，将其设为当前旅程</text>
+            <text class="btn-depart-txt">创建并出发 ›</text>
+            <text class="btn-depart-sub">设为当前旅程，下一步就能记录明信片</text>
           </view>
           <view class="btn-plan" :class="{ 'btn-dis': !canSave }" @click="createPlanned">
-            <text class="btn-plan-txt">计划 · PLAN</text>
-            <text class="btn-plan-sub">规划行程，待出发时再激活</text>
+            <text class="btn-plan-txt">先保存为计划</text>
+            <text class="btn-plan-sub">暂不设为当前旅程</text>
           </view>
         </view>
 
@@ -358,17 +358,18 @@ onMounted(() => {
 
 .nav-kicker {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: $travel-blue;
   margin-bottom: 4rpx;
 }
 
 .nav-title {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 34rpx;
+  font-weight: 700;
   color: $ink-black;
   line-height: 1.15;
   overflow: hidden;
@@ -384,9 +385,9 @@ onMounted(() => {
 }
 .nav-save-dis { background: $line-sepia; }
 .nav-save-txt {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 4rpx;
+  font-family: $font-family-action;
+  font-size: 24rpx;
+  letter-spacing: 0;
   color: $card-bg;
 }
 
@@ -415,21 +416,21 @@ onMounted(() => {
 }
 
 .form-lbl-en {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 3rpx;
-  color: $mute-text;
-}
-.form-lbl-sep { color: $whisper; font-size: 18rpx; }
-.form-lbl-cn {
-  font-family: $font-family-serif;
+  font-family: $font-family-code;
   font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: $mute-text;
 }
-.form-required { color: $stamp-red; font-size: 22rpx; margin-left: -4rpx; }
+.form-lbl-sep { color: $whisper; font-size: 22rpx; }
+.form-lbl-cn {
+  font-family: $font-family-label;
+  font-size: 24rpx;
+  color: $mute-text;
+}
+.form-required { color: $stamp-red; font-size: 24rpx; margin-left: -4rpx; }
 
 .form-input {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 30rpx;
   color: $ink-black;
   letter-spacing: 0.4rpx;
@@ -443,7 +444,7 @@ onMounted(() => {
   justify-content: space-between;
 }
 .date-val {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 30rpx;
   color: $ink-black;
 }
@@ -454,8 +455,8 @@ onMounted(() => {
 .form-textarea {
   width: 100%;
   min-height: 130rpx;
-  font-family: $font-family-serif;
-  font-style: italic;
+  font-family: $font-family-body;
+  font-style: normal;
   font-size: 28rpx;
   color: $ink-black;
   line-height: 1.65;
@@ -464,8 +465,8 @@ onMounted(() => {
 .char-count {
   display: block;
   text-align: right;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
   margin-top: 8rpx;
@@ -499,7 +500,7 @@ onMounted(() => {
   }
 }
 .pill-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-action;
   font-size: 24rpx;
   color: $body-text;
 }
@@ -521,7 +522,7 @@ onMounted(() => {
   gap: 8rpx;
 }
 .info-n {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 48rpx;
   color: $ink-black;
   line-height: 1;
@@ -529,9 +530,9 @@ onMounted(() => {
 }
 .info-n-green { color: $alive-green; font-size: 32rpx; }
 .info-lbl {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: $mute-text;
 }
 .info-divider {
@@ -545,51 +546,54 @@ onMounted(() => {
 .create-actions {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
-  margin-top: 8rpx;
+  gap: 14rpx;
+  margin-top: 4rpx;
 }
 
 .btn-depart {
   background: $travel-blue;
   border-radius: 8rpx;
-  padding: 36rpx 0;
+  min-height: 92rpx;
+  padding: 22rpx 28rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10rpx;
+  justify-content: center;
+  gap: 6rpx;
 }
 .btn-depart-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-action;
   font-size: 30rpx;
   color: $card-bg;
-  letter-spacing: 8rpx;
+  letter-spacing: 2rpx;
 }
 .btn-depart-sub {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: rgba(251, 248, 241, 0.6);
 }
 
 .btn-plan {
-  background: $card-bg;
-  border: 1rpx solid $line-sepia;
+  background: transparent;
+  border: 1rpx dashed rgba($travel-blue, 0.28);
   border-radius: 8rpx;
-  padding: 28rpx 0;
+  padding: 18rpx 24rpx;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 8rpx;
+  justify-content: space-between;
+  gap: 16rpx;
 }
 .btn-plan-txt {
-  font-family: $font-family-serif;
-  font-size: 28rpx;
-  color: $ink-black;
-  letter-spacing: 4rpx;
+  font-family: $font-family-action;
+  font-size: 26rpx;
+  color: $travel-blue;
+  letter-spacing: 1rpx;
 }
 .btn-plan-sub {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-body;
+  font-size: 24rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
 }
@@ -612,9 +616,9 @@ onMounted(() => {
   text-align: center;
 }
 .btn-activate-txt {
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-action;
+  font-size: 24rpx;
+  letter-spacing: 0;
   color: $travel-blue;
 }
 
@@ -626,11 +630,11 @@ onMounted(() => {
   text-align: center;
 }
 .btn-delete-txt {
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-action;
+  font-size: 24rpx;
+  letter-spacing: 0;
   color: $stamp-red;
 }
 
-.btm-gap { height: 120rpx; }
+.btm-gap { height: 180rpx; }
 </style>

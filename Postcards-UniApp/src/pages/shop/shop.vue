@@ -1,14 +1,10 @@
 <template>
   <view class="page-container">
-    <!-- Header -->
-    <view class="postal-header">
-      <view class="header-perf"></view>
-      <view class="nav-back" @click="goBack">
-        <IconBack :size="18" color="rgba(255,255,255,0.9)" />
-      </view>
-      <text class="header-kicker">STAMP SHOP · 集邮</text>
-      <text class="header-title">邮票商店</text>
-    </view>
+    <PostalHeader
+      kicker="STAMP SHOP · 集邮"
+      title="邮票商店"
+      fallback-url="/pages/profile/profile"
+    />
 
     <scroll-view class="content" scroll-y>
 
@@ -191,7 +187,9 @@ import { onShow } from '@dcloudio/uni-app'
 import { useAuthStore } from '@/stores/auth'
 import { StampApi, PointsApi, type StampItem } from '@/services/api'
 import { StorageUtil } from '@/utils/storage'
-import { IconBack, IconStampSunset } from '@/components/icons'
+import PostalHeader from '@/components/PostalHeader.vue'
+import { safeBack } from '@/utils/navigation'
+import { IconStampSunset } from '@/components/icons'
 import StampPreviewModal from '@/components/StampPreviewModal.vue'
 
 const authStore = useAuthStore()
@@ -303,7 +301,7 @@ async function confirmPurchase() {
   }
 }
 
-function goBack() { uni.navigateBack() }
+function goBack() { safeBack('/pages/profile/profile') }
 
 onShow(() => {
   // Re-check date key each show — handles midnight crossover
@@ -316,34 +314,11 @@ onShow(() => {
 .page-container {
   min-height: 100vh;
   background: $page-background;
+  display: flex;
+  flex-direction: column;
 }
 
-// ── Header ──
-.postal-header {
-  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 100rpx 48rpx 20rpx;
-  position: relative;
-  flex-shrink: 0;
-}
-.header-perf {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 6rpx;
-  background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
-}
-.nav-back {
-  position: absolute; top: 52rpx; left: 48rpx;
-  width: 64rpx; height: 64rpx;
-  display: flex; align-items: center; justify-content: center;
-}
-.header-kicker {
-  display: block; font-family: $font-family-mono;
-  font-size: 20rpx; letter-spacing: 4rpx; color: rgba(255,255,255,0.65); margin-bottom: 12rpx;
-}
-.header-title {
-  display: block; font-family: $font-family-serif;
-  font-size: 46rpx; font-weight: 400; color: rgba(255,255,255,0.95); line-height: 1.15; letter-spacing: -1rpx;
-}
-
-.content { height: calc(100vh - 200rpx); }
+.content { flex: 1; overflow: hidden; }
 
 // ── Balance Ticket ──
 .balance-ticket {
@@ -371,14 +346,14 @@ onShow(() => {
 .ticket-left { flex: 1; }
 .ticket-lbl {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 18rpx; letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 1rpx;
   color: $travel-blue;
   margin-bottom: 10rpx;
 }
 .ticket-amt {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 80rpx;
   color: $ink-black;
   line-height: 1;
@@ -386,8 +361,8 @@ onShow(() => {
 }
 .ticket-mailbox {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 18rpx; letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 1rpx;
   color: $mute-text;
 }
 .ticket-sep {
@@ -418,13 +393,13 @@ onShow(() => {
 }
 .daily-sun { font-size: 40rpx; color: #F4EFE5; }
 .daily-txt {
-  font-family: $font-family-mono;
-  font-size: 18rpx; letter-spacing: 1rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 1rpx;
   color: rgba(244,239,229,0.9);
 }
 .daily-reward {
-  font-family: $font-family-mono;
-  font-size: 22rpx;
+  font-family: $font-family-code;
+  font-size: 24rpx;
   color: #F4EFE5;
   font-weight: bold;
 }
@@ -444,13 +419,13 @@ onShow(() => {
   padding: 20rpx 28rpx;
 }
 .earn-hd-txt {
-  font-family: $font-family-mono;
-  font-size: 18rpx; letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 1rpx;
   color: $travel-blue;
 }
 .earn-toggle {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   color: $mute-text;
 }
 .earn-body {
@@ -462,10 +437,10 @@ onShow(() => {
 }
 .earn-row { display: flex; align-items: center; gap: 16rpx; }
 .earn-dot { width: 10rpx; height: 10rpx; border-radius: 50%; flex-shrink: 0; }
-.earn-label { flex: 1; font-family: $font-family-serif; font-size: 26rpx; color: $body-text; }
+.earn-label { flex: 1; font-family: $font-family-body; font-size: 26rpx; color: $body-text; }
 .earn-pts {
-  font-family: $font-family-mono;
-  font-size: 22rpx; letter-spacing: 1rpx;
+  font-family: $font-family-code;
+  font-size: 24rpx; letter-spacing: 1rpx;
   color: $travel-blue;
 }
 
@@ -479,13 +454,13 @@ onShow(() => {
   margin-bottom: 24rpx;
 }
 .series-roman {
-  font-family: $font-family-mono;
-  font-size: 16rpx; letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 1rpx;
   color: $mute-text;
   white-space: nowrap;
 }
 .series-name-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $ink-black;
   white-space: nowrap;
@@ -505,8 +480,8 @@ onShow(() => {
   }
 }
 .series-tag-txt {
-  font-family: $font-family-mono;
-  font-size: 18rpx; letter-spacing: 2rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 2rpx;
   color: $travel-blue;
   .tag-paid & { color: $mute-text; }
 }
@@ -549,8 +524,8 @@ onShow(() => {
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.2);
 }
 .badge-check {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   color: #F4EFE5;
   font-weight: bold;
 }
@@ -567,13 +542,13 @@ onShow(() => {
   text-align: center;
 }
 .stamp-bar-name {
-  font-family: $font-family-mono;
-  font-size: 18rpx; letter-spacing: 2rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 2rpx;
   color: #F4EFE5;
 }
 .stamp-status {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
 }
 .stamp-status-owned { color: $travel-blue; }
@@ -651,19 +626,19 @@ onShow(() => {
 .sheet-glyph { font-size: 44rpx; }
 .sheet-stamp-bar { padding: 8rpx 0; text-align: center; }
 .sheet-bar-name {
-  font-family: $font-family-mono;
-  font-size: 16rpx; letter-spacing: 2rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 2rpx;
   color: #F4EFE5;
 }
 .sheet-title {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 40rpx;
   color: $ink-black;
   margin-bottom: 6rpx;
 }
 .sheet-sub {
-  font-family: $font-family-mono;
-  font-size: 18rpx; letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 1rpx;
   color: $mute-text;
   margin-bottom: 36rpx;
 }
@@ -682,12 +657,12 @@ onShow(() => {
   padding: 20rpx 0;
 }
 .sheet-row-lbl {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $body-text;
 }
 .sheet-row-val {
-  font-family: $font-family-mono;
+  font-family: $font-family-code;
   font-size: 26rpx;
   color: $ink-black;
   &.val-warn { color: #A43B2D; }
@@ -703,7 +678,7 @@ onShow(() => {
   box-sizing: border-box;
 }
 .sheet-warn-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 24rpx;
   color: #A43B2D;
   line-height: 1.65;
@@ -722,7 +697,7 @@ onShow(() => {
   display: flex; align-items: center; justify-content: center;
 }
 .sheet-cancel-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $mute-text;
 }
@@ -736,8 +711,8 @@ onShow(() => {
   &:active:not(.sheet-confirm-dis) { background: $forest-green; }
 }
 .sheet-confirm-txt {
-  font-family: $font-family-serif;
-  font-size: 28rpx; letter-spacing: 4rpx;
+  font-family: $font-family-body;
+  font-size: 28rpx; letter-spacing: 2rpx;
   color: #F4EFE5;
 }
 </style>

@@ -19,8 +19,8 @@
         <view class="stamp-perf right-perf"></view>
       </view>
 
-      <text class="brand-title">旅行邮局</text>
-      <text class="brand-kicker">· TRAVEL POST ·</text>
+      <text class="brand-title">旅行邮箱</text>
+      <text class="brand-kicker">TRAVEL MAILBOX</text>
     </view>
 
     <view class="footer-block">
@@ -33,25 +33,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { usePostcardStore } from '@/stores/postcard'
 import { StampApi } from '@/services/api'
 
-const _dummy = ref(0)
-
 onMounted(async () => {
   const authStore = useAuthStore()
   const postcardStore = usePostcardStore()
-
-  await new Promise(r => setTimeout(r, 1500))
 
   if (authStore.isLoggedIn) {
     postcardStore.syncFromServer().catch(() => {})
     StampApi.my().then(stamps => authStore.setOwnedStamps(stamps.map(s => s.id))).catch(() => {})
     uni.switchTab({ url: '/pages/home/home' })
   } else {
-    uni.navigateTo({ url: '/pages/auth/login' })
+    await new Promise(r => setTimeout(r, 650))
+    uni.redirectTo({ url: '/pages/auth/login' })
   }
 })
 </script>
@@ -140,7 +137,7 @@ onMounted(async () => {
 }
 
 .stamp-char {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 52rpx;
   font-weight: 500;
   color: $paper-beige;
@@ -149,9 +146,9 @@ onMounted(async () => {
 }
 
 .stamp-series {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: rgba(244, 239, 229, 0.7);
 }
 
@@ -192,19 +189,19 @@ onMounted(async () => {
 .right-perf { right: 0; }
 
 .brand-title {
-  font-family: $font-family-serif;
+  font-family: $font-family-display;
   font-weight: 400;
   font-size: 104rpx;
-  letter-spacing: 32rpx;
+  letter-spacing: 2rpx;
   color: $ink-black;
   padding-left: 32rpx;
   line-height: 1;
 }
 
 .brand-kicker {
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: $travel-blue;
   margin-top: 28rpx;
   padding-left: 16rpx;
@@ -220,7 +217,7 @@ onMounted(async () => {
 }
 
 .slogan {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-style: italic;
   font-size: 28rpx;
   color: $body-text;

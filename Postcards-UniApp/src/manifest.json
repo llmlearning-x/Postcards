@@ -85,7 +85,7 @@
         }
     },
     "h5" : {
-        "title" : "旅行邮局",
+        "title" : "旅行邮箱",
         "router" : {
             "mode" : "hash"
         },

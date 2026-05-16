@@ -217,15 +217,15 @@ function toggleFav() {
 
 // 信息区
 .sp-series {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 4rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: rgba(244, 239, 229, 0.45);
   text-align: center;
 }
 
 .sp-name {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 52rpx;
   text-align: center;
   line-height: 1;
@@ -245,14 +245,14 @@ function toggleFav() {
 }
 
 .sp-desc-kicker {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: rgba(244, 239, 229, 0.3);
 }
 
 .sp-desc-body {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-style: italic;
   font-size: 26rpx;
   color: rgba(244, 239, 229, 0.72);
@@ -288,16 +288,16 @@ function toggleFav() {
 }
 
 .sp-btn-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 30rpx;
   color: #F4EFE5;
-  letter-spacing: 4rpx;
+  letter-spacing: 2rpx;
 }
 
 .sp-btn-close {
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: rgba(244, 239, 229, 0.35);
 }
 
@@ -332,8 +332,8 @@ function toggleFav() {
 }
 
 .sp-fav-txt {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: rgba(244, 239, 229, 0.75);
   white-space: nowrap;

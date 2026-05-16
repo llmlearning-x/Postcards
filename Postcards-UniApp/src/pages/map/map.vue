@@ -119,8 +119,11 @@
               <!-- Empty placeholder -->
               <view v-if="cityOrder.length === 0" class="map-empty">
                 <text class="map-empty-icon">✦</text>
-                <text class="map-empty-txt">记录明信片后，足迹将显示于此</text>
+                <text class="map-empty-txt">{{ mapEmptyTitle }}</text>
                 <text class="map-empty-sub">TERRA INCOGNITA</text>
+                <view class="map-empty-btn" @click="goMapEmptyAction">
+                  <text class="map-empty-btn-txt">{{ mapEmptyActionText }}</text>
+                </view>
               </view>
 
             </view>
@@ -163,7 +166,12 @@
         </view>
 
         <view v-else class="pm-empty">
-          <text class="pm-empty-txt">尚无城市足迹</text>
+          <text class="pm-empty-kicker">NO POSTMARKS</text>
+          <text class="pm-empty-title">{{ postmarkEmptyTitle }}</text>
+          <text class="pm-empty-txt">{{ postmarkEmptyText }}</text>
+          <view class="pm-empty-btn" @click="goMapEmptyAction">
+            <text class="pm-empty-btn-txt">{{ mapEmptyActionText }}</text>
+          </view>
         </view>
       </view>
 
@@ -198,8 +206,13 @@
           </view>
         </view>
 
-        <view v-else class="journey-empty" @click="goCreateTravel">
-          <text class="journey-empty-txt">暂无旅程 · 点击新建</text>
+        <view v-else class="journey-empty">
+          <text class="journey-empty-kicker">FIRST JOURNEY</text>
+          <text class="journey-empty-title">创建第一段旅程</text>
+          <text class="journey-empty-sub">先定下目的地，之后记录的明信片会自动连成足迹。</text>
+          <view class="journey-empty-btn" @click="goCreateTravel">
+            <text class="journey-empty-btn-txt">创建旅程 ›</text>
+          </view>
         </view>
       </view>
 
@@ -225,6 +238,19 @@ const currentYear = new Date().getFullYear()
 const cityList = computed(() => Array.from(new Set(postcards.value.map(p => p.city).filter(Boolean))))
 const cityCount = computed(() => cityList.value.length)
 const countryCount = computed(() => new Set(postcards.value.map(p => p.country).filter(Boolean)).size)
+const hasTravels = computed(() => travels.value.length > 0)
+const mapEmptyTitle = computed(() =>
+  hasTravels.value ? '记录第一张明信片后，足迹会显示在这里' : '创建旅程后，就能开始生成足迹'
+)
+const mapEmptyActionText = computed(() =>
+  hasTravels.value ? '记录明信片 ›' : '创建旅程 ›'
+)
+const postmarkEmptyTitle = computed(() =>
+  hasTravels.value ? '还没有城市足迹' : '还没有旅程'
+)
+const postmarkEmptyText = computed(() =>
+  hasTravels.value ? '记录一张带城市的明信片后，这里会生成第一枚邮戳。' : '先创建一段旅程，再把途中的城市记录下来。'
+)
 
 // ── City visit data (for postmarks) ──
 interface CityData { name: string; count: number; lastDate: string }
@@ -317,7 +343,15 @@ function formatTravelDate(t: Travel): string {
 }
 
 function goCreateTravel() { uni.navigateTo({ url: '/pages/travel/travel' }) }
+function goRecord() { uni.switchTab({ url: '/pages/record/record' }) }
 function goEditTravel(id: string) { uni.navigateTo({ url: `/pages/travel/travel?id=${id}` }) }
+function goMapEmptyAction() {
+  if (hasTravels.value) {
+    goRecord()
+  } else {
+    goCreateTravel()
+  }
+}
 
 onMounted(() => store.initData())
 onShow(() => { if (store.travels.length > 0) store.initData() })
@@ -341,15 +375,15 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
   background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
 }
 .header-kicker {
-  display: block; font-family: $font-family-mono;
-  font-size: 20rpx; letter-spacing: 4rpx; color: rgba(255,255,255,0.65); margin-bottom: 12rpx;
+  display: block; font-family: $font-family-code;
+  font-size: 24rpx; letter-spacing: 1rpx; color: rgba(255,255,255,0.65); margin-bottom: 12rpx;
 }
 .header-title {
-  display: block; font-family: $font-family-serif;
-  font-size: 46rpx; font-weight: 400; color: rgba(255,255,255,0.95); line-height: 1.15; letter-spacing: -1rpx;
+  display: block; font-family: $font-family-body;
+  font-size: 46rpx; font-weight: 700; color: rgba(255,255,255,0.95); line-height: 1.15; letter-spacing: 0;
 }
 .header-subtitle {
-  display: block; font-family: $font-family-serif;
+  display: block; font-family: $font-family-body;
   font-size: 26rpx; color: rgba(255,255,255,0.7); margin-top: 10rpx;
 }
 
@@ -359,18 +393,19 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
 .stats-strip {
   display: flex; align-items: center;
   background: $card-bg;
-  border-bottom: 1rpx solid $line-sepia;
-  padding: 24rpx 0;
+  border-bottom: 2rpx solid $line-sepia;
+  padding: 24rpx 0 26rpx;
+  box-shadow: 0 8rpx 22rpx rgba(40, 30, 15, 0.08);
 }
 .stat-col {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6rpx;
 }
 .stat-n {
-  font-family: $font-family-serif; font-size: 44rpx; font-weight: 400;
+  font-family: $font-family-body; font-size: 44rpx; font-weight: 400;
   color: $ink-black; line-height: 1; letter-spacing: -1rpx;
 }
 .stat-l {
-  font-family: $font-family-mono; font-size: 14rpx; letter-spacing: 3rpx; color: $mute-text;
+  font-family: $font-family-action; font-size: 22rpx; letter-spacing: 0; color: $mute-text;
 }
 .stat-sep {
   width: 1rpx; height: 48rpx; background: $line-sepia; flex-shrink: 0;
@@ -380,21 +415,21 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
 //  Atlas map card
 // ═══════════════════════════════════════
 .atlas-wrap {
-  margin: 32rpx 40rpx 0;
+  margin: 36rpx 32rpx 0;
 }
 
 .atlas-outer {
-  border: 2rpx solid $line-sepia;
-  border-radius: 4rpx;
-  padding: 12rpx;
+  border: 3rpx solid $rule-color;
+  border-radius: 10rpx;
+  padding: 14rpx;
   background: $paper-beige;
   position: relative;
-  box-shadow: 0 6rpx 32rpx rgba(60,40,20,0.10), 0 1rpx 4rpx rgba(60,40,20,0.06);
+  box-shadow: $shadow-md;
 }
 
 // Corner ornaments
 .corner {
-  position: absolute; font-size: 20rpx; color: $line-sepia; z-index: 2;
+  position: absolute; font-size: 22rpx; color: $line-sepia; z-index: 2;
   font-family: serif;
 }
 .corner-tl { top: 4rpx;  left: 4rpx;  }
@@ -403,14 +438,16 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
 .corner-br { bottom: 4rpx; right: 4rpx; }
 
 .atlas-inner {
-  border: 1rpx solid $line-sepia;
-  border-radius: 2rpx;
+  border: 2rpx solid rgba($rule-color, 0.7);
+  border-radius: 6rpx;
+  background: rgba($card-bg, 0.28);
 }
 
 // Header banner
 .atlas-banner {
-  padding: 14rpx 16rpx 10rpx;
-  border-bottom: 1rpx solid $line-sepia;
+  padding: 18rpx 18rpx 14rpx;
+  border-bottom: 2rpx solid rgba($rule-color, 0.7);
+  background: rgba($card-bg, 0.38);
 }
 .banner-line {
   height: 1rpx; background: $line-sepia; margin: 4rpx 0;
@@ -420,18 +457,18 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
   padding: 4rpx 0;
 }
 .banner-side {
-  font-family: $font-family-mono; font-size: 14rpx; letter-spacing: 3rpx; color: $mute-text;
+  font-family: $font-family-action; font-size: 22rpx; letter-spacing: 0; color: $mute-text;
 }
 .banner-title {
-  font-family: $font-family-serif; font-size: 26rpx; font-weight: 400;
-  color: $ink-black; letter-spacing: 6rpx;
+  font-family: $font-family-display; font-size: 30rpx; font-weight: 500;
+  color: $ink-black; letter-spacing: 2rpx;
 }
 
 // Map canvas
 .map-canvas {
   position: relative;
   width: 100%;
-  height: 400rpx;
+  height: 430rpx;
   overflow: hidden;
   background: $paper-beige;
   // subtle dot-grid background like old maps
@@ -461,12 +498,12 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
 }
 
 .pin-num {
-  font-family: $font-family-mono; font-size: 14rpx; line-height: 1;
+  font-family: $font-family-code; font-size: 22rpx; line-height: 1;
 }
 
 .pin-label {
-  font-family: $font-family-mono;
-  font-size: 16rpx; letter-spacing: 1rpx;
+  font-family: $font-family-body;
+  font-size: 22rpx; letter-spacing: 0;
   color: $ink-black;
   margin-top: 4rpx;
   background: rgba(250,247,242,0.85);
@@ -483,7 +520,7 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
   opacity: 0.45;
 }
 .compass-n, .compass-s {
-  font-family: $font-family-mono; font-size: 14rpx; color: $ink-black; line-height: 1;
+  font-family: $font-family-code; font-size: 22rpx; color: $ink-black; line-height: 1;
 }
 .compass-cross {
   position: relative; width: 40rpx; height: 40rpx;
@@ -496,11 +533,11 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
   position: absolute; top: 0; bottom: 0; width: 1rpx; background: $mute-text; left: 50%; margin-left: -0.5rpx;
 }
 .compass-star {
-  font-size: 20rpx; color: $mute-text; z-index: 1;
+  font-size: 22rpx; color: $mute-text; z-index: 1;
 }
 .compass-w, .compass-e {
   position: absolute;
-  font-family: $font-family-mono; font-size: 12rpx; color: $ink-black;
+  font-family: $font-family-code; font-size: 22rpx; color: $ink-black;
   top: 50%; transform: translateY(-50%);
 }
 .compass-w { left: 0; }
@@ -510,44 +547,63 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
 .map-empty {
   position: absolute; inset: 0;
   display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 16rpx;
+  align-items: center; justify-content: center; gap: 18rpx;
 }
 .map-empty-icon { font-size: 48rpx; color: $line-sepia; opacity: 0.5; }
 .map-empty-txt {
-  font-family: $font-family-serif; font-size: 26rpx; color: $mute-text; text-align: center;
+  font-family: $font-family-body; font-size: 30rpx; color: $body-text; text-align: center; font-weight: 600;
 }
 .map-empty-sub {
-  font-family: $font-family-mono; font-size: 16rpx; letter-spacing: 4rpx; color: $whisper;
+  font-family: $font-family-body; font-size: 24rpx; letter-spacing: 0; color: $mute-text;
+}
+.map-empty-btn {
+  margin-top: 4rpx;
+  min-width: 204rpx;
+  height: 68rpx;
+  border-radius: 8rpx;
+  background: rgba($travel-blue, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:active { background: $forest-green; }
+}
+.map-empty-btn-txt {
+  font-family: $font-family-action; font-size: 24rpx; color: #F4EFE5; letter-spacing: 0;
 }
 
 // Atlas footer
 .atlas-footer {
-  padding: 10rpx 16rpx 14rpx;
-  border-top: 1rpx solid $line-sepia;
+  padding: 14rpx 18rpx 18rpx;
+  border-top: 2rpx solid rgba($rule-color, 0.7);
   display: flex; align-items: center; gap: 12rpx;
 }
 .footer-line { flex: 1; height: 1rpx; background: $line-sepia; }
 .footer-txt {
-  font-family: $font-family-mono; font-size: 16rpx; letter-spacing: 2rpx; color: $mute-text;
+  font-family: $font-family-action; font-size: 22rpx; letter-spacing: 0; color: $mute-text;
   white-space: nowrap;
 }
 
 // ═══════════════════════════════════════
 //  City postmarks
 // ═══════════════════════════════════════
-.section-block { margin: 36rpx 40rpx 0; }
+.section-block { margin: 40rpx 32rpx 0; }
 
 .section-hd-row {
   display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 14rpx;
+  margin-bottom: 16rpx;
+  padding: 16rpx 18rpx;
+  border-left: 8rpx solid $travel-blue;
+  background: rgba($travel-blue, 0.08);
+  border-radius: 8rpx;
 }
 .section-kicker {
-  font-family: $font-family-mono; font-size: 18rpx; letter-spacing: 3rpx; color: $travel-blue;
+  font-family: $font-family-action; font-size: 24rpx; font-weight: 700; letter-spacing: 0; color: $travel-blue;
 }
 .section-count {
-  font-family: $font-family-mono; font-size: 16rpx; letter-spacing: 2rpx; color: $mute-text;
+  font-family: $font-family-action; font-size: 22rpx; letter-spacing: 0; color: $mute-text;
 }
-.section-rule { height: 2rpx; background: $line-sepia; margin-bottom: 24rpx; }
+.section-rule { height: 0; margin-bottom: 22rpx; }
 
 .postmarks-grid {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 16rpx;
@@ -569,26 +625,45 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
 }
 
 .pm-city {
-  font-family: $font-family-serif;
+  font-family: $font-family-display;
   font-size: 28rpx; font-weight: 500; color: $ink-black;
   text-align: center; padding: 8rpx 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;
 }
 
 .pm-meta {
-  font-family: $font-family-mono; font-size: 14rpx; letter-spacing: 1rpx;
+  font-family: $font-family-code; font-size: 22rpx; letter-spacing: 1rpx;
   color: $mute-text; margin-top: 6rpx;
 }
 .pm-count {
-  font-family: $font-family-serif; font-size: 20rpx; color: $travel-blue; margin-top: 2rpx;
+  font-family: $font-family-body; font-size: 24rpx; color: $travel-blue; margin-top: 2rpx;
 }
 
 .pm-empty {
-  padding: 40rpx 0; text-align: center;
-  background: $card-bg; border: 1rpx solid $line-sepia; border-radius: 8rpx;
+  padding: 44rpx 32rpx; text-align: center;
+  background: $card-bg; border: 2rpx solid $line-sepia; border-radius: 10rpx;
+  box-shadow: $shadow-sm;
+  display: flex; flex-direction: column; align-items: center; gap: 12rpx;
+}
+.pm-empty-kicker {
+  font-family: $font-family-code; font-size: 22rpx; letter-spacing: 2rpx; color: $travel-blue;
+}
+.pm-empty-title {
+  font-family: $font-family-body; font-size: 32rpx; color: $ink-black;
 }
 .pm-empty-txt {
-  font-family: $font-family-serif; font-size: 26rpx; color: $whisper;
+  font-family: $font-family-body; font-size: 24rpx; color: $mute-text; line-height: 1.55;
+}
+.pm-empty-btn {
+  margin-top: 8rpx;
+  min-width: 220rpx;
+  height: 70rpx;
+  border-radius: 8rpx;
+  background: $travel-blue;
+  display: flex; align-items: center; justify-content: center;
+}
+.pm-empty-btn-txt {
+  font-family: $font-family-action; font-size: 26rpx; color: #F4EFE5; letter-spacing: 0;
 }
 
 // ─── Journey list ───
@@ -597,11 +672,12 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
   padding: 6rpx 22rpx; background: rgba(46,125,88,0.06);
 }
 .new-btn-txt {
-  font-family: $font-family-mono; font-size: 18rpx; letter-spacing: 2rpx; color: $travel-blue;
+  font-family: $font-family-action; font-size: 24rpx; letter-spacing: 0; color: $travel-blue;
 }
 
 .journey-list {
-  background: $card-bg; border: 1rpx solid $line-sepia; border-radius: 8rpx; overflow: hidden;
+  background: $card-bg; border: 2rpx solid $line-sepia; border-radius: 10rpx; overflow: hidden;
+  box-shadow: $shadow-sm;
 }
 .journey-divider { height: 1rpx; background: $line-sepia; margin: 0 24rpx; }
 
@@ -619,13 +695,13 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
 
 .j-body { flex: 1; min-width: 0; }
 .j-title {
-  display: block; font-family: $font-family-serif;
+  display: block; font-family: $font-family-body;
   font-size: 28rpx; font-weight: 500; color: $ink-black;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 4rpx;
 }
 .j-meta {
-  display: block; font-family: $font-family-mono;
-  font-size: 16rpx; letter-spacing: 2rpx; color: $mute-text;
+  display: block; font-family: $font-family-code;
+  font-size: 22rpx; letter-spacing: 2rpx; color: $mute-text;
 }
 
 .j-badge {
@@ -636,15 +712,39 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
   &.badge-cancelled { color: #A43B2D; background: rgba(164,59,45,0.08);   }
 }
 .j-badge-txt {
-  font-family: $font-family-mono; font-size: 18rpx; letter-spacing: 1rpx;
+  font-family: $font-family-action; font-size: 22rpx; letter-spacing: 0;
 }
 
 .journey-empty {
-  background: $card-bg; border: 1rpx solid $line-sepia;
-  border-radius: 8rpx; padding: 60rpx 0; text-align: center;
+  background: $card-bg; border: 2rpx solid $line-sepia;
+  border-radius: 10rpx; padding: 52rpx 36rpx; text-align: center;
+  box-shadow: $shadow-sm;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14rpx;
 }
-.journey-empty-txt {
-  font-family: $font-family-serif; font-size: 28rpx; color: $whisper;
+.journey-empty-kicker {
+  font-family: $font-family-code; font-size: 22rpx; letter-spacing: 2rpx; color: $travel-blue;
+}
+.journey-empty-title {
+  font-family: $font-family-body; font-size: 34rpx; color: $ink-black;
+}
+.journey-empty-sub {
+  font-family: $font-family-body; font-size: 24rpx; color: $mute-text; line-height: 1.55;
+}
+.journey-empty-btn {
+  margin-top: 8rpx;
+  min-width: 220rpx;
+  height: 72rpx;
+  border-radius: 8rpx;
+  background: $travel-blue;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.journey-empty-btn-txt {
+  font-family: $font-family-action; font-size: 26rpx; color: #F4EFE5; letter-spacing: 0;
 }
 
 .btm-gap { height: 120rpx; }

@@ -82,7 +82,7 @@ export async function mailingRoutes(app: FastifyInstance) {
     let sql = `SELECT m.*, u.nickname as sender_nickname, u.mailbox_no as sender_mailbox, u.avatar_url as sender_avatar
                FROM mailings m
                JOIN users u ON u.id = m.sender_id
-               WHERE m.recipient_id = ?`
+               WHERE m.recipient_id = ? AND m.recipient_deleted = 0`
     const vals: any[] = [uid]
 
     if (since) { sql += ' AND m.sent_at > ?'; vals.push(parseInt(since)) }
@@ -116,10 +116,10 @@ export async function mailingRoutes(app: FastifyInstance) {
   app.get('/mailings/sent', { preHandler: requireAuth }, async (req, reply) => {
     const uid = userId(req)
     const rows = await query<any>(
-      `SELECT m.*, u.nickname as recipient_nickname, u.mailbox_no as recipient_mailbox
+      `SELECT m.*, u.nickname as recipient_nickname, u.mailbox_no as recipient_mailbox, u.avatar_url as recipient_avatar
        FROM mailings m
        JOIN users u ON u.id = m.recipient_id
-       WHERE m.sender_id = ?
+       WHERE m.sender_id = ? AND m.sender_deleted = 0
        ORDER BY m.sent_at DESC LIMIT 100`,
       [uid]
     )
@@ -127,6 +127,7 @@ export async function mailingRoutes(app: FastifyInstance) {
       id:           r.id,
       postcardId:   r.postcard_id,
       personalNote: r.personal_note,
+      snapshot:     typeof r.snapshot === 'string' ? JSON.parse(r.snapshot) : (r.snapshot ?? null),
       status:       r.status,
       sentAt:       r.sent_at,
       openedAt:     r.opened_at,
@@ -134,8 +135,71 @@ export async function mailingRoutes(app: FastifyInstance) {
         id:        r.recipient_id,
         nickname:  r.recipient_nickname,
         mailboxNo: r.recipient_mailbox,
+        avatarUrl: r.recipient_avatar ?? null,
       },
     })))
+  })
+
+  // ── 删除邮件（收件人删来信 / 寄件人删已发，各自独立）────────────
+  app.delete<{ Params: { id: string } }>('/mailings/:id', { preHandler: requireAuth }, async (req, reply) => {
+    const { id } = req.params
+    const uid = userId(req)
+
+    // 收件人删来信
+    const asRecipient = await queryOne<any>(
+      'SELECT id FROM mailings WHERE id = ? AND recipient_id = ?', [id, uid]
+    )
+    if (asRecipient) {
+      await execute('UPDATE mailings SET recipient_deleted = 1 WHERE id = ?', [id])
+      return reply.send({ ok: true })
+    }
+
+    // 寄件人删已发
+    const asSender = await queryOne<any>(
+      'SELECT id FROM mailings WHERE id = ? AND sender_id = ?', [id, uid]
+    )
+    if (asSender) {
+      await execute('UPDATE mailings SET sender_deleted = 1 WHERE id = ?', [id])
+      return reply.send({ ok: true })
+    }
+
+    return reply.code(404).send({ error: '邮件不存在' })
+  })
+
+  // ── 保存来信明信片到个人收藏 ─────────────────────────────────────
+  app.post<{ Params: { id: string } }>('/mailings/:id/save', { preHandler: requireAuth }, async (req, reply) => {
+    const { id } = req.params
+    const uid = userId(req)
+
+    const mailing = await queryOne<any>(
+      'SELECT * FROM mailings WHERE id = ? AND recipient_id = ?', [id, uid]
+    )
+    if (!mailing) return reply.code(404).send({ error: '邮件不存在' })
+
+    const snap = typeof mailing.snapshot === 'string' ? JSON.parse(mailing.snapshot) : mailing.snapshot
+    if (!snap) return reply.code(400).send({ error: '邮件数据不完整' })
+
+    const newPostcardId = newId()
+    const now = Date.now()
+
+    await execute(
+      `INSERT INTO postcards (id, user_id, travel_id, photo_url, location_name, city, country, note, stamp_design, to_name, is_favorite, recorded_at, created_at, updated_at)
+       VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)`,
+      [
+        newPostcardId, uid,
+        snap.photoUrl || null,
+        snap.locationName || '',
+        snap.city || '',
+        snap.country || '',
+        snap.note || '',
+        snap.stampDesign || 'classic',
+        snap.sender?.nickname ? `来自 ${snap.sender.nickname}` : null,
+        snap.recordedAt || now,
+        now, now,
+      ]
+    )
+
+    return reply.code(201).send({ id: newPostcardId })
   })
 
   // ── 开封（标记已读）──────────────────────────────────────────────

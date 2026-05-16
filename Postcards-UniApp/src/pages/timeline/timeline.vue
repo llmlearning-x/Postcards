@@ -73,10 +73,11 @@
 
       <view v-else class="empty-state">
         <IconImage :size="96" color="#B5AE9B" />
-        <text class="empty-main">还没有明信片</text>
-        <text class="empty-sub">去记录你的第一张明信片吧</text>
-        <view class="empty-btn" @click="goToRecord">
-          <text class="empty-btn-txt">立即记录</text>
+        <text class="empty-kicker">{{ emptyKicker }}</text>
+        <text class="empty-main">{{ emptyTitle }}</text>
+        <text class="empty-sub">{{ emptySubtitle }}</text>
+        <view class="empty-btn" @click="goEmptyAction">
+          <text class="empty-btn-txt">{{ emptyActionText }}</text>
         </view>
       </view>
 
@@ -98,7 +99,17 @@ import PostcardFlipModal from '@/components/PostcardFlipModal.vue'
 
 const store = usePostcardStore()
 const postcards = computed(() => store.sortedPostcards)
+const hasTravels = computed(() => store.sortedTravels.length > 0)
 const activeCard = ref<Postcard | null>(null)
+
+const emptyKicker = computed(() => hasTravels.value ? 'FIRST POSTCARD' : 'FIRST JOURNEY')
+const emptyTitle = computed(() => hasTravels.value ? '记录第一张明信片' : '先创建一段旅程')
+const emptySubtitle = computed(() =>
+  hasTravels.value
+    ? '把今天到达的地点保存下来，时间轴会从这里开始。'
+    : '每张明信片都归属到旅程里，先定下目的地会更顺。'
+)
+const emptyActionText = computed(() => hasTravels.value ? '立即记录 ›' : '创建旅程 ›')
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
@@ -144,6 +155,18 @@ function goToRecord() {
   uni.switchTab({ url: '/pages/record/record' })
 }
 
+function goCreateTravel() {
+  uni.navigateTo({ url: '/pages/travel/travel' })
+}
+
+function goEmptyAction() {
+  if (hasTravels.value) {
+    goToRecord()
+  } else {
+    goCreateTravel()
+  }
+}
+
 onMounted(() => store.initData())
 </script>
 
@@ -169,26 +192,26 @@ onMounted(() => store.initData())
 
 .header-kicker {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 20rpx;
-  letter-spacing: 4rpx;
+  font-family: $font-family-code;
+  font-size: 24rpx;
+  letter-spacing: 1rpx;
   color: rgba(255,255,255,0.65);
   margin-bottom: 12rpx;
 }
 
 .header-title {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 46rpx;
-  font-weight: 400;
+  font-weight: 700;
   color: rgba(255,255,255,0.95);
   line-height: 1.15;
-  letter-spacing: -1rpx;
+  letter-spacing: 0;
 }
 
 .header-subtitle {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: rgba(255,255,255,0.7);
   margin-top: 10rpx;
@@ -223,7 +246,7 @@ onMounted(() => store.initData())
 }
 
 .group-date-n {
-  font-family: $font-family-serif;
+  font-family: $font-family-display;
   font-size: 52rpx;
   font-weight: 400;
   color: $ink-black;
@@ -233,16 +256,16 @@ onMounted(() => store.initData())
 
 .group-month-lbl {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: $mute-text;
 }
 
 .group-weekday {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 14rpx;
+  font-family: $font-family-body;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $whisper;
 }
@@ -254,9 +277,9 @@ onMounted(() => store.initData())
 }
 
 .group-count-lbl {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: $mute-text;
   flex-shrink: 0;
 }
@@ -343,14 +366,14 @@ onMounted(() => store.initData())
 }
 
 .row-pm-city {
-  font-family: $font-family-mono;
-  font-size: 14rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: rgba(244, 239, 229, 0.85);
 }
 
 .row-pm-date {
-  font-family: $font-family-serif;
+  font-family: $font-family-code;
   font-size: 26rpx;
   color: rgba(244, 239, 229, 0.95);
   line-height: 1.1;
@@ -389,7 +412,7 @@ onMounted(() => store.initData())
 
 .row-loc {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 32rpx;
   font-weight: 500;
   color: $ink-black;
@@ -401,8 +424,8 @@ onMounted(() => store.initData())
 
 .row-note {
   display: block;
-  font-family: $font-family-serif;
-  font-style: italic;
+  font-family: $font-family-body;
+  font-style: normal;
   font-size: 24rpx;
   color: $body-text;
   overflow: hidden;
@@ -416,9 +439,9 @@ onMounted(() => store.initData())
 .timeline-end {
   display: block;
   text-align: center;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 6rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: $whisper;
   padding: 24rpx 0 40rpx;
 }
@@ -428,21 +451,32 @@ onMounted(() => store.initData())
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 100rpx 40rpx;
+  padding: 96rpx 40rpx;
+  text-align: center;
+}
+
+.empty-kicker {
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+  color: $travel-blue;
+  margin-top: 28rpx;
+  margin-bottom: 10rpx;
 }
 
 .empty-main {
-  font-family: $font-family-serif;
-  font-size: 32rpx;
-  color: $body-text;
-  margin-top: 28rpx;
+  font-family: $font-family-body;
+  font-size: 36rpx;
+  color: $ink-black;
   margin-bottom: 8rpx;
 }
 
 .empty-sub {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $mute-text;
+  line-height: 1.6;
+  max-width: 520rpx;
   margin-bottom: 40rpx;
 }
 
@@ -453,10 +487,10 @@ onMounted(() => store.initData())
 }
 
 .empty-btn-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-action;
   font-size: 28rpx;
   color: $card-bg;
-  letter-spacing: 4rpx;
+  letter-spacing: 0;
 }
 
 .btm-gap { height: 120rpx; }

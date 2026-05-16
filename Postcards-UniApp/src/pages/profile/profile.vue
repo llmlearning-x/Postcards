@@ -4,8 +4,8 @@
       <!-- Green gradient hero -->
       <view class="hero-section">
         <view class="hero-brand">
-          <text class="hero-brand-title">旅行邮局</text>
-          <text class="hero-brand-sub">CHINA POST · TRAVEL EDITION</text>
+          <text class="hero-brand-title">旅行邮箱</text>
+          <text class="hero-brand-sub">TRAVEL MAILBOX</text>
         </view>
         <view class="hero-avatar-wrap" @click="changeAvatar">
           <view class="hero-monogram" :class="{ 'has-avatar': avatarUrl }">
@@ -28,22 +28,22 @@
       <!-- Floating stats card overlapping hero -->
       <view class="stats-float">
         <view class="stats-inner">
-          <view class="stats-item">
+          <view class="stats-item stats-item-tap" @click="goToTravels">
             <text class="stats-num">{{ store.travels.length }}</text>
             <text class="stats-lbl">总旅程</text>
           </view>
           <view class="stats-sep"></view>
-          <view class="stats-item">
+          <view class="stats-item stats-item-tap" @click="goToPostcards">
             <text class="stats-num">{{ store.postcards.length }}</text>
             <text class="stats-lbl">明信片</text>
           </view>
           <view class="stats-sep"></view>
-          <view class="stats-item">
+          <view class="stats-item stats-item-tap" @click="goToCollection">
             <text class="stats-num" style="color: #A43B2D;">{{ favoriteCount }}</text>
             <text class="stats-lbl">收藏</text>
           </view>
           <view class="stats-sep"></view>
-          <view class="stats-item">
+          <view class="stats-item stats-item-tap" @click="goToPoints">
             <text class="stats-num" style="color: #3C604D;">{{ authStore.user?.points ?? 0 }}</text>
             <text class="stats-lbl">积分</text>
           </view>
@@ -189,7 +189,7 @@
 
       <!-- Footer -->
       <view class="footer">
-        <text class="footer-mono">旅行邮局 · v{{ appVersion }}</text>
+        <text class="footer-mono">旅行邮箱 · v{{ appVersion }}</text>
         <text class="footer-serif">记录旅途 · 寄往远方</text>
       </view>
 
@@ -326,6 +326,18 @@ function goToShop() {
   uni.navigateTo({ url: '/pages/shop/shop' })
 }
 
+function goToTravels() {
+  uni.navigateTo({ url: '/pages/travels/travels' })
+}
+
+function goToPostcards() {
+  uni.navigateTo({ url: '/pages/postcards/postcards' })
+}
+
+function goToPoints() {
+  uni.navigateTo({ url: '/pages/points/points' })
+}
+
 function goToContacts() {
   uni.navigateTo({ url: '/pages/contacts/contacts' })
 }
@@ -365,7 +377,7 @@ function resetData() {
 function showPrivacy() {
   uni.showModal({
     title: '隐私协议',
-    content: '旅行邮局重视您的隐私保护。我们仅在本地设备上存储您的旅行记录和明信片数据，不会上传到任何服务器。您的数据完全由您掌控。',
+    content: '旅行邮箱重视您的隐私保护。我们仅在本地设备上存储您的旅行记录和明信片数据，不会上传到任何服务器。您的数据完全由您掌控。',
     showCancel: false,
   })
 }
@@ -373,7 +385,7 @@ function showPrivacy() {
 function showAgreement() {
   uni.showModal({
     title: '用户协议',
-    content: '欢迎使用旅行邮局。本应用仅供个人旅行记录使用，所有内容版权归用户所有。请勿将应用用于任何违法违规用途。',
+    content: '欢迎使用旅行邮箱。本应用仅供个人旅行记录使用，所有内容版权归用户所有。请勿将应用用于任何违法违规用途。',
     showCancel: false,
   })
 }
@@ -384,8 +396,8 @@ function goToCollection() {
 
 function showAbout() {
   uni.showModal({
-    title: '关于旅行邮局',
-    content: `旅行邮局 v${appVersion}\n\n一款以邮政明信片为主题的旅行记录应用。\n\n记录旅途中的美好瞬间，将回忆封存为一张张独特的明信片。\n\n愿每一次旅行，都能寄往心中的远方。`,
+    title: '关于旅行邮箱',
+    content: `旅行邮箱 v${appVersion}\n\n一款以邮政明信片为主题的旅行记录应用。\n\n记录旅途中的美好瞬间，将回忆封存为一张张独特的明信片。\n\n愿每一次旅行，都能寄往心中的远方。`,
     showCancel: false,
   })
 }
@@ -422,16 +434,16 @@ onMounted(() => initProfileData())
 
 .hero-brand-title {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: rgba(244, 239, 229, 0.85);
-  letter-spacing: 4rpx;
+  letter-spacing: 2rpx;
 }
 
 .hero-brand-sub {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 14rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: rgba(244, 239, 229, 0.5);
   margin-top: 4rpx;
@@ -466,7 +478,7 @@ onMounted(() => initProfileData())
 }
 
 .monogram-letter {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 72rpx;
   font-weight: 400;
   color: rgba(244, 239, 229, 0.95);
@@ -504,7 +516,7 @@ onMounted(() => initProfileData())
 }
 
 .hero-name {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 44rpx;
   font-weight: 400;
   color: #F4EFE5;
@@ -513,7 +525,7 @@ onMounted(() => initProfileData())
 }
 
 .hero-rank {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-style: italic;
   font-size: 26rpx;
   color: rgba(244, 239, 229, 0.75);
@@ -529,15 +541,15 @@ onMounted(() => initProfileData())
 }
 
 .mailbox-pill-txt {
-  font-family: $font-family-mono;
+  font-family: $font-family-code;
   font-size: 24rpx;
-  letter-spacing: 3rpx;
+  letter-spacing: 1rpx;
   color: rgba(244, 239, 229, 0.85);
 }
 
 .hero-days {
-  font-family: $font-family-mono;
-  font-size: 20rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: rgba(244, 239, 229, 0.55);
 }
@@ -565,10 +577,21 @@ onMounted(() => initProfileData())
   flex-direction: column;
   align-items: center;
   gap: 6rpx;
+  min-height: 96rpx;
+  justify-content: center;
+  border-radius: 8rpx;
+  transition: background 0.18s, transform 0.18s;
+}
+
+.stats-item-tap {
+  &:active {
+    background: rgba($travel-blue, 0.08);
+    transform: scale(0.97);
+  }
 }
 
 .stats-num {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 52rpx;
   font-weight: 400;
   color: $ink-black;
@@ -577,8 +600,8 @@ onMounted(() => initProfileData())
 }
 
 .stats-lbl {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
 }
@@ -598,9 +621,9 @@ onMounted(() => initProfileData())
 }
 
 .section-kicker {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $travel-blue;
   white-space: nowrap;
   flex-shrink: 0;
@@ -662,8 +685,8 @@ onMounted(() => initProfileData())
 }
 
 .stamp-swatch-name {
-  font-family: $font-family-serif;
-  font-size: 20rpx;
+  font-family: $font-family-body;
+  font-size: 22rpx;
   color: $mute-text;
 }
 
@@ -675,15 +698,15 @@ onMounted(() => initProfileData())
 }
 
 .album-note {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
 }
 
 .album-link {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $travel-blue;
 }
@@ -721,7 +744,7 @@ onMounted(() => initProfileData())
 
 .menu-item-text {
   flex: 1;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $ink-black;
 }
@@ -733,8 +756,8 @@ onMounted(() => initProfileData())
   margin-right: 8rpx;
 }
 .menu-pts-txt {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $travel-blue;
 }
@@ -755,14 +778,14 @@ onMounted(() => initProfileData())
 }
 
 .footer-mono {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $whisper;
 }
 
 .footer-serif {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-style: italic;
   font-size: 24rpx;
   color: $whisper;

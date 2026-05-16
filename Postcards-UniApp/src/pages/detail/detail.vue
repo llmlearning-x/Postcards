@@ -107,7 +107,7 @@
 
           <!-- Footer -->
           <view class="pback-footer">
-            <text class="pback-footer-l">旅行邮局 · 寄往远方</text>
+            <text class="pback-footer-l">旅行邮箱 · 寄往远方</text>
             <text class="pback-footer-r">N° {{ padNum(postcard.id) }}</text>
           </view>
         </view>
@@ -462,9 +462,9 @@ onMounted(() => {
 }
 
 .nav-label {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: rgba(244, 239, 229, 0.9);
   text-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.3);
 }
@@ -541,14 +541,14 @@ onMounted(() => {
 }
 
 .postmark-city {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 4rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: rgba(244, 239, 229, 0.9);
 }
 
 .postmark-date {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 36rpx;
   font-weight: 500;
   color: rgba(244, 239, 229, 0.95);
@@ -556,9 +556,9 @@ onMounted(() => {
 }
 
 .postmark-year {
-  font-family: $font-family-mono;
-  font-size: 14rpx;
-  letter-spacing: 4rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: rgba(244, 239, 229, 0.7);
 }
 
@@ -599,17 +599,17 @@ onMounted(() => {
 
 .pback-title {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 4rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: $ink-black;
   margin-bottom: 6rpx;
 }
 
 .pback-series {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 14rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
 }
@@ -639,8 +639,8 @@ onMounted(() => {
 .pback-stamp-dot { font-size: 28rpx; }
 
 .pback-stamp-name {
-  font-family: $font-family-mono;
-  font-size: 14rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
 }
 
@@ -666,9 +666,9 @@ onMounted(() => {
 
 .pback-msg-label {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 14rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $travel-blue;
   margin-bottom: 16rpx;
 }
@@ -686,7 +686,7 @@ onMounted(() => {
 
 .pback-note {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-display;
   font-style: italic;
   font-size: 28rpx;
   color: $ink-black;
@@ -705,8 +705,8 @@ onMounted(() => {
 
 .pback-sig-name,
 .pback-sig-date {
-  font-family: $font-family-mono;
-  font-size: 14rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
 }
@@ -735,16 +735,16 @@ onMounted(() => {
 
 .pback-addr-label {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 14rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $travel-blue;
   margin-bottom: 8rpx;
 }
 
 .pback-addr-main {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 24rpx;
   font-weight: 500;
   color: $ink-black;
@@ -756,8 +756,8 @@ onMounted(() => {
 
 .pback-addr-sub {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 14rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $mute-text;
   overflow: hidden;
@@ -807,15 +807,15 @@ onMounted(() => {
 }
 
 .pback-pm-city {
-  font-family: $font-family-mono;
-  font-size: 14rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: rgba(164, 59, 45, 0.8);
 }
 
 .pback-pm-date {
-  font-family: $font-family-serif;
-  font-size: 22rpx;
+  font-family: $font-family-body;
+  font-size: 24rpx;
   font-weight: 500;
   color: rgba(164, 59, 45, 0.85);
   line-height: 1.1;
@@ -833,9 +833,9 @@ onMounted(() => {
 
 .pback-footer-l,
 .pback-footer-r {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $mute-text;
 }
 
@@ -866,8 +866,8 @@ onMounted(() => {
 }
 
 .action-main {
-  font-family: $font-family-serif;
-  font-size: 22rpx;
+  font-family: $font-family-body;
+  font-size: 24rpx;
   font-weight: 500;
   color: $ink-black;
 }
@@ -877,8 +877,8 @@ onMounted(() => {
 }
 
 .action-sub {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
 }
@@ -916,7 +916,7 @@ onMounted(() => {
 
 .public-toggle-main {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $ink-black;
   margin-bottom: 4rpx;
@@ -924,8 +924,8 @@ onMounted(() => {
 
 .public-toggle-sub {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $mute-text;
 }
@@ -944,8 +944,8 @@ onMounted(() => {
 }
 
 .public-pill-txt {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $mute-text;
 
@@ -968,24 +968,24 @@ onMounted(() => {
 
 .journey-kicker {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: $travel-blue;
   margin-bottom: 6rpx;
 }
 
 .journey-title {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 30rpx;
   font-weight: 500;
   color: $ink-black;
 }
 
 .journey-count {
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
 }
@@ -1027,7 +1027,7 @@ onMounted(() => {
 
 .journey-mini-loc {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   font-weight: 500;
   color: $ink-black;
@@ -1036,8 +1036,8 @@ onMounted(() => {
 
 .journey-mini-date {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
 }
@@ -1061,7 +1061,7 @@ onMounted(() => {
 }
 
 .empty-main {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 32rpx;
   color: $body-text;
   margin-top: 32rpx;
@@ -1075,10 +1075,10 @@ onMounted(() => {
 }
 
 .empty-btn-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: $card-bg;
-  letter-spacing: 4rpx;
+  letter-spacing: 2rpx;
 }
 
 .btm-gap { height: 120rpx; }
@@ -1101,16 +1101,16 @@ onMounted(() => {
 
 .print-teaser-kicker {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
-  letter-spacing: 3rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
   color: rgba(180, 120, 60, 0.8);
   margin-bottom: 8rpx;
 }
 
 .print-teaser-title {
   display: block;
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 28rpx;
   color: #5C3A1E;
   margin-bottom: 4rpx;
@@ -1118,14 +1118,14 @@ onMounted(() => {
 
 .print-teaser-sub {
   display: block;
-  font-family: $font-family-mono;
-  font-size: 16rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 1rpx;
   color: rgba(92, 58, 30, 0.6);
 }
 
 .print-teaser-arrow {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 48rpx;
   color: rgba(180, 120, 60, 0.5);
 }
@@ -1171,20 +1171,20 @@ onMounted(() => {
 }
 
 .modal-stamp-char {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 56rpx;
   color: rgba(180, 120, 60, 0.8);
 }
 
 .modal-kicker {
-  font-family: $font-family-mono;
-  font-size: 18rpx;
-  letter-spacing: 4rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
   color: $mute-text;
 }
 
 .modal-title {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 40rpx;
   color: $ink-black;
   text-align: center;
@@ -1192,7 +1192,7 @@ onMounted(() => {
 }
 
 .modal-desc {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $body-text;
   text-align: center;
@@ -1218,8 +1218,8 @@ onMounted(() => {
 }
 
 .modal-step-num {
-  font-family: $font-family-mono;
-  font-size: 22rpx;
+  font-family: $font-family-code;
+  font-size: 24rpx;
   letter-spacing: 2rpx;
   color: rgba(180, 120, 60, 0.7);
   width: 48rpx;
@@ -1227,7 +1227,7 @@ onMounted(() => {
 }
 
 .modal-step-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 26rpx;
   color: $body-text;
   line-height: 1.5;
@@ -1246,15 +1246,15 @@ onMounted(() => {
 }
 
 .modal-btn-txt {
-  font-family: $font-family-serif;
+  font-family: $font-family-body;
   font-size: 30rpx;
   color: #F4EFE5;
   letter-spacing: 2rpx;
 }
 
 .modal-cancel {
-  font-family: $font-family-mono;
-  font-size: 20rpx;
+  font-family: $font-family-code;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
   color: $mute-text;
   padding: 8rpx;
