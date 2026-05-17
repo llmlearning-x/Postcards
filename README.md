@@ -70,7 +70,7 @@ cd Postcards-UniApp && npm run build:app-android
 
 ## 相关链接
 
-- **H5 生产环境**：http://115.190.7.207（账号 209958 / 366212，密码 123456）
+- **H5 生产环境**：http://115.190.7.207
 - **GitHub Release**：[v1.0.0](https://github.com/llmlearning-x/Postcards/releases/tag/v1.0.0)
 - **APK 下载**：[旅行邮箱.apk](https://github.com/llmlearning-x/Postcards/releases/download/v1.0.0/default.apk)
 

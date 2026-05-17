@@ -577,16 +577,16 @@ api_tests:
     test_cases:
       - name: "成功注册"
         request:
-          phone: "13800138000"
-          code: "123456"
+          phone: "138****8000"
+          code: "******"
         expect:
           code: 0
           data.user_id: exists
       
       - name: "手机号已注册"
         request:
-          phone: "13800138000"
-          code: "123456"
+          phone: "138****8000"
+          code: "******"
         expect:
           code: 40001
           message: "手机号已注册"

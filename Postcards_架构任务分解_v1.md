@@ -254,11 +254,11 @@ CREATE INDEX idx_postcard_tags_tag_id ON postcard_tags(tag_id);
 
 ```
 POST   /api/v1/auth/send-code        # 发送短信验证码
-  Body: { phone: "13800138000" }
+  Body: { phone: "138****8000" }
   Resp: { expires_in: 300 }
 
 POST   /api/v1/auth/login            # 验证码登录（自动注册）
-  Body: { phone: "13800138000", code: "123456" }
+  Body: { phone: "138****8000", code: "******" }
   Resp: { access_token, refresh_token, user }
 
 POST   /api/v1/auth/refresh          # 刷新 Token
