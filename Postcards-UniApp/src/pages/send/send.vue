@@ -80,7 +80,7 @@
           </view>
         </view>
 
-        <!-- Step 2: Compose note -->
+        <!-- Step 3: Compose note -->
         <view class="section" v-if="recipient">
           <view class="section-hd">
             <text class="section-kicker">RECIPIENT · 收件人</text>
@@ -267,9 +267,10 @@ function formatPostmarkDate(ts: number): string {
 
 const store = usePostcardStore()
 
-// 'pick-recipient' = came from postcard detail (postcardId given)
-// 'pick-postcard'  = came from contacts (recipientId given)
-const mode = ref<'pick-recipient' | 'pick-postcard'>('pick-recipient')
+// 'pick-recipient'        = came from postcard detail (postcardId given)
+// 'pick-postcard'         = came from contacts (recipientId given)
+// 'select-postcard-first' = came from home send button (no param)
+const mode = ref<'pick-recipient' | 'pick-postcard' | 'select-postcard-first'>('pick-recipient')
 
 const postcardId    = ref('')
 const postcard      = ref<Postcard | null>(null)
@@ -300,7 +301,8 @@ function selectContact(c: ContactItem) {
   }
 }
 
-const allPostcards = computed(() => store.postcards)
+// 只能寄出自己创建的明信片，保存的来信不能邮寄
+const allPostcards = computed(() => store.postcards.filter(pc => !pc.isSavedMailing))
 
 function selectRecipient(u: ApiUser) {
   recipient.value = u
@@ -340,6 +342,8 @@ onLoad((opts) => {
       mailboxNo: decodeURIComponent(opts.recipientMailboxNo || ''),
       avatarUrl: null,
     }
+  } else {
+    mode.value = 'select-postcard-first'
   }
 })
 
@@ -348,7 +352,7 @@ onMounted(() => {
   if (postcardId.value) {
     postcard.value = store.getPostcardById(postcardId.value) || null
   }
-  if (mode.value === 'pick-recipient') {
+  if (mode.value === 'pick-recipient' || mode.value === 'select-postcard-first') {
     loadContacts()
   }
 })

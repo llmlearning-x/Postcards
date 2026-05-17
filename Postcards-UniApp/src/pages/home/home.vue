@@ -507,9 +507,10 @@ function goTravel(id: string) { uni.navigateTo({ url: `/pages/travel/travel?id=$
 function goBoard()      { uni.navigateTo({ url: '/pages/board/board' }) }
 
 function goSend() {
-  const first = store.sortedPostcards[0]
-  if (first) {
-    uni.navigateTo({ url: `/pages/send/send?postcardId=${first.id}` })
+  // 进入寄出页面，先选择明信片（排除保存的来信）
+  const ownPostcards = store.sortedPostcards.filter(pc => !pc.isSavedMailing)
+  if (ownPostcards.length > 0) {
+    uni.navigateTo({ url: '/pages/send/send' })
   } else {
     uni.showToast({ title: '先记录一张明信片吧', icon: 'none' })
     setTimeout(goRecord, 650)
