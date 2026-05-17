@@ -29,6 +29,15 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
+      - name: Clean old build on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.TEST_HOST }}
+          username: ${{ secrets.TEST_USERNAME }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            rm -rf /data/postcards/dist
+
       - name: Deploy to test server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -38,7 +47,6 @@ jobs:
           source: "Postcards-Server/dist/,Postcards-Server/package.json,Postcards-Server/ecosystem.config.js"
           target: "/data/postcards/"
           strip_components: 1
-          rm: true
 
       - name: Restart backend
         uses: appleboy/ssh-action@v1.0.3
@@ -84,7 +92,6 @@ jobs:
           source: "Postcards-UniApp/dist/build/h5/"
           target: "/data/postcards/h5"
           strip_components: 4
-          rm: true
 
       - name: Reload nginx
         uses: appleboy/ssh-action@v1.0.3
