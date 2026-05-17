@@ -27,7 +27,7 @@ struct PostalTextureBackground: View {
             VStack {
                 HStack {
                     Spacer()
-                    PostalWatermarkSeal(text: "CHINA POST")
+                    PostalWatermarkSeal(text: "TRAVEL MAIL")
                         .frame(width: 190, height: 190)
                         .opacity(0.26)
                         .offset(x: 34, y: -40)

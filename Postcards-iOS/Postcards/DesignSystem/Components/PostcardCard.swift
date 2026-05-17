@@ -31,7 +31,7 @@ struct PostcardCard: View {
 
                 VStack {
                     HStack {
-                        Text("CHINA POST")
+                        Text("TRAVEL MAIL")
                             .font(.system(size: 8, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
                             .padding(.horizontal, 7)

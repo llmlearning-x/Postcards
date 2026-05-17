@@ -552,7 +552,7 @@ function ScreenProfile({ setActive }) {
           }}/>
           <div style={{ position:'relative', zIndex:1 }}>
             <div style={{ ...labelStyle, color:'rgba(244,239,229,0.7)', letterSpacing: 6 }}>
-              旅笺 · CHINA POSTCARDS
+              旅笺 · TRAVEL POSTCARDS
             </div>
             {/* monogram avatar */}
             <div style={{

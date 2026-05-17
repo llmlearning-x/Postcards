@@ -150,9 +150,9 @@ struct MailboxHeroCard: View {
                 .frame(height: 226)
                 .overlay(alignment: .top) {
                     VStack(spacing: 0) {
-                        Text("中国邮政")
+                        Text("旅行邮箱")
                             .font(.system(size: 18, weight: .bold, design: .serif))
-                        Text("CHINA POST")
+                        Text("TRAVEL MAIL")
                             .font(.caption.weight(.semibold))
                     }
                     .foregroundColor(PostcardColors.dawnYellow)

@@ -252,13 +252,13 @@ struct CurrentTravelCard: View {
                     )
 
                     VStack(alignment: .leading, spacing: 14) {
-                        StampSealBadge(title: "中国邮政", subtitle: "CHINA POST")
+                        StampSealBadge(title: "旅行邮箱", subtitle: "TRAVEL MAIL")
                         Spacer()
                         Text("TRAVEL\nPOST\nOFFICE")
                             .font(.system(size: 15, weight: .medium, design: .serif))
                             .foregroundColor(PostcardColors.dawnYellow)
                         Spacer()
-                        Text("中国邮政\n出品")
+                        Text("旅行邮箱\n出品")
                             .font(.caption2)
                             .foregroundColor(PostcardColors.dawnYellow.opacity(0.85))
                             .padding(8)

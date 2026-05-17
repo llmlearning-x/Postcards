@@ -135,7 +135,7 @@ struct TravelDetailView: View {
                     .frame(width: 92)
                     .overlay(
                         VStack(alignment: .leading, spacing: 18) {
-                            StampSealBadge(title: "中国邮政", subtitle: "CHINA POST")
+                            StampSealBadge(title: "旅行邮箱", subtitle: "TRAVEL MAIL")
                             Spacer()
                             Text("TRAVEL\nPOST\nOFFICE")
                                 .font(.system(size: 15, weight: .medium, design: .serif))

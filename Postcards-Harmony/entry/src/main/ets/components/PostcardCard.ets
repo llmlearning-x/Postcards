@@ -37,7 +37,7 @@ export struct PostcardCard {
           }
         }
 
-        // CHINA POST badge
+        // TRAVEL MAIL badge
         Row() {
           Text('FAR POST')
             .fontSize(8)

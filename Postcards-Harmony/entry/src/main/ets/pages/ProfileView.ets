@@ -112,7 +112,7 @@ export struct ProfileView {
                 .fontWeight(FontWeight.Bold)
                 .fontFamily('serif')
                 .fontColor(Color.White)
-              Text('CHINA POST')
+              Text('TRAVEL MAIL')
                 .fontSize(12)
                 .fontWeight(FontWeight.Bold)
                 .fontColor(Color.White)
