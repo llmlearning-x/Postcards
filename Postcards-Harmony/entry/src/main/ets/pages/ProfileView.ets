@@ -107,7 +107,7 @@ export struct ProfileView {
 
           Column({ space: 10 }) {
             Column({ space: 2 }) {
-              Text('远方邮政')
+              Text('旅行邮箱')
                 .fontSize(18)
                 .fontWeight(FontWeight.Bold)
                 .fontFamily('serif')

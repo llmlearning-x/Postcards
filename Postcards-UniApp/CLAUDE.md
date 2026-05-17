@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**远方邮政 (Postcards)** is a travel postcard recording app built with UniApp (Vue 3 + TypeScript). It targets H5, WeChat Mini Program, Android, and iOS from a single codebase.
+**旅行邮箱 (Postcards)** is a travel postcard recording app built with UniApp (Vue 3 + TypeScript). It targets H5, WeChat Mini Program, Android, and iOS from a single codebase.
 
 ## Development Commands
 

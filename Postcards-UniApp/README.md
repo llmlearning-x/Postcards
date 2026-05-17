@@ -1,6 +1,6 @@
-# 远方邮政 UniApp
+# 旅行邮箱 UniApp
 
-远方邮政是一个旅行明信片记录应用，使用 UniApp、Vue 3、TypeScript 和 Pinia 开发。项目可从同一套代码构建 H5、微信小程序、Android 和 iOS 版本。
+旅行邮箱是一个旅行明信片记录应用，使用 UniApp、Vue 3、TypeScript 和 Pinia 开发。项目可从同一套代码构建 H5、微信小程序、Android 和 iOS 版本。
 
 ## 功能概览
 

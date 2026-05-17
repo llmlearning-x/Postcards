@@ -1,7 +1,7 @@
 {
   "name": "postcards-server",
   "version": "1.0.0",
-  "description": "远方邮政 — Backend API Server",
+  "description": "旅行邮箱 — Backend API Server",
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",

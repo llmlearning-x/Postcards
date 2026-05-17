@@ -352,7 +352,7 @@ struct CurrentTravelCard {
         .height(136)
 
         // Stamp seal
-        PostalStampSeal({ title: '远方邮政', date: `${this.getTravelDays()}天` })
+        PostalStampSeal({ title: '旅行邮箱', date: `${this.getTravelDays()}天` })
           .scale({ x: 0.58, y: 0.58 })
           .translate({ x: 4, y: -4 })
       }
@@ -867,7 +867,7 @@ struct HeroCard {
 
           Column({ space: 18 }) {
             Column({ space: 1 }) {
-              Text('远方邮政')
+              Text('旅行邮箱')
                 .fontSize(10)
                 .fontWeight(FontWeight.Bold)
                 .fontFamily('serif')
