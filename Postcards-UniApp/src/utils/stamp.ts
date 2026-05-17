@@ -1,7 +1,7 @@
 import { StampDesigns } from '@/config/app'
 import { useAuthStore } from '@/stores/auth'
 
-let STAMPS_BASE = 'https://115.175.15.145/stamps'
+let STAMPS_BASE = 'http://115.190.7.207/stamps'
 try {
   const envUrl = (import.meta as any).env?.VITE_STAMPS_BASE_URL
   if (envUrl) STAMPS_BASE = envUrl
