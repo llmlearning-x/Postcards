@@ -1,14 +1,11 @@
 <template>
   <view class="page-container">
-    <!-- Header -->
-    <view class="postal-header">
-      <view class="header-perf"></view>
-      <view class="nav-back" @click="goBack">
-        <IconBack :size="18" color="rgba(255,255,255,0.9)" />
-      </view>
-      <text class="header-kicker">BULLETIN BOARD · 公告栏</text>
-      <text class="header-title">旅行公告栏</text>
-    </view>
+    <PostalHeader
+      kicker="BULLETIN BOARD · 公告栏"
+      title="旅行公告栏"
+      fallback-url="/pages/home/home"
+      @back="goBack"
+    />
 
     <scroll-view class="content" scroll-y @scrolltolower="loadMore">
 
@@ -177,10 +174,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
 import { PostcardApi, ContactsApi, type BoardPostcard } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
-import { IconBack } from '@/components/icons'
+import PostalHeader from '@/components/PostalHeader.vue'
+
 import { getStampColor, getStampImageUrl } from '@/utils/stamp'
 
 const authStore  = ref(useAuthStore())
@@ -262,36 +260,17 @@ function goBack() {
 }
 
 onShow(() => loadBoard(true))
+
+onPullDownRefresh(async () => {
+  await loadBoard(true)
+  uni.stopPullDownRefresh()
+})
 </script>
 
 <style lang="scss" scoped>
 .page-container {
   min-height: 100vh;
   background: $page-background;
-}
-
-.postal-header {
-  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 100rpx 48rpx 20rpx;
-  position: relative;
-  flex-shrink: 0;
-}
-.header-perf {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 6rpx;
-  background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
-}
-.nav-back {
-  position: absolute; top: 52rpx; left: 48rpx;
-  width: 64rpx; height: 64rpx;
-  display: flex; align-items: center; justify-content: center;
-}
-.header-kicker {
-  display: block; font-family: $font-family-code;
-  font-size: 22rpx; letter-spacing: 2rpx; color: rgba(255,255,255,0.65); margin-bottom: 12rpx;
-}
-.header-title {
-  display: block; font-family: $font-family-body;
-  font-size: 46rpx; font-weight: 700; color: rgba(255,255,255,0.95); line-height: 1.15; letter-spacing: 0;
 }
 
 .perf-line {
