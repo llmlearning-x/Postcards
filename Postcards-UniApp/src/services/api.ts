@@ -230,18 +230,18 @@ export interface BoardPostcard extends PostcardDto {
 
 export const PostcardApi = {
   list: (params?: { since?: number; q?: string; limit?: number; offset?: number }) => {
-    const qs = new URLSearchParams()
-    if (params?.since)  qs.set('since', String(params.since))
-    if (params?.q)      qs.set('q', params.q)
-    if (params?.limit)  qs.set('limit', String(params.limit))
-    if (params?.offset) qs.set('offset', String(params.offset))
-    const query = qs.toString()
+    const parts: string[] = []
+    if (params?.since)  parts.push(`since=${encodeURIComponent(String(params.since))}`)
+    if (params?.q)      parts.push(`q=${encodeURIComponent(params.q)}`)
+    if (params?.limit)  parts.push(`limit=${encodeURIComponent(String(params.limit))}`)
+    if (params?.offset) parts.push(`offset=${encodeURIComponent(String(params.offset))}`)
+    const query = parts.join('&')
     return request<PostcardDto[]>('GET', query ? `/postcards?${query}` : '/postcards')
   },
   count: (params?: { q?: string }) => {
-    const qs = new URLSearchParams()
-    if (params?.q) qs.set('q', params.q)
-    const query = qs.toString()
+    const parts: string[] = []
+    if (params?.q) parts.push(`q=${encodeURIComponent(params.q)}`)
+    const query = parts.join('&')
     return request<{ total: number }>('GET', query ? `/postcards/count?${query}` : '/postcards/count')
   },
   create: (data: Omit<PostcardDto, 'id' | 'createdAt'>) =>
