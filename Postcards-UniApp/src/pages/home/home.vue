@@ -79,8 +79,6 @@
           <view class="board-refresh" :class="{ 'board-refresh-spin': boardLoading }" @click="refreshBoard">
             <IconReset :size="18" color="#2E7D58" />
           </view>
-          <text class="section-more" v-if="!hasMore && boardCards.length > 0">— 到底了 —</text>
-          <text class="section-more" v-else-if="boardCards.length > 0">滑动加载更多</text>
         </view>
 
         <!-- Loading skeleton -->
