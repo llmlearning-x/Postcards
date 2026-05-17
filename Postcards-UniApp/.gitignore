@@ -29,6 +29,7 @@ Android-SDK@*/
 *.jar
 *.keystore
 *.jks
+*.apk
 
 # Gradle
 .gradle/

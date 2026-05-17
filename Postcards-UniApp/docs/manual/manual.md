@@ -21,7 +21,9 @@
 | 平台 | 说明 |
 |------|------|
 | **H5 网页** | 线上地址：http://115.190.7.207 |
-| **Android App** | 安卓安装包：`旅行邮箱.apk` |
+| **Android App** | [GitHub Release 下载](https://github.com/llmlearning-x/Postcards/releases/download/v1.0.0/default.apk) |
+| **产品手册** | [GitHub Pages](https://llmlearning-x.github.io/Postcards/) |
+| **GitHub 仓库** | https://github.com/llmlearning-x/Postcards |
 
 ### 1.3 目标用户
 
@@ -441,4 +443,10 @@
 
 ---
 
-> **文档说明**：本手册基于线上 H5 环境（http://115.190.7.207）实际截图与功能体验整理，涵盖产品功能架构、使用指南与设计说明，供产品、设计与开发人员参考。
+> **相关链接**：
+> - H5 生产环境：http://115.190.7.207
+> - GitHub Release：[v1.0.0](https://github.com/llmlearning-x/Postcards/releases/tag/v1.0.0)
+> - APK 下载：[旅行邮箱.apk](https://github.com/llmlearning-x/Postcards/releases/download/v1.0.0/default.apk)
+> - GitHub 仓库：[llmlearning-x/Postcards](https://github.com/llmlearning-x/Postcards)
+> 
+> **文档说明**：本手册基于线上 H5 环境实际截图与功能体验整理，涵盖产品功能架构、使用指南与设计说明，供产品、设计与开发人员参考。
