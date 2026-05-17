@@ -3,7 +3,7 @@
     <!-- Sticky nav -->
     <view class="sticky-nav">
       <view class="nav-back" @click="goBack">
-        <IconBack :size="20" color="#5C5648" />
+        <text class="nav-back-icon">←</text>
       </view>
       <view class="nav-mid">
         <text class="nav-kicker">{{ isEditing ? 'EDIT JOURNEY · 编辑旅程' : 'NEW JOURNEY · 新旅程' }}</text>
@@ -161,7 +161,7 @@ import { usePostcardStore } from '@/stores/postcard'
 import { TravelStatus } from '@/model/Travel'
 import type { Travel } from '@/model/Travel'
 import { TravelApi } from '@/services/api'
-import { IconBack } from '@/components/icons'
+
 
 const store = usePostcardStore()
 
@@ -333,7 +333,7 @@ onMounted(() => {
   z-index: 100;
   background: $card-bg;
   border-bottom: 1rpx solid $line-sepia;
-  padding: 60rpx 32rpx 20rpx;
+  padding: calc(80rpx + env(safe-area-inset-top)) 32rpx 20rpx;
   display: flex;
   align-items: center;
   gap: 20rpx;
@@ -369,7 +369,7 @@ onMounted(() => {
   display: block;
   font-family: $font-family-body;
   font-size: 34rpx;
-  font-weight: 700;
+  font-weight: 500;
   color: $ink-black;
   line-height: 1.15;
   overflow: hidden;
@@ -522,8 +522,8 @@ onMounted(() => {
   gap: 8rpx;
 }
 .info-n {
-  font-family: $font-family-body;
-  font-size: 48rpx;
+  font-family: $font-family-mono;
+  font-size: 44rpx;
   color: $ink-black;
   line-height: 1;
   letter-spacing: -1rpx;

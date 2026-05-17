@@ -3,11 +3,11 @@
     <!-- Floating nav over hero photo -->
     <view class="float-nav">
       <view class="nav-btn" @click="goBack">
-        <IconBack :size="20" color="#F4EFE5" />
+        <text class="nav-btn-icon">←</text>
       </view>
       <text class="nav-label">POSTCARD · 明信片</text>
-      <view class="nav-btn" @click="showMoreOptions">
-        <IconMore :size="20" color="#F4EFE5" />
+      <view class="nav-btn" v-if="isOwner" @click="showMoreOptions">
+        <text class="nav-btn-icon">⋯</text>
       </view>
     </view>
 
@@ -123,7 +123,7 @@
             <text class="action-main">收藏</text>
             <text class="action-sub">LOVE</text>
           </view>
-          <view class="action-btn" @click="goToEdit">
+          <view class="action-btn" v-if="isOwner" @click="goToEdit">
             <IconEdit :size="22" color="#8E8775" />
             <text class="action-main">编辑</text>
             <text class="action-sub">EDIT</text>
@@ -233,30 +233,31 @@
   </view>
 
   <!-- Empty state -->
-  <view class="empty-state" v-else>
-    <view class="float-nav-empty">
-      <view class="nav-btn nav-btn-dark" @click="goBack">
-        <IconBack :size="20" color="#5C5648" />
+  <template v-if="!postcard">
+    <view class="empty-state">
+      <view class="float-nav-empty">
+        <view class="nav-btn nav-btn-dark" @click="goBack">
+          <text class="nav-btn-icon nav-btn-icon-dark">←</text>
+        </view>
+      </view>
+      <IconImage :size="96" color="#B5AE9B" />
+      <text class="empty-main">明信片不存在</text>
+      <view class="empty-btn" @click="goBack">
+        <text class="empty-btn-txt">返回</text>
       </view>
     </view>
-    <IconImage :size="96" color="#B5AE9B" />
-    <text class="empty-main">明信片不存在</text>
-    <view class="empty-btn" @click="goBack">
-      <text class="empty-btn-txt">返回</text>
-    </view>
-  </view>
+  </template>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { usePostcardStore } from '@/stores/postcard'
+import { useAuthStore } from '@/stores/auth'
 import { UIUtil } from '@/utils/ui'
 import { ToastMessages, StampDesigns } from '@/config/app'
 import type { Postcard } from '@/model/Postcard'
 import {
-  IconBack,
-  IconMore,
   IconImage,
   IconFavorite,
   IconEdit,
@@ -265,9 +266,10 @@ import {
   IconGlobe,
 } from '@/components/icons'
 import { formatDotDate, getStampColor, getStampName, getStampSeries, getStampSeriesName, getStampImageUrl } from '@/utils/stamp'
-import { PostcardApi, FeedbackApi } from '@/services/api'
+import { PostcardApi, FeedbackApi, type BoardPostcard } from '@/services/api'
 
 const store = usePostcardStore()
+const authStore = useAuthStore()
 const postcard = ref<Postcard | null>(null)
 const postcardId = ref('')
 const cardRevealed = ref(false)
@@ -276,6 +278,11 @@ const isPublic     = ref(false)
 const isTogglingPublic = ref(false)
 const showPrintModal    = ref(false)
 const printInterestDone = ref(false)
+
+const isOwner = computed(() => {
+  if (!postcard.value) return false
+  return postcard.value.travelId !== null || authStore.user?.id === (postcard.value as any).author?.id
+})
 
 const travelTitle = computed(() => {
   if (!postcard.value || !postcard.value.travelId) return '来信明信片'
@@ -362,15 +369,20 @@ function showMoreOptions() {
   })
 }
 
-function confirmDelete() {
+async function confirmDelete() {
   uni.showModal({
     title: '确认删除',
     content: ToastMessages.confirm.delete,
-    success: (res) => {
+    async success(res) {
       if (res.confirm && postcard.value) {
-        store.deletePostcard(postcard.value.id)
-        UIUtil.showSuccess(ToastMessages.success.delete)
-        setTimeout(() => uni.switchTab({ url: '/pages/home/home' }), 1500)
+        try {
+          await PostcardApi.remove(postcard.value.id)
+          store.deletePostcard(postcard.value.id)
+          UIUtil.showSuccess(ToastMessages.success.delete)
+          setTimeout(() => uni.switchTab({ url: '/pages/home/home' }), 1500)
+        } catch (e: any) {
+          uni.showToast({ title: e.message || '删除失败', icon: 'none' })
+        }
       }
     }
   })
@@ -412,12 +424,33 @@ onLoad((options) => {
 
 onMounted(() => {
   store.initData()
-  if (postcardId.value) {
-    postcard.value = store.getPostcardById(postcardId.value) || null
-    isPublic.value = postcard.value?.isPublic ?? false
+  loadPostcard()
+})
+
+async function loadPostcard() {
+  if (!postcardId.value) return
+  // 1. 先从本地 store 查找
+  const local = store.getPostcardById(postcardId.value)
+  if (local) {
+    postcard.value = local
+    isPublic.value = local.isPublic ?? false
+    setTimeout(() => { cardRevealed.value = true }, 120)
+    return
+  }
+  // 2. 本地没有，尝试从公告栏查找（公开明信片）
+  try {
+    const boardList = await PostcardApi.board(1)
+    const found = boardList.find((c: BoardPostcard) => c.id === postcardId.value)
+    if (found) {
+      // BoardPostcard 兼容 Postcard（字段基本一致）
+      postcard.value = found as unknown as Postcard
+      isPublic.value = found.isPublic ?? false
+    }
+  } catch {
+    // ignore
   }
   setTimeout(() => { cardRevealed.value = true }, 120)
-})
+}
 </script>
 
 <style lang="scss" scoped>
@@ -433,8 +466,8 @@ onMounted(() => {
   top: 0;
   left: 0;
   right: 0;
-  padding-top: 50px;
-  height: 100px;
+  padding-top: calc(72rpx + env(safe-area-inset-top));
+  height: calc(140rpx + env(safe-area-inset-top));
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -454,6 +487,16 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.nav-btn-icon {
+  font-family: $font-family-body;
+  font-size: 36rpx;
+  color: #F4EFE5;
+}
+
+.nav-btn-icon-dark {
+  color: #5C5648;
 }
 
 .nav-btn-dark {
@@ -686,7 +729,7 @@ onMounted(() => {
 
 .pback-note {
   display: block;
-  font-family: $font-family-display;
+  font-family: $font-family-body;
   font-style: italic;
   font-size: 28rpx;
   color: $ink-black;
@@ -1056,7 +1099,7 @@ onMounted(() => {
 
 .float-nav-empty {
   position: absolute;
-  top: 50px;
+  top: calc(72rpx + env(safe-area-inset-top));
   left: 32rpx;
 }
 
@@ -1171,8 +1214,8 @@ onMounted(() => {
 }
 
 .modal-stamp-char {
-  font-family: $font-family-body;
-  font-size: 56rpx;
+  font-family: $font-family-mono;
+  font-size: 48rpx;
   color: rgba(180, 120, 60, 0.8);
 }
 

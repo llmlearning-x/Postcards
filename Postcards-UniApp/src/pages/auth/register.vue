@@ -3,7 +3,7 @@
     <!-- Header -->
     <view class="header">
       <view class="nav-back" @click="goBack">
-        <IconBack :size="20" color="rgba(244,239,229,0.8)" />
+        <text class="nav-back-icon">←</text>
       </view>
       <view class="header-brand">
         <text class="brand-title">旅行邮箱</text>
@@ -62,7 +62,7 @@
         />
       </view>
 
-      <view class="form-section-title" style="margin-top: 36rpx;">
+      <view class="form-section-title" style="margin-top: 44rpx;">
         <text class="section-en">PASSWORD</text>
         <text class="section-cn">密码（至少 6 位）</text>
       </view>
@@ -107,7 +107,7 @@ import { AuthApi } from '@/services/api'
 import { useAuthStore, FREE_STAMP_IDS } from '@/stores/auth'
 import { usePostcardStore } from '@/stores/postcard'
 import { StorageUtil } from '@/utils/storage'
-import { IconBack, IconEye, IconEyeSlash } from '@/components/icons'
+import { IconEye, IconEyeSlash } from '@/components/icons'
 
 const authStore     = useAuthStore()
 const postcardStore = usePostcardStore()
@@ -183,31 +183,16 @@ function copyMailbox() {
   overflow: hidden;
 }
 
-.page::before {
-  content: '';
-  position: absolute;
-  left: 32rpx;
-  right: 32rpx;
-  top: 300rpx;
-  height: 180rpx;
-  border-radius: 42rpx 42rpx 12rpx 12rpx;
-  background: linear-gradient(180deg, #D7C596 0%, $paper-beige 100%);
-  border: 2rpx solid $line-sepia;
-  box-shadow: $shadow-sm;
-  z-index: 0;
-}
+
 
 .header {
-  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 100rpx 48rpx 72rpx;
+  padding: 80rpx 48rpx 40rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16rpx;
-  border-radius: 0 0 42rpx 42rpx;
   position: relative;
   z-index: 2;
-  box-shadow: $shadow-md;
 }
 
 .nav-back {
@@ -220,44 +205,45 @@ function copyMailbox() {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: rgba(244, 239, 229, 0.12);
+  background: rgba(60, 96, 77, 0.08);
 }
 
 .header-brand {
   display: flex;
-  align-items: baseline;
-  gap: 20rpx;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
 }
 
 .brand-title {
-  font-family: $font-family-display;
-  font-size: 72rpx;
-  font-weight: 400;
-  color: #F4EFE5;
-  letter-spacing: 2rpx;
+  font-family: $font-family-sans;
+  font-size: 56rpx;
+  font-weight: 500;
+  color: $forest-green;
+  letter-spacing: 3rpx;
 }
 
 .brand-sub {
   font-family: $font-family-action;
-  font-size: 22rpx;
-  letter-spacing: 1rpx;
-  color: rgba(244, 239, 229, 0.65);
+  font-size: 20rpx;
+  letter-spacing: 2rpx;
+  color: rgba($forest-green, 0.4);
 }
 
 .header-kicker {
   font-family: $font-family-action;
-  font-size: 24rpx;
-  letter-spacing: 0;
-  color: rgba(244, 239, 229, 0.6);
-  margin-top: 8rpx;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
+  color: rgba($forest-green, 0.35);
+  margin-top: 12rpx;
 }
 
 .form-card {
-  margin: 74rpx 40rpx 0;
+  margin: 64rpx 40rpx 0;
   background: linear-gradient(180deg, #FFFDF7 0%, #F7F0E3 100%);
   border: 3rpx solid $rule-color;
   border-radius: 28rpx 28rpx 16rpx 16rpx;
-  padding: 116rpx 36rpx 34rpx;
+  padding: 108rpx 36rpx 32rpx;
   box-shadow: $shadow-lg;
   position: relative;
   z-index: 1;
@@ -289,9 +275,12 @@ function copyMailbox() {
   top: -58rpx;
   height: 148rpx;
   border-radius: 90rpx 90rpx 24rpx 24rpx;
-  background: linear-gradient(180deg, #466B57 0%, $travel-blue 100%);
+  background: linear-gradient(180deg, #5A7D68 0%, $travel-blue 100%);
   border: 3rpx solid $rule-color;
-  box-shadow: inset 0 -12rpx 24rpx rgba(0, 0, 0, 0.12);
+  border-top: 2rpx solid rgba(255, 255, 255, 0.15);
+  box-shadow:
+    inset 0 -12rpx 24rpx rgba(0, 0, 0, 0.12),
+    0 6rpx 16rpx rgba(40, 30, 15, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -333,8 +322,8 @@ function copyMailbox() {
 
 .mailbox-flag {
   position: absolute;
-  right: -18rpx;
-  top: -24rpx;
+  right: -14rpx;
+  top: -20rpx;
   width: 92rpx;
   height: 132rpx;
   z-index: 3;
@@ -375,7 +364,7 @@ function copyMailbox() {
   font-family: $font-family-action;
   font-size: 18rpx;
   color: #FFFDF7;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .form-section-title {
@@ -399,8 +388,8 @@ function copyMailbox() {
 }
 
 .input-wrap {
-  border-bottom: 1rpx solid $line-sepia;
-  padding-bottom: 16rpx;
+  border-bottom: 2rpx solid rgba($line-sepia, 0.85);
+  padding-bottom: 14rpx;
   display: flex;
   align-items: center;
   gap: 14rpx;
@@ -452,14 +441,14 @@ function copyMailbox() {
 .btn-primary {
   margin-top: 40rpx;
   height: 88rpx;
-  background: $travel-blue;
-  border-radius: 6rpx;
+  background: $forest-green;
+  border-radius: 12rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 
-  &.btn-dis { opacity: 0.45; }
-  &:active:not(.btn-dis) { background: $forest-green; }
+  &.btn-dis { opacity: 0.4; }
+  &:active:not(.btn-dis) { background: $travel-blue; }
 }
 
 .btn-txt {
@@ -546,7 +535,7 @@ function copyMailbox() {
   font-size: 52rpx;
   letter-spacing: 2rpx;
   color: $ink-black;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .copy-mailbox-btn {

@@ -1,14 +1,12 @@
 <template>
   <view class="page-container">
-    <view class="postal-header">
-      <view class="header-perf"></view>
-      <view class="nav-back" @click="goBack">
-        <IconBack :size="18" color="rgba(255,255,255,0.9)" />
-      </view>
-      <text class="header-kicker">POSTCARDS · 明信片</text>
-      <text class="header-title">我的明信片</text>
-      <text class="header-subtitle">共 {{ postcards.length }} 张明信片</text>
-    </view>
+    <PostalHeader
+      kicker="POSTCARDS · 明信片"
+      title="我的明信片"
+      :subtitle="`共 ${postcards.length} 张明信片`"
+      fallback-url="/pages/profile/profile"
+      @back="goBack"
+    />
 
     <scroll-view class="content" scroll-y>
       <view v-if="postcards.length > 0" class="list-wrap">
@@ -122,8 +120,9 @@ import { computed, onMounted, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { usePostcardStore } from '@/stores/postcard'
 import type { Postcard } from '@/model/Postcard'
-import { IconBack, IconFavorite, IconImage } from '@/components/icons'
+import { IconFavorite, IconImage } from '@/components/icons'
 import { getStampColor, getStampImageUrl } from '@/utils/stamp'
+import PostalHeader from '@/components/PostalHeader.vue'
 import PostcardFlipModal from '@/components/PostcardFlipModal.vue'
 
 const store = usePostcardStore()
@@ -186,57 +185,6 @@ onShow(() => { if (store.postcards.length === 0) store.initData() })
   flex-direction: column;
   height: 100vh;
   background: $page-background;
-}
-
-// ─── Header ───
-.postal-header {
-  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 100rpx 48rpx 20rpx;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.header-perf {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 6rpx;
-  background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
-}
-
-.nav-back {
-  position: absolute;
-  top: 52rpx;
-  left: 48rpx;
-  width: 64rpx;
-  height: 64rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.header-kicker {
-  display: block;
-  font-family: $font-family-code;
-  font-size: 24rpx;
-  letter-spacing: 1rpx;
-  color: rgba(255,255,255,0.65);
-  margin-bottom: 12rpx;
-}
-
-.header-title {
-  display: block;
-  font-family: $font-family-body;
-  font-size: 46rpx;
-  font-weight: 700;
-  color: rgba(255,255,255,0.95);
-  line-height: 1.15;
-  letter-spacing: 0;
-}
-
-.header-subtitle {
-  display: block;
-  font-family: $font-family-body;
-  font-size: 26rpx;
-  color: rgba(255,255,255,0.7);
-  margin-top: 10rpx;
 }
 
 .content {
@@ -359,7 +307,7 @@ onShow(() => { if (store.postcards.length === 0) store.initData() })
 }
 
 .pc-note {
-  font-family: $font-family-display;
+  font-family: $font-family-body;
   font-style: normal;
   font-size: 22rpx;
   color: rgba(255, 255, 255, 0.9);
@@ -420,7 +368,7 @@ onShow(() => { if (store.postcards.length === 0) store.initData() })
 
 .pc-city {
   font-family: $font-family-display;
-  font-size: 46rpx;
+  font-size: 40rpx;
   font-weight: 400;
   color: $ink-black;
   letter-spacing: -1rpx;
@@ -432,7 +380,7 @@ onShow(() => { if (store.postcards.length === 0) store.initData() })
 }
 
 .pc-loc {
-  font-family: $font-family-body;
+  font-family: $font-family-display;
   font-size: 24rpx;
   color: $body-text;
   display: block;

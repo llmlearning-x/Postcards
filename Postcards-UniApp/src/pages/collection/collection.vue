@@ -1,14 +1,12 @@
 <template>
   <view class="page-container">
-    <view class="postal-header">
-      <view class="header-perf"></view>
-      <view class="nav-back" @click="goBack">
-        <IconBack :size="18" color="rgba(255,255,255,0.9)" />
-      </view>
-      <text class="header-kicker">COLLECTION · 珍藏</text>
-      <text class="header-title">我的收藏</text>
-      <text class="header-subtitle">{{ postcardAlbums.length }} 本明信片集 · {{ stampAlbums.length }} 本邮票集</text>
-    </view>
+    <PostalHeader
+      kicker="COLLECTION · 珍藏"
+      title="我的收藏"
+      :subtitle="`${postcardAlbums.length} 本明信片集 · ${stampAlbums.length} 本邮票集`"
+      fallback-url="/pages/profile/profile"
+      @back="goBack"
+    />
 
     <scroll-view class="content" scroll-y>
 
@@ -204,7 +202,8 @@ import { StampApi } from '@/services/api'
 import type { StampItem } from '@/services/api'
 import type { Postcard } from '@/model/Postcard'
 import { TravelStatus } from '@/model/Travel'
-import { IconBack, IconFavorite } from '@/components/icons'
+import { IconFavorite } from '@/components/icons'
+import PostalHeader from '@/components/PostalHeader.vue'
 
 const store     = usePostcardStore()
 const authStore = useAuthStore()
@@ -287,35 +286,6 @@ onShow(() => { if (store.postcards.length === 0) store.initData(); loadStamps() 
 .page-container {
   display: flex; flex-direction: column;
   height: 100vh; background: $page-background;
-}
-
-// ─── Header ───
-.postal-header {
-  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 100rpx 48rpx 20rpx;
-  position: relative;
-  flex-shrink: 0;
-}
-.header-perf {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 6rpx;
-  background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
-}
-.nav-back {
-  position: absolute; top: 52rpx; left: 48rpx;
-  width: 64rpx; height: 64rpx;
-  display: flex; align-items: center; justify-content: center;
-}
-.header-kicker {
-  display: block; font-family: $font-family-code;
-  font-size: 22rpx; letter-spacing: 2rpx; color: rgba(255,255,255,0.65); margin-bottom: 12rpx;
-}
-.header-title {
-  display: block; font-family: $font-family-body;
-  font-size: 46rpx; font-weight: 700; color: rgba(255,255,255,0.95); line-height: 1.15; letter-spacing: 0;
-}
-.header-subtitle {
-  display: block; font-family: $font-family-body;
-  font-size: 24rpx; color: rgba(255,255,255,0.7); margin-top: 10rpx;
 }
 
 .content { flex: 1; overflow: hidden; }
@@ -407,7 +377,7 @@ onShow(() => { if (store.postcards.length === 0) store.initData(); loadStamps() 
   font-weight: 500; font-size: 38rpx; color: $ink-black; line-height: 1;
 }
 .section-badge {
-  font-family: $font-family-body; font-size: 44rpx; color: $line-sepia; line-height: 1; letter-spacing: -1rpx;
+  font-family: $font-family-mono; font-size: 40rpx; color: $line-sepia; line-height: 1; letter-spacing: -1rpx;
 }
 .section-more {
   font-family: $font-family-code; font-size: 22rpx; letter-spacing: 2rpx; color: $travel-blue;

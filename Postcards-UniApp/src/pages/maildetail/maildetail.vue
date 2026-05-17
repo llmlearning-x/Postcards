@@ -3,7 +3,7 @@
     <!-- Floating nav -->
     <view class="float-nav">
       <view class="nav-btn" @click="goBack">
-        <IconBack :size="20" color="#F4EFE5" />
+        <text class="nav-back-icon">←</text>
       </view>
       <text class="nav-label">MAIL · 来信</text>
       <view style="width: 76rpx;"></view>
@@ -129,7 +129,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { MailApi, type MailingItem } from '@/services/api'
 import { usePostcardStore } from '@/stores/postcard'
 import { StampDesigns } from '@/config/app'
-import { IconBack, IconEnvelope } from '@/components/icons'
+import { IconEnvelope } from '@/components/icons'
 import { formatDotDate, getStampColor, getStampName, getStampImageUrl } from '@/utils/stamp'
 
 const store = usePostcardStore()
@@ -224,8 +224,8 @@ onMounted(async () => {
 .float-nav {
   position: fixed;
   top: 0; left: 0; right: 0;
-  padding-top: 50px;
-  height: 100px;
+  padding-top: calc(72rpx + env(safe-area-inset-top));
+  height: calc(140rpx + env(safe-area-inset-top));
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -479,7 +479,7 @@ onMounted(async () => {
 
 .pback-note {
   display: block;
-  font-family: $font-family-display;
+  font-family: $font-family-body;
   font-style: italic;
   font-size: 26rpx;
   color: $ink-black;
@@ -547,7 +547,7 @@ onMounted(async () => {
 
 .note-content {
   display: block;
-  font-family: $font-family-display;
+  font-family: $font-family-body;
   font-style: italic;
   font-size: 30rpx;
   color: $ink-black;

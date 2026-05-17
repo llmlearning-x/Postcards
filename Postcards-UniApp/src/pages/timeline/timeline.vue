@@ -1,11 +1,11 @@
 <template>
   <view class="page-container">
-    <view class="postal-header">
-      <view class="header-perf"></view>
-      <text class="header-kicker">TIMELINE · 时间轴</text>
-      <text class="header-title">回顾旅途</text>
-      <text class="header-subtitle">按日期倒序 · 共 {{ postcards.length }} 张明信片</text>
-    </view>
+    <PostalHeader
+      kicker="TIMELINE · 时间轴"
+      title="回顾旅途"
+      :subtitle="`按日期倒序 · 共 ${postcards.length} 张明信片`"
+      :showBack="false"
+    />
 
     <scroll-view class="content" scroll-y>
       <view v-if="groupedPostcards.length > 0" class="groups-wrap">
@@ -95,6 +95,7 @@ import { StampDesigns } from '@/config/app'
 import type { Postcard } from '@/model/Postcard'
 import { IconImage, IconFavorite } from '@/components/icons'
 import { formatDotDate, getStampColor, getStampImageUrl } from '@/utils/stamp'
+import PostalHeader from '@/components/PostalHeader.vue'
 import PostcardFlipModal from '@/components/PostcardFlipModal.vue'
 
 const store = usePostcardStore()
@@ -178,45 +179,6 @@ onMounted(() => store.initData())
   background: $page-background;
 }
 
-.postal-header {
-  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 56rpx 48rpx 20rpx;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.header-perf {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 6rpx;
-  background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
-}
-
-.header-kicker {
-  display: block;
-  font-family: $font-family-code;
-  font-size: 24rpx;
-  letter-spacing: 1rpx;
-  color: rgba(255,255,255,0.65);
-  margin-bottom: 12rpx;
-}
-
-.header-title {
-  display: block;
-  font-family: $font-family-body;
-  font-size: 46rpx;
-  font-weight: 700;
-  color: rgba(255,255,255,0.95);
-  line-height: 1.15;
-  letter-spacing: 0;
-}
-
-.header-subtitle {
-  display: block;
-  font-family: $font-family-body;
-  font-size: 26rpx;
-  color: rgba(255,255,255,0.7);
-  margin-top: 10rpx;
-}
-
 .content {
   flex: 1;
   overflow: hidden;
@@ -246,8 +208,8 @@ onMounted(() => store.initData())
 }
 
 .group-date-n {
-  font-family: $font-family-display;
-  font-size: 52rpx;
+  font-family: $font-family-body;
+  font-size: 40rpx;
   font-weight: 400;
   color: $ink-black;
   line-height: 1;
@@ -412,7 +374,7 @@ onMounted(() => store.initData())
 
 .row-loc {
   display: block;
-  font-family: $font-family-body;
+  font-family: $font-family-display;
   font-size: 32rpx;
   font-weight: 500;
   color: $ink-black;

@@ -1,25 +1,26 @@
 <template>
   <view class="page-container">
-    <view class="postal-header">
-      <view class="header-perf"></view>
-      <view class="nav-back" @click="goBack">
-        <IconBack :size="18" color="rgba(255,255,255,0.9)" />
-      </view>
-      <text class="header-kicker">POINTS · 积分</text>
-      <text class="header-title">积分明细</text>
-      <view class="header-balance-row">
-        <text class="header-balance">{{ points }}</text>
-        <text class="header-balance-lbl">PT</text>
-      </view>
+    <PostalHeader
+      kicker="POINTS · 积分"
+      title="积分明细"
+      subtitle="记录明信片、每日签到、寄出明信片都能获得积分"
+      fallback-url="/pages/profile/profile"
+      @back="goBack"
+    />
 
-      <!-- 今日赚取进度 -->
-      <view class="daily-cap-row">
-        <view class="daily-cap-bar">
-          <view class="daily-cap-fill" :style="{ width: capPct + '%' }"></view>
+    <!-- 积分余额卡片 -->
+    <view class="points-card">
+      <view class="points-card-row">
+        <view class="points-balance">
+          <text class="points-num">{{ points }}</text>
+          <text class="points-lbl">PT</text>
         </view>
-        <text class="daily-cap-txt">
-          今日已赚 {{ todayEarned }} / {{ dailyCap }} PT{{ capReached ? ' · 已达上限' : '' }}
-        </text>
+        <view class="points-progress">
+          <view class="progress-bar">
+            <view class="progress-fill" :style="{ width: capPct + '%' }"></view>
+          </view>
+          <text class="progress-txt">今日已赚 {{ todayEarned }} / {{ dailyCap }} PT{{ capReached ? ' · 已达上限' : '' }}</text>
+        </view>
       </view>
     </view>
 
@@ -91,7 +92,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { PointsApi } from '@/services/api'
-import { IconBack } from '@/components/icons'
+import PostalHeader from '@/components/PostalHeader.vue'
+
 
 const authStore = useAuthStore()
 
@@ -181,99 +183,72 @@ onMounted(loadData)
   background: $page-background;
 }
 
-// ─── Header ───
-.postal-header {
-  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 100rpx 48rpx 20rpx;
-  position: relative;
-  flex-shrink: 0;
+// ─── Points card ───
+.points-card {
+  margin: 24rpx 32rpx 0;
+  background: linear-gradient(180deg, #FFFDF7 0%, #F7F0E3 100%);
+  border: 3rpx solid $rule-color;
+  border-radius: 28rpx;
+  padding: 32rpx 36rpx;
+  box-shadow: $shadow-lg;
 }
 
-.header-perf {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 6rpx;
-  background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
-}
-
-.nav-back {
-  position: absolute;
-  top: 52rpx;
-  left: 48rpx;
-  width: 64rpx;
-  height: 64rpx;
+.points-card-row {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 24rpx;
 }
 
-.header-kicker {
-  display: block;
-  font-family: $font-family-code;
-  font-size: 22rpx;
-  letter-spacing: 2rpx;
-  color: rgba(255,255,255,0.65);
-  margin-bottom: 16rpx;
-}
-
-.header-title {
-  display: block;
-  font-family: $font-family-body;
-  font-size: 52rpx;
-  font-weight: 700;
-  color: rgba(255,255,255,0.95);
-  line-height: 1.15;
-  letter-spacing: 0;
-  margin-bottom: 16rpx;
-}
-
-.header-balance-row {
+.points-balance {
   display: flex;
   align-items: baseline;
   gap: 8rpx;
+  flex-shrink: 0;
 }
 
-.header-balance {
-  font-family: $font-family-body;
-  font-size: 72rpx;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.95);
+.points-num {
+  font-family: $font-family-mono;
+  font-size: 52rpx;
+  color: $ink-black;
   line-height: 1;
   letter-spacing: -2rpx;
 }
 
-.header-balance-lbl {
+.points-lbl {
   font-family: $font-family-code;
-  font-size: 24rpx;
+  font-size: 22rpx;
   letter-spacing: 2rpx;
-  color: rgba(255, 255, 255, 0.6);
+  color: $mute-text;
 }
 
-// ─── Daily cap progress ───
-.daily-cap-row {
-  margin-top: 20rpx;
+.points-progress {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 8rpx;
+  min-width: 0;
 }
 
-.daily-cap-bar {
+.progress-bar {
   height: 6rpx;
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba($line-sepia, 0.5);
   border-radius: 3rpx;
   overflow: hidden;
 }
 
-.daily-cap-fill {
+.progress-fill {
   height: 100%;
-  background: rgba(255, 255, 255, 0.85);
+  background: $travel-blue;
   border-radius: 3rpx;
   transition: width 0.4s ease;
 }
 
-.daily-cap-txt {
+.progress-txt {
   font-family: $font-family-code;
   font-size: 22rpx;
   letter-spacing: 1rpx;
-  color: rgba(255, 255, 255, 0.65);
+  color: $mute-text;
 }
 
 // ─── Action bar ───
@@ -439,7 +414,7 @@ onMounted(loadData)
 
 .log-icon {
   font-size: 26rpx;
-  font-weight: 700;
+  font-weight: 500;
   color: $travel-blue;
 }
 

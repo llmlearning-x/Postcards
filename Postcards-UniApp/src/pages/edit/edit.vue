@@ -3,7 +3,7 @@
     <!-- Sticky paper nav -->
     <view class="sticky-nav">
       <view class="nav-back-btn" @click="handleBack">
-        <IconBack :size="18" color="#222019" />
+        <text class="nav-back-icon">←</text>
       </view>
       <view class="nav-center">
         <text class="nav-kicker">EDITING · N° {{ padNum(postcardId) }}</text>
@@ -142,7 +142,7 @@ import { getStampImageUrl } from '@/utils/stamp'
 import { PostcardApi, UploadApi } from '@/services/api'
 import type { Postcard } from '@/model/Postcard'
 import {
-  IconBack,
+
   IconCamera,
 } from '@/components/icons'
 
@@ -262,12 +262,16 @@ function confirmDelete() {
     title: '确认删除',
     content: ToastMessages.confirm.delete,
     confirmColor: '#A43B2D',
-    success: async (res) => {
+    async success(res) {
       if (res.confirm) {
-        store.deletePostcard(postcardId.value)
-        try { await PostcardApi.remove(postcardId.value) } catch {}
-        UIUtil.showSuccess(ToastMessages.success.delete)
-        setTimeout(() => uni.switchTab({ url: '/pages/home/home' }), 1500)
+        try {
+          await PostcardApi.remove(postcardId.value)
+          store.deletePostcard(postcardId.value)
+          UIUtil.showSuccess(ToastMessages.success.delete)
+          setTimeout(() => uni.switchTab({ url: '/pages/home/home' }), 1500)
+        } catch (e: any) {
+          uni.showToast({ title: e.message || '删除失败', icon: 'none' })
+        }
       }
     }
   })
@@ -310,7 +314,7 @@ onMounted(() => {
   top: 0;
   z-index: 20;
   background: $page-background;
-  padding-top: 54px;
+  padding-top: calc(72rpx + env(safe-area-inset-top));
   padding-bottom: 32rpx;
   padding-left: 36rpx;
   padding-right: 36rpx;
@@ -349,7 +353,7 @@ onMounted(() => {
   display: block;
   font-family: $font-family-body;
   font-size: 32rpx;
-  font-weight: 700;
+  font-weight: 500;
   color: $ink-black;
 }
 
@@ -367,7 +371,7 @@ onMounted(() => {
   font-size: 24rpx;
   letter-spacing: 1rpx;
   color: $travel-blue;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 // ─── Scroll ───

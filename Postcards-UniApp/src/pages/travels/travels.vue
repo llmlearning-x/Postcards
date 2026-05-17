@@ -1,17 +1,18 @@
 <template>
   <view class="page-container">
-    <view class="postal-header">
-      <view class="header-perf"></view>
-      <view class="nav-back" @click="goBack">
-        <IconBack :size="18" color="rgba(255,255,255,0.9)" />
-      </view>
-      <view class="nav-new" @click="createTravel">
-        <IconPlus :size="20" color="rgba(255,255,255,0.9)" />
-      </view>
-      <text class="header-kicker">TRIPS · 旅程</text>
-      <text class="header-title">我的旅程</text>
-      <text class="header-subtitle">共 {{ store.sortedTravels.length }} 段旅程</text>
-    </view>
+    <PostalHeader
+      kicker="TRIPS · 旅程"
+      title="我的旅程"
+      :subtitle="`共 ${store.sortedTravels.length} 段旅程`"
+      fallback-url="/pages/profile/profile"
+      @back="goBack"
+    >
+      <template #right>
+        <view class="header-action-btn" @click="createTravel">
+          <text class="header-action-icon">+</text>
+        </view>
+      </template>
+    </PostalHeader>
 
     <scroll-view class="content" scroll-y>
       <view v-if="store.sortedTravels.length > 0" class="list-wrap">
@@ -107,7 +108,8 @@ import { onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { usePostcardStore } from '@/stores/postcard'
 import { TravelStatus } from '@/model/Travel'
-import { IconBack, IconPlus, IconMap } from '@/components/icons'
+import PostalHeader from '@/components/PostalHeader.vue'
+import { IconMap } from '@/components/icons'
 
 const store = usePostcardStore()
 
@@ -176,66 +178,23 @@ onShow(() => { if (store.travels.length === 0) store.initData() })
   background: $page-background;
 }
 
-// ─── Header ───
-.postal-header {
-  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 100rpx 48rpx 20rpx;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.header-perf {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 6rpx;
-  background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
-}
-
-.nav-back {
-  position: absolute;
-  top: 52rpx;
-  left: 48rpx;
+// ─── Header action button (right slot) ───
+.header-action-btn {
   width: 64rpx;
   height: 64rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(255,255,255,0.12);
+  border: 1rpx solid rgba(255,255,255,0.2);
+  border-radius: 50%;
 }
 
-.nav-new {
-  position: absolute;
-  top: 52rpx;
-  right: 48rpx;
-  width: 64rpx;
-  height: 64rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.header-kicker {
-  display: block;
-  font-family: $font-family-code;
-  font-size: 22rpx;
-  letter-spacing: 2rpx;
-  color: rgba(255,255,255,0.65);
-  margin-bottom: 12rpx;
-}
-
-.header-title {
-  display: block;
+.header-action-icon {
   font-family: $font-family-body;
-  font-size: 46rpx;
-  font-weight: 700;
-  color: rgba(255,255,255,0.95);
-  line-height: 1.15;
-  letter-spacing: 0;
-}
-
-.header-subtitle {
-  display: block;
-  font-family: $font-family-body;
-  font-size: 26rpx;
-  color: rgba(255,255,255,0.7);
-  margin-top: 10rpx;
+  font-size: 36rpx;
+  color: rgba(255,255,255,0.9);
+  line-height: 1;
 }
 
 .content {

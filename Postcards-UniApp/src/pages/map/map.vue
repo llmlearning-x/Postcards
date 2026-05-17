@@ -1,11 +1,11 @@
 <template>
   <view class="page-container">
-    <view class="postal-header">
-      <view class="header-perf"></view>
-      <text class="header-kicker">ATLAS · 旅行图鉴</text>
-      <text class="header-title">走过的远方</text>
-      <text class="header-subtitle">{{ cityCount }} 座城市 · {{ travels.length }} 段旅程</text>
-    </view>
+    <PostalHeader
+      kicker="ATLAS · 旅行图鉴"
+      title="走过的远方"
+      :subtitle="`${cityCount} 座城市 · ${travels.length} 段旅程`"
+      :showBack="false"
+    />
 
     <scroll-view class="content" scroll-y>
 
@@ -226,6 +226,7 @@ import { computed, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { usePostcardStore } from '@/stores/postcard'
 import { TravelStatus } from '@/model/Travel'
+import PostalHeader from '@/components/PostalHeader.vue'
 import type { Travel } from '@/model/Travel'
 
 const store     = usePostcardStore()
@@ -364,29 +365,6 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
 }
 
 // ─── Header ───
-.postal-header {
-  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 56rpx 48rpx 20rpx;
-  position: relative;
-  flex-shrink: 0;
-}
-.header-perf {
-  position: absolute; bottom: 0; left: 0; right: 0; height: 6rpx;
-  background: repeating-linear-gradient(-45deg, #B8312A 0, #B8312A 5rpx, #ffffff 5rpx, #ffffff 10rpx, #1C3A72 10rpx, #1C3A72 15rpx, #ffffff 15rpx, #ffffff 20rpx);
-}
-.header-kicker {
-  display: block; font-family: $font-family-code;
-  font-size: 24rpx; letter-spacing: 1rpx; color: rgba(255,255,255,0.65); margin-bottom: 12rpx;
-}
-.header-title {
-  display: block; font-family: $font-family-body;
-  font-size: 46rpx; font-weight: 700; color: rgba(255,255,255,0.95); line-height: 1.15; letter-spacing: 0;
-}
-.header-subtitle {
-  display: block; font-family: $font-family-body;
-  font-size: 26rpx; color: rgba(255,255,255,0.7); margin-top: 10rpx;
-}
-
 .content { flex: 1; overflow: hidden; }
 
 // ─── Stats strip ───
@@ -460,7 +438,7 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
   font-family: $font-family-action; font-size: 22rpx; letter-spacing: 0; color: $mute-text;
 }
 .banner-title {
-  font-family: $font-family-display; font-size: 30rpx; font-weight: 500;
+  font-family: $font-family-body; font-size: 30rpx; font-weight: 500;
   color: $ink-black; letter-spacing: 2rpx;
 }
 
@@ -551,7 +529,7 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
 }
 .map-empty-icon { font-size: 48rpx; color: $line-sepia; opacity: 0.5; }
 .map-empty-txt {
-  font-family: $font-family-body; font-size: 30rpx; color: $body-text; text-align: center; font-weight: 600;
+  font-family: $font-family-body; font-size: 30rpx; color: $body-text; text-align: center; font-weight: 500;
 }
 .map-empty-sub {
   font-family: $font-family-body; font-size: 24rpx; letter-spacing: 0; color: $mute-text;
@@ -598,7 +576,7 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
   border-radius: 8rpx;
 }
 .section-kicker {
-  font-family: $font-family-action; font-size: 24rpx; font-weight: 700; letter-spacing: 0; color: $travel-blue;
+  font-family: $font-family-action; font-size: 24rpx; font-weight: 500; letter-spacing: 0; color: $travel-blue;
 }
 .section-count {
   font-family: $font-family-action; font-size: 22rpx; letter-spacing: 0; color: $mute-text;
@@ -625,7 +603,7 @@ onShow(() => { if (store.travels.length > 0) store.initData() })
 }
 
 .pm-city {
-  font-family: $font-family-display;
+  font-family: $font-family-body;
   font-size: 28rpx; font-weight: 500; color: $ink-black;
   text-align: center; padding: 8rpx 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;

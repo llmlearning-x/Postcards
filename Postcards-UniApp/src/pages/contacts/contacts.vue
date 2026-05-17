@@ -7,7 +7,7 @@
     >
       <template #right>
         <view class="header-add" @click.stop="openAddSheet">
-          <IconPlus :size="20" color="rgba(255,255,255,0.9)" />
+          <text class="nav-back-icon">+</text>
         </view>
       </template>
     </PostalHeader>
@@ -32,7 +32,7 @@
         <text class="empty-title">暂无联系人</text>
         <text class="empty-sub">通过对方的邮箱号搜索并添加好友</text>
         <view class="empty-add-btn" @click="openAddSheet">
-          <IconPlus :size="16" color="#F4EFE5" />
+          <text style="font-size: 28rpx; color: #F4EFE5;">+</text>
           <text class="empty-add-txt">添加联系人</text>
         </view>
       </view>
@@ -74,7 +74,7 @@
               <text class="send-btn-txt">寄出</text>
             </view>
             <view class="more-btn" @click="showMore(c)">
-              <IconMore :size="18" color="#8A8070" />
+              <text style="font-size: 28rpx; color: #8A8070;">⋯</text>
             </view>
           </view>
         </view>
@@ -123,7 +123,7 @@ import { onShow } from '@dcloudio/uni-app'
 import { ContactsApi, type ApiUser, type ContactItem } from '@/services/api'
 import PostalHeader from '@/components/PostalHeader.vue'
 import UserSearchPanel from '@/components/UserSearchPanel.vue'
-import { IconPlus, IconSend, IconMore, IconContacts, IconEnvelope } from '@/components/icons'
+import { IconSend, IconContacts, IconEnvelope } from '@/components/icons'
 
 const contacts     = ref<ContactItem[]>([])
 const loading      = ref(true)

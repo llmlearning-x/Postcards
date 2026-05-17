@@ -3,7 +3,7 @@
     <view class="header-perf"></view>
 
     <view v-if="showBack" class="nav-back" @click="handleBack">
-      <IconBack :size="18" color="rgba(255,255,255,0.9)" />
+      <text class="nav-back-icon">←</text>
     </view>
 
     <view v-if="$slots.right" class="header-right">
@@ -20,7 +20,6 @@
 </template>
 
 <script setup lang="ts">
-import { IconBack } from '@/components/icons'
 import { safeBack } from '@/utils/navigation'
 
 const props = withDefaults(defineProps<{
@@ -47,7 +46,7 @@ function handleBack() {
 <style lang="scss" scoped>
 .postal-header {
   background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: calc(72rpx + env(safe-area-inset-top)) 48rpx 22rpx;
+  padding: calc(124rpx + env(safe-area-inset-top)) 48rpx 22rpx;
   position: relative;
   flex-shrink: 0;
 }
@@ -74,16 +73,25 @@ function handleBack() {
 .nav-back,
 .header-right {
   position: absolute;
-  top: calc(28rpx + env(safe-area-inset-top));
+  top: calc(52rpx + env(safe-area-inset-top));
   width: 64rpx;
   height: 64rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(255,255,255,0.12);
+  border: 1rpx solid rgba(255,255,255,0.2);
+  border-radius: 50%;
 }
 
 .nav-back {
   left: 40rpx;
+}
+
+.nav-back-icon {
+  font-family: $font-family-body;
+  font-size: 36rpx;
+  color: rgba(255,255,255,0.9);
 }
 
 .header-right {
@@ -114,8 +122,8 @@ function handleBack() {
 .header-title {
   display: block;
   font-family: $font-family-body;
-  font-size: 46rpx;
-  font-weight: 700;
+  font-size: 40rpx;
+  font-weight: 500;
   color: rgba(255,255,255,0.95);
   line-height: 1.15;
   letter-spacing: 0;

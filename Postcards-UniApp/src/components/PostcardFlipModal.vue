@@ -87,9 +87,50 @@
         </view>
       </view>
 
+      <!-- Author info (board mode) -->
+      <view v-if="mode === 'board' && author" class="flip-author">
+        <view class="flip-author-avatar">
+          <text class="flip-author-initial">{{ author.nickname.slice(0, 1) }}</text>
+        </view>
+        <view class="flip-author-info">
+          <text class="flip-author-name">{{ author.nickname }}</text>
+          <text class="flip-author-mailbox">{{ author.mailboxNo }}</text>
+        </view>
+        <view
+          v-if="!isContact && author.id !== selfId"
+          class="flip-add-btn"
+          @click="handleAddContact"
+        >
+          <text class="flip-add-txt">+ 加为联系人</text>
+        </view>
+        <view v-else-if="isContact" class="flip-added-tag">
+          <text class="flip-added-txt">✓ 已是联系人</text>
+        </view>
+      </view>
+
       <!-- Action buttons -->
       <view class="flip-actions">
-        <view class="flip-btn-detail" @click="goDetail">
+        <!-- Board mode: stamp + favorite -->
+        <template v-if="mode === 'board'">
+          <view
+            class="flip-btn"
+            :class="{ 'flip-btn-active': isStamped }"
+            @click="handleStamp"
+          >
+            <text class="flip-btn-icon">✦</text>
+            <text class="flip-btn-txt">{{ isStamped ? '已盖章' : '盖章' }}</text>
+          </view>
+          <view
+            class="flip-btn"
+            :class="{ 'flip-btn-active': isFavorited }"
+            @click="handleFavorite"
+          >
+            <text class="flip-btn-icon">♥</text>
+            <text class="flip-btn-txt">{{ isFavorited ? '已收藏' : '收藏' }}</text>
+          </view>
+        </template>
+        <!-- Detail mode: view detail -->
+        <view v-else class="flip-btn-detail" @click="goDetail">
           <text class="flip-btn-txt">查看详情</text>
         </view>
       </view>
@@ -98,14 +139,34 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import type { Postcard } from '@/model/Postcard'
+import { useAuthStore } from '@/stores/auth'
 import { getStampColor, getStampImageUrl } from '@/utils/stamp'
 
-const props = defineProps<{ postcard: Postcard | null }>()
-const emit = defineEmits<{ (e: 'close'): void }>()
+const props = defineProps<{
+  postcard: Postcard | null
+  mode?: 'detail' | 'board'
+  isStamped?: boolean
+  isFavorited?: boolean
+  isContact?: boolean
+}>()
+const emit = defineEmits<{
+  (e: 'close'): void
+  (e: 'stamp', id: string): void
+  (e: 'favorite', id: string): void
+  (e: 'addContact', authorId: string): void
+}>()
+
+const authStore = useAuthStore()
+const selfId = computed(() => authStore.user?.id ?? '')
 
 const flipped = ref(false)
+
+const author = computed(() => {
+  if (!props.postcard || props.mode !== 'board') return null
+  return (props.postcard as any).author || null
+})
 
 watch(() => props.postcard, (val) => {
   if (val) flipped.value = false
@@ -131,6 +192,21 @@ function goDetail() {
   if (!props.postcard) return
   emit('close')
   uni.navigateTo({ url: `/pages/detail/detail?id=${props.postcard.id}` })
+}
+
+function handleStamp() {
+  if (!props.postcard || props.isStamped) return
+  emit('stamp', props.postcard.id)
+}
+
+function handleFavorite() {
+  if (!props.postcard) return
+  emit('favorite', props.postcard.id)
+}
+
+function handleAddContact() {
+  if (!author.value) return
+  emit('addContact', author.value.id)
 }
 </script>
 
@@ -248,11 +324,12 @@ function goDetail() {
 }
 
 .front-city {
-  font-family: $font-family-body;
-  font-size: 44rpx;
+  font-family: $font-family-display;
+  font-size: 28rpx;
+  font-weight: 500;
   color: rgba(255, 255, 255, 0.95);
-  letter-spacing: -1rpx;
-  line-height: 1.1;
+  letter-spacing: 0;
+  line-height: 1.2;
 }
 
 .front-date {
@@ -395,7 +472,7 @@ function goDetail() {
 }
 
 .back-to-lbl {
-  font-family: $font-family-body;
+  font-family: $font-family-display;
   font-style: italic;
   font-size: 22rpx;
   color: $mute-text;
@@ -403,7 +480,7 @@ function goDetail() {
 }
 
 .back-to-name {
-  font-family: $font-family-body;
+  font-family: $font-family-display;
   font-size: 26rpx;
   color: $ink-black;
   display: block;
@@ -414,7 +491,7 @@ function goDetail() {
 }
 
 .back-location {
-  font-family: $font-family-body;
+  font-family: $font-family-display;
   font-size: 22rpx;
   color: $body-text;
   display: block;
@@ -425,7 +502,7 @@ function goDetail() {
 }
 
 .back-city {
-  font-family: $font-family-body;
+  font-family: $font-family-display;
   font-size: 22rpx;
   color: $mute-text;
   display: block;
@@ -470,6 +547,82 @@ function goDetail() {
   line-height: 1.3;
 }
 
+// ─── Author info (board mode) ───
+.flip-author {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+  padding: 0 20rpx;
+}
+
+.flip-author-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $travel-blue, $forest-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 3rpx solid $page-background;
+}
+
+.flip-author-initial {
+  font-family: $font-family-body;
+  font-size: 28rpx;
+  color: #F4EFE5;
+}
+
+.flip-author-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.flip-author-name {
+  display: block;
+  font-family: $font-family-body;
+  font-size: 28rpx;
+  color: $ink-black;
+}
+
+.flip-author-mailbox {
+  display: block;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+  color: $travel-blue;
+}
+
+.flip-add-btn {
+  padding: 16rpx 28rpx;
+  background: $travel-blue;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+  &:active { opacity: 0.85; }
+}
+
+.flip-add-txt {
+  font-family: $font-family-body;
+  font-size: 26rpx;
+  color: #F4EFE5;
+  letter-spacing: 2rpx;
+}
+
+.flip-added-tag {
+  padding: 16rpx 28rpx;
+  border: 1rpx solid $line-sepia;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+
+.flip-added-txt {
+  font-family: $font-family-code;
+  font-size: 24rpx;
+  letter-spacing: 2rpx;
+  color: $mute-text;
+}
+
 // ─── Actions ───
 .flip-actions {
   display: flex;
@@ -480,6 +633,28 @@ function goDetail() {
   background: $card-bg;
   padding: 20rpx 64rpx;
   border-radius: 6rpx;
+}
+
+.flip-btn {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  padding: 20rpx 48rpx;
+  border-radius: 6rpx;
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  &:active { opacity: 0.8; }
+}
+
+.flip-btn-active {
+  background: rgba($travel-blue, 0.08);
+  border-color: $travel-blue;
+  .flip-btn-icon, .flip-btn-txt { color: $travel-blue; }
+}
+
+.flip-btn-icon {
+  font-size: 28rpx;
+  color: $mute-text;
 }
 
 .flip-btn-txt {
