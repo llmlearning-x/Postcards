@@ -9,7 +9,6 @@
     "build:mp-weixin": "uni build -p mp-weixin",
     "dev:app-android": "uni -p app-android",
     "build:app-android": "uni build -p app-android",
-    "build:app-android:test": "uni build -p app-android --mode test",
     "dev:app-ios": "uni -p app-ios",
     "build:app-ios": "uni build -p app-ios",
     "build:app-ios:test": "uni build -p app-ios --mode test"

@@ -4,9 +4,9 @@ import uni from '@dcloudio/vite-plugin-uni'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_')
   
-  // 显式注入环境变量（uni-app alpha 版 import.meta.env 替换有 bug）
-  const apiUrl = env.VITE_API_BASE_URL || (mode === 'test' ? 'http://115.175.15.145/api' : 'http://115.190.7.207/api')
-  const stampsUrl = env.VITE_STAMPS_BASE_URL || (mode === 'test' ? 'http://115.175.15.145/stamps' : 'http://115.190.7.207/stamps')
+  // 只保留生产环境 URL（本地开发通过 Vite proxy 走 /api）
+  const apiUrl = env.VITE_API_BASE_URL || 'http://115.190.7.207/api'
+  const stampsUrl = env.VITE_STAMPS_BASE_URL || 'http://115.190.7.207/stamps'
   
   console.log('>>> MODE:', mode, 'API_URL:', apiUrl, 'STAMPS_URL:', stampsUrl)
   
@@ -27,11 +27,11 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: 'http://115.175.15.145',
+          target: 'http://115.190.7.207',
           changeOrigin: true,
         },
         '/stamps': {
-          target: 'http://115.175.15.145',
+          target: 'http://115.190.7.207',
           changeOrigin: true,
         },
       }
