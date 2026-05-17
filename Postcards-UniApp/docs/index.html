@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>旅行邮箱 — 产品使用及设计说明手册</title>
+  <style>
+    :root {
+      --primary: #2D5A45;
+      --bg: #F5F0E8;
+      --text: #333333;
+      --text-secondary: #888888;
+      --border: #E0DCD4;
+      --accent: #C0392B;
+      --card-bg: #FFFFFF;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    h1 {
+      font-size: 2.2em;
+      color: var(--primary);
+      text-align: center;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    .subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.95em;
+      margin-bottom: 40px;
+    }
+    h2 {
+      font-size: 1.6em;
+      color: var(--primary);
+      margin: 48px 0 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--primary);
+    }
+    h3 {
+      font-size: 1.25em;
+      color: var(--primary);
+      margin: 32px 0 16px;
+    }
+    h4 {
+      font-size: 1.1em;
+      color: var(--text);
+      margin: 24px 0 12px;
+    }
+    p { margin-bottom: 16px; }
+    .screenshot {
+      display: block;
+      max-width: 390px;
+      width: 100%;
+      margin: 20px auto;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      border: 1px solid var(--border);
+    }
+    .screenshot-caption {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.85em;
+      margin-top: -12px;
+      margin-bottom: 24px;
+    }
+    .screenshot-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .screenshot-row .screenshot {
+      margin: 0;
+      flex: 0 0 auto;
+      max-width: 280px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      background: var(--card-bg);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(45,90,69,0.04); }
+    code {
+      background: rgba(45,90,69,0.08);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: "Menlo", "Monaco", monospace;
+      font-size: 0.9em;
+    }
+    .info-box {
+      background: var(--card-bg);
+      border-left: 4px solid var(--primary);
+      padding: 16px 20px;
+      margin: 20px 0;
+      border-radius: 0 8px 8px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .info-box.warning {
+      border-left-color: var(--accent);
+    }
+    ul, ol {
+      margin: 16px 0 16px 24px;
+    }
+    li { margin-bottom: 8px; }
+    .toc {
+      background: var(--card-bg);
+      padding: 24px 28px;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      margin: 32px 0;
+    }
+    .toc h3 {
+      margin-top: 0;
+      text-align: center;
+    }
+    .toc ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .toc li {
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .toc li:last-child { border-bottom: none; }
+    .toc a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .toc a:hover { text-decoration: underline; }
+    .version-tag {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8em;
+      margin-left: 8px;
+    }
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.9em;
+      line-height: 1.6;
+    }
+    .architecture {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      margin: 20px 0;
+      font-family: "Menlo", "Monaco", monospace;
+      font-size: 0.85em;
+      line-height: 1.8;
+      white-space: pre;
+      overflow-x: auto;
+    }
+    @media (max-width: 600px) {
+      body { padding: 20px 12px; }
+      h1 { font-size: 1.6em; }
+      h2 { font-size: 1.3em; }
+      .screenshot-row { flex-direction: column; align-items: center; }
+      .screenshot-row .screenshot { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>旅行邮箱 <span class="version-tag">v1.0.0</span></h1>
+<p class="subtitle">产品使用及设计说明手册 · 2026-05-18</p>
+
+<div class="info-box" style="text-align:center;">
+  <strong>平台支持</strong><br>
+  <span style="font-size:1.1em;">Android App · H5 网页</span><br>
+  <span style="font-size:0.9em; color:var(--text-secondary);">安卓安装包：旅行邮箱.apk</span>
+</div>
+
+<div class="toc">
+  <h3>目录</h3>
+  <ul>
+    <li><a href="#overview">一、产品概述</a></li>
+    <li><a href="#architecture">二、整体功能架构</a></li>
+    <li><a href="#guide">三、使用指南</a>
+      <ul>
+        <li><a href="#login">3.1 注册与登录</a></li>
+        <li><a href="#home">3.2 首页</a></li>
+        <li><a href="#timeline">3.3 时间轴</a></li>
+        <li><a href="#record">3.4 记录明信片</a></li>
+        <li><a href="#map">3.5 地图</a></li>
+        <li><a href="#profile">3.6 个人中心</a></li>
+        <li><a href="#shop">3.7 邮票商店与预览</a></li>
+        <li><a href="#contacts">3.8 通讯录</a></li>
+        <li><a href="#inbox">3.9 收件箱与寄出</a></li>
+        <li><a href="#travel">3.10 旅程管理</a></li>
+        <li><a href="#postcards">3.11 我的明信片与收藏</a></li>
+      </ul>
+    </li>
+    <li><a href="#design">四、设计说明</a></li>
+    <li><a href="#appendix">五、附录</a></li>
+  </ul>
+</div>
+
+<h2 id="overview">一、产品概述</h2>
+
+<p><strong>旅行邮箱</strong>是一款以邮政明信片为核心载体的旅行记录 H5 应用。用户通过创建「旅程」，在旅途中拍摄照片、记录心情，将每一段经历封装为一张独特的「明信片」。明信片可收藏、可寄送（给未来的自己或通讯录好友），并在地图与时间轴中形成可视化的旅行足迹。</p>
+
+<div class="info-box">
+  <strong>产品理念</strong><br>
+  · <strong>邮政美学</strong>：以传统邮政信封、邮票、邮戳为视觉符号，营造复古而温暖的旅行仪式感。<br>
+  · <strong>旅程归档</strong>：每张明信片都必须归属到一段「旅程」中，形成结构化的旅行记忆。<br>
+  · <strong>社交寄送</strong>：支持将明信片寄送给通讯录好友，分享旅途中的美好瞬间。
+</div>
+
+<h2 id="architecture">二、整体功能架构</h2>
+
+<div class="architecture">
+┌─────────────────────────────────────────────────────────────┐
+│                        旅行邮箱 v1.0.0                        │
+├─────────────────────────────────────────────────────────────┤
+│  用户体系                                                     │
+│  ├── 注册（邮箱号 CN-XXXXXX + 密码）                           │
+│  ├── 登录                                                     │
+│  └── 个人资料（昵称、头像、积分、统计）                          │
+├─────────────────────────────────────────────────────────────┤
+│  核心功能                                                     │
+│  ├── 首页（公告栏、快捷入口）                                   │
+│  ├── 时间轴（按日期倒序展示明信片）                              │
+│  ├── 记录（创建明信片：照片+位置+城市+心情+邮票）                  │
+│  ├── 地图（旅行足迹可视化：国家/城市/明信片/旅程统计）              │
+│  └── 我的（个人中心、设置、关于）                                │
+├─────────────────────────────────────────────────────────────┤
+│  社交功能                                                     │
+│  ├── 通讯录（好友列表）                                        │
+│  ├── 收件箱（收到的好友明信片）                                 │
+│  └── 寄出（发送明信片给好友/自己）                               │
+├─────────────────────────────────────────────────────────────┤
+│  增值系统                                                     │
+│  ├── 邮票商店（解锁主题邮票：经典/自然/文化/城市/古迹/四季…）       │
+│  ├── 积分系统（注册/签到/记录明信片/寄出 获得积分）                │
+│  └── 收藏（邮票集、明信片集）                                   │
+├─────────────────────────────────────────────────────────────┤
+│  旅程管理                                                     │
+│  ├── 创建旅程（设定出发地与目的地）                               │
+│  ├── 旅程列表（Boarding Pass 风格卡片）                         │
+│  └── 旅程归档（明信片自动归属）                                  │
+└─────────────────────────────────────────────────────────────┘
+</div>
+
+<h2 id="guide">三、使用指南</h2>
+
+<h3 id="login">3.1 注册与登录</h3>
+
+<h4>注册流程</h4>
+<p>首次使用需创建「旅行信箱」，系统会分配唯一的邮箱号（格式：<code>CN-XXXXXX</code>）。</p>
+<ol>
+  <li>点击「立即注册」进入注册页</li>
+  <li>输入旅行昵称</li>
+  <li>设置 6 位数字密码</li>
+  <li>点击「投递申请」完成注册</li>
+  <li>系统会自动分配邮箱号并登录</li>
+</ol>
+<img src="manual/14-register.png" class="screenshot" alt="注册页面">
+<p class="screenshot-caption">注册页面 — 创建旅行信箱</p>
+
+<h4>登录流程</h4>
+<p>已注册用户可通过邮箱号和密码登录。</p>
+<ol>
+  <li>输入 6 位邮箱号（系统自动补全 <code>CN-</code> 前缀）</li>
+  <li>输入密码</li>
+  <li>点击「开启信箱」登录</li>
+</ol>
+<img src="manual/13-login.png" class="screenshot" alt="登录页面">
+<p class="screenshot-caption">登录页面 — 开启信箱</p>
+
+<h3 id="home">3.2 首页</h3>
+
+<p>首页是用户进入应用后的主界面，采用双栏瀑布流布局展示「旅行公告栏」中的公开明信片。</p>
+
+<table>
+  <tr><th>区域</th><th>说明</th></tr>
+  <tr><td><strong>顶部栏</strong></td><td>显示当前时间、用户昵称、日期</td></tr>
+  <tr><td><strong>今日卡片</strong></td><td>引导创建第一段旅程，快捷入口</td></tr>
+  <tr><td><strong>快捷导航</strong></td><td>收件箱 / 寄出 / 通讯录 三个功能入口</td></tr>
+  <tr><td><strong>旅行公告栏</strong></td><td>双栏瀑布流展示公开明信片（含城市标签、点赞数、作者邮箱号）</td></tr>
+  <tr><td><strong>底部引导</strong></td><td>未创建旅程时显示「创建第一段旅程」引导</td></tr>
+  <tr><td><strong>底部 Tab</strong></td><td>首页 / 时间轴 / 记录 / 地图 / 我的</td></tr>
+</table>
+
+<img src="manual/01-landing.png" class="screenshot" alt="首页">
+<p class="screenshot-caption">首页 — 旅行公告栏与快捷入口</p>
+
+<h4>公告栏明信片卡片</h4>
+<p>每张明信片卡片包含：顶部城市标签、封面图片、类型标签（香/番 等）、标题、底部点赞数 + 作者邮箱号。</p>
+
+<h3 id="timeline">3.3 时间轴</h3>
+
+<p>时间轴按日期倒序展示用户创建的所有明信片，形成线性的旅行回忆时间线。每条记录按日期分组，包含明信片缩略图、标题、城市、日期。</p>
+
+<img src="manual/03-timeline.png" class="screenshot" alt="时间轴">
+<p class="screenshot-caption">时间轴 — 按日期倒序排列的明信片（共 4 张）</p>
+
+<h3 id="record">3.4 记录明信片</h3>
+
+<p>「记录」是产品的核心功能，用于创建一张新的旅行明信片。</p>
+
+<img src="manual/15-record-logged.png" class="screenshot" alt="记录明信片">
+<p class="screenshot-caption">记录明信片 — 填写表单创建新明信片</p>
+
+<table>
+  <tr><th>步骤</th><th>字段</th><th>说明</th></tr>
+  <tr><td>1</td><td><strong>照片</strong></td><td>点击拍照或从相册选择，比例 4:3，最大 5MB</td></tr>
+  <tr><td>2</td><td><strong>所属旅程</strong></td><td>选择已有旅程，或点击「+ 新建旅程」创建</td></tr>
+  <tr><td>3</td><td><strong>位置</strong></td><td>点击定位按钮自动获取，或手动输入具体地址</td></tr>
+  <tr><td>4</td><td><strong>城市</strong></td><td>输入城市名称（必填）</td></tr>
+  <tr><td>5</td><td><strong>国家</strong></td><td>默认「中国」，可修改</td></tr>
+  <tr><td>6</td><td><strong>收件人</strong></td><td>选填，默认「未来的我」，可写给通讯录好友</td></tr>
+  <tr><td>7</td><td><strong>备注</strong></td><td>记录此刻的心情，最多 200 字</td></tr>
+  <tr><td>8</td><td><strong>邮票</strong></td><td>默认使用当前邮票，点击「更换」可选择其他已解锁邮票</td></tr>
+  <tr><td>9</td><td><strong>预览</strong></td><td>点击「查看」可预览明信片正反面效果</td></tr>
+  <tr><td>10</td><td><strong>保存</strong></td><td>填写完整后点击「保存明信片」完成创建</td></tr>
+</table>
+
+<h3 id="map">3.5 地图</h3>
+
+<p>地图页以可视化方式展示用户的旅行足迹。顶部统计国家数、城市数、明信片数与旅程数，中部足迹图标记已到访城市，底部列表展示到访城市与对应明信片数量。</p>
+
+<img src="manual/05-map.png" class="screenshot" alt="地图">
+<p class="screenshot-caption">地图 — 旅行足迹可视化（3 座城市 · 1 段旅程 · 4 张明信片）</p>
+
+<h3 id="profile">3.6 个人中心（我的）</h3>
+
+<p>个人中心汇总展示用户的个人信息、资产、社交入口和设置。</p>
+
+<img src="manual/02-profile.png" class="screenshot" alt="个人中心">
+<p class="screenshot-caption">个人中心 — 信息汇总与功能入口</p>
+
+<table>
+  <tr><th>区域</th><th>说明</th></tr>
+  <tr><td><strong>头像昵称区</strong></td><td>头像、昵称、状态签名、邮箱号、加入天数</td></tr>
+  <tr><td><strong>数据统计</strong></td><td>总旅程 / 明信片 / 收藏 / 积分</td></tr>
+  <tr><td><strong>邮票集藏</strong></td><td>横向滚动展示已解锁的邮票</td></tr>
+  <tr><td><strong>社交入口</strong></td><td>邮票商店 / 我的通讯录 / 我的收件箱</td></tr>
+  <tr><td><strong>设置</strong></td><td>修改头像 / 编辑昵称 / 退出登录</td></tr>
+  <tr><td><strong>关于</strong></td><td>隐私协议 / 用户协议 / 关于我们</td></tr>
+  <tr><td><strong>版本信息</strong></td><td>旅行邮箱 · v1.0.0</td></tr>
+</table>
+
+<h3 id="shop">3.7 邮票商店与预览</h3>
+
+<p>邮票商店提供多种主题的虚拟邮票，用户可用积分解锁，用于装饰明信片。点击任意邮票可进入全屏预览，查看设计理念与插画细节。</p>
+
+<div class="screenshot-row">
+  <img src="manual/11-shop.png" class="screenshot" alt="邮票商店">
+  <img src="manual/25-stamp-preview.png" class="screenshot" alt="邮票预览">
+</div>
+<p class="screenshot-caption">左：邮票商店列表 · 右：邮票全屏预览（含设计理念）</p>
+
+<table>
+  <tr><th>系列</th><th>主题</th><th>积分</th></tr>
+  <tr><td>SÉRIE I 旅行</td><td>经典、自然、文化、城市</td><td>免费</td></tr>
+  <tr><td>SÉRIE II 古迹</td><td>长城、兵马俑、古塔、苏园</td><td>20 PT</td></tr>
+  <tr><td>SÉRIE III 四季</td><td>春樱、夏荷、秋枫、冬雪</td><td>30 PT</td></tr>
+  <tr><td>SÉRIE IV 节气</td><td>立春、清明、夏至、立秋、霜降、大寒</td><td>50 PT</td></tr>
+  <tr><td>SÉRIE V 远方</td><td>草原、雪山、沙漠、海岛</td><td>80 PT</td></tr>
+</table>
+
+<h4>积分获取</h4>
+<table>
+  <tr><th>行为</th><th>积分</th></tr>
+  <tr><td>注册奖励</td><td>+50 PT</td></tr>
+  <tr><td>每日签到</td><td>+5 PT</td></tr>
+  <tr><td>记录明信片</td><td>+10 PT</td></tr>
+</table>
+
+<img src="manual/21-points.png" class="screenshot" alt="积分明细">
+<p class="screenshot-caption">积分明细 — 收支记录</p>
+
+<h3 id="contacts">3.8 通讯录</h3>
+
+<p>通讯录管理好友关系，可查看已添加的联系人。</p>
+
+<img src="manual/16-contacts-logged.png" class="screenshot" alt="通讯录">
+<p class="screenshot-caption">通讯录 — 好友列表</p>
+
+<h3 id="inbox">3.9 收件箱与寄出</h3>
+
+<h4>收件箱</h4>
+<p>展示收到的好友明信片，支持「来信」与「已寄出」两个标签切换。</p>
+<img src="manual/06-inbox.png" class="screenshot" alt="收件箱">
+<p class="screenshot-caption">收件箱 — 收到的明信片列表</p>
+
+<h4>寄出</h4>
+<p>选择已创建的明信片，寄送给通讯录好友或自己。</p>
+<img src="manual/17-send-postcard.png" class="screenshot" alt="寄出明信片">
+<p class="screenshot-caption">寄出明信片 — 选择明信片发送</p>
+
+<h4>明信片详情（收到）</h4>
+<p>点击收件箱中的明信片可查看详情，包含寄件人信息、明信片正面与背面内容。</p>
+<img src="manual/23-maildetail.png" class="screenshot" alt="收件详情">
+<p class="screenshot-caption">收件详情 — 查看好友寄来的明信片</p>
+
+<h3 id="travel">3.10 旅程管理</h3>
+
+<p>旅程是明信片的上级组织单位，一段旅程可包含多张明信片。</p>
+
+<h4>创建旅程</h4>
+<ol>
+  <li>设定旅程名称</li>
+  <li>选择出发地</li>
+  <li>选择目的地</li>
+  <li>设定出发日期</li>
+</ol>
+<img src="manual/09-travel.png" class="screenshot" alt="旅程管理">
+<p class="screenshot-caption">旅程管理 — 创建新旅程</p>
+
+<h4>旅程列表</h4>
+<p>以「登机牌（Boarding Pass）」风格展示所有旅程。</p>
+<img src="manual/19-travels.png" class="screenshot" alt="旅程列表">
+<p class="screenshot-caption">旅程列表 — Boarding Pass 风格卡片</p>
+
+<h3 id="postcards">3.11 我的明信片与收藏</h3>
+
+<h4>我的明信片</h4>
+<p>列表展示用户创建的所有明信片，包含编号、城市、日期、封面、收件人等信息。</p>
+<img src="manual/18-my-postcards.png" class="screenshot" alt="我的明信片">
+<p class="screenshot-caption">我的明信片 — 全部明信片列表</p>
+
+<h4>明信片详情（自己创建）</h4>
+<p>点击明信片可查看详情页，展示完整明信片正反面、邮戳、邮票、留言等信息。</p>
+<img src="manual/10-detail.png" class="screenshot" alt="明信片详情">
+<p class="screenshot-caption">明信片详情 — 完整明信片展示</p>
+
+<h4>收藏</h4>
+<p>收藏页面包含明信片集、邮票集，以及「印成实体册」增值服务。</p>
+<img src="manual/20-collection.png" class="screenshot" alt="收藏">
+<p class="screenshot-caption">收藏 — 明信片集与邮票集</p>
+
+<h4>编辑明信片</h4>
+<p>支持编辑已寄出的明信片信息，修改不会改变原始记录时间。</p>
+<img src="manual/22-edit.png" class="screenshot" alt="编辑明信片">
+<p class="screenshot-caption">编辑明信片 — 修改已寄出明信片</p>
+
+<h4>旅行公告栏</h4>
+<p>独立的公告栏页面，展示所有公开分享的明信片，支持双栏瀑布流浏览。</p>
+<img src="manual/24-board.png" class="screenshot" alt="旅行公告栏">
+<p class="screenshot-caption">旅行公告栏 — 公开明信片瀑布流</p>
+
+<h2 id="design">四、设计说明</h2>
+
+<h3>4.1 视觉风格</h3>
+
+<h4>色彩体系</h4>
+<table>
+  <tr><th>色彩角色</th><th>色值</th><th>用途</th></tr>
+  <tr><td>主色（邮政绿）</td><td><code>#2D5A45</code></td><td>顶部导航、按钮、标签、强调文字</td></tr>
+  <tr><td>背景色（米白）</td><td><code>#F5F0E8</code></td><td>页面背景、卡片底色</td></tr>
+  <tr><td>文字主色</td><td><code>#333333</code></td><td>标题、正文</td></tr>
+  <tr><td>文字次色</td><td><code>#888888</code></td><td>辅助说明、时间、次要信息</td></tr>
+  <tr><td>边框/分割线</td><td><code>#E0DCD4</code></td><td>卡片边框、分隔线</td></tr>
+  <tr><td>点缀色（红）</td><td><code>#C0392B</code></td><td>邮戳、积分标签、重要提示</td></tr>
+</table>
+
+<h4>字体规范</h4>
+<ul>
+  <li><strong>标题</strong>：思源宋体 / 衬线体，营造文艺复古感</li>
+  <li><strong>正文</strong>：系统默认无衬线字体，保证可读性</li>
+  <li><strong>英文标签</strong>：全部大写，字母间距加宽（如 <code>TRAVEL MAILBOX</code>、<code>BULLETIN BOARD</code>）</li>
+</ul>
+
+<h4>视觉元素</h4>
+<ul>
+  <li><strong>信封边框</strong>：顶部红蓝相间的锯齿纹，模拟航空信封</li>
+  <li><strong>邮票样式</strong>：圆角矩形，带齿孔边框，复古插画风格</li>
+  <li><strong>邮戳标记</strong>：圆形邮戳样式，用于标记城市、日期</li>
+  <li><strong>Boarding Pass</strong>：旅程卡片采用登机牌设计，带撕裂线效果</li>
+</ul>
+
+<h3>4.2 交互设计</h3>
+
+<h4>底部 Tab 导航</h4>
+<div class="info-box">
+  <strong>首页 / 时间轴 / 记录 / 地图 / 我的</strong><br>
+  · 选中状态：图标 + 文字高亮（邮政绿）<br>
+  · 未选中状态：灰色图标 + 文字<br>
+  · 「记录」Tab 带特殊强调（笔形图标）
+</div>
+
+<h4>页面转场</h4>
+<ul>
+  <li>页面切换：淡入淡出或从右向左滑动</li>
+  <li>返回上一级：从左向右滑动，带返回箭头 <code>&lt;</code></li>
+</ul>
+
+<h4>弹窗规范</h4>
+<ul>
+  <li>确认弹窗：居中显示，半透明遮罩，圆角矩形</li>
+  <li>底部操作弹窗：从底部滑出，用于选择旅程、邮票等</li>
+</ul>
+
+<h3>4.3 页面布局</h3>
+
+<h4>统一头部</h4>
+<p>所有子页面采用统一的顶部导航栏：左侧返回按钮（<code>&lt;</code>）、中间页面标题（中文 + 英文小标题）、右侧操作按钮。</p>
+
+<h4>卡片布局</h4>
+<ul>
+  <li>圆角：8-12px</li>
+  <li>阴影：轻微投影（<code>box-shadow: 0 2px 8px rgba(0,0,0,0.06)</code>）</li>
+  <li>内边距：16-20px</li>
+  <li>边框：1px 实线或虚线（模拟信封边缘）</li>
+</ul>
+
+<h2 id="appendix">五、附录</h2>
+
+<h3>截图清单</h3>
+<table>
+  <tr><th>编号</th><th>页面</th><th>说明</th></tr>
+  <tr><td>01</td><td>首页</td><td>旅行公告栏与快捷入口</td></tr>
+  <tr><td>02</td><td>个人中心</td><td>信息汇总与功能入口</td></tr>
+  <tr><td>03</td><td>时间轴</td><td>按日期倒序排列的明信片（4 张）</td></tr>
+  <tr><td>05</td><td>地图</td><td>旅行足迹可视化（3 座城市）</td></tr>
+  <tr><td>06</td><td>收件箱</td><td>收到的明信片列表</td></tr>
+  <tr><td>09</td><td>旅程管理</td><td>创建新旅程</td></tr>
+  <tr><td>10</td><td>明信片详情页</td><td>完整信息展示与操作</td></tr>
+  <tr><td>11</td><td>邮票商店</td><td>解锁主题邮票</td></tr>
+  <tr><td>13</td><td>登录页</td><td>开启信箱</td></tr>
+  <tr><td>14</td><td>注册页</td><td>创建旅行信箱</td></tr>
+  <tr><td>15</td><td>记录明信片</td><td>填写表单创建新明信片</td></tr>
+  <tr><td>16</td><td>通讯录</td><td>好友列表</td></tr>
+  <tr><td>17</td><td>寄出明信片</td><td>选择明信片发送</td></tr>
+  <tr><td>18</td><td>我的明信片</td><td>全部明信片列表</td></tr>
+  <tr><td>19</td><td>旅程列表</td><td>Boarding Pass 风格卡片</td></tr>
+  <tr><td>20</td><td>收藏</td><td>明信片集与邮票集</td></tr>
+  <tr><td>21</td><td>积分明细</td><td>收支记录</td></tr>
+  <tr><td>22</td><td>编辑明信片</td><td>修改已寄出明信片</td></tr>
+  <tr><td>23</td><td>收件详情</td><td>查看好友寄来的明信片</td></tr>
+  <tr><td>24</td><td>旅行公告栏</td><td>公开明信片瀑布流</td></tr>
+  <tr><td>25</td><td>邮票预览</td><td>全屏放大 + 设计理念</td></tr>
+  <tr><td>26</td><td>明信片正面</td><td>翻转预览 — 旅途照片 + 邮戳</td></tr>
+  <tr><td>27</td><td>明信片背面</td><td>翻转预览 — 留言 + 地址 + 邮票</td></tr>
+</table>
+
+<div class="info-box">
+  <strong>文档说明</strong><br>
+  本手册基于线上 H5 环境（http://115.190.7.207）实际截图与功能体验整理，涵盖产品功能架构、使用指南与设计说明，供产品、设计与开发人员参考使用。
+</div>
+
+<p style="text-align:center; color:var(--text-secondary); margin-top:60px;">
+  旅行邮箱 · v1.0.0 · 记录旅途 · 寄往远方<br>
+  © 2026 旅行邮箱
+</p>
+
+</body>
+</html>
