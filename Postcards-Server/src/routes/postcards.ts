@@ -56,6 +56,14 @@ export async function postcardRoutes(app: FastifyInstance) {
     const { photoUrl, locationName, city, country, note, stampDesign, isFavorite, toName, isPublic } = req.body as any
     const now = Date.now()
 
+    // 保存的来信不允许公开
+    if (isPublic !== undefined && isPublic) {
+      const existing = await queryOne<any>('SELECT is_saved_mailing FROM postcards WHERE id = ? AND user_id = ?', [id, uid])
+      if (existing && existing.is_saved_mailing === 1) {
+        return reply.code(403).send({ error: '保存的来信不允许公开' })
+      }
+    }
+
     await execute(
       `UPDATE postcards SET
          photo_url     = COALESCE(?, photo_url),
@@ -149,6 +157,7 @@ function toCamel(row: any) {
     stampImageUrl: resolveStampImageUrl(row.stamp_design, null),
     isFavorite:   row.is_favorite === 1,
     isPublic:     row.is_public === 1,
+    isSavedMailing: row.is_saved_mailing === 1,
     stampCount:   row.stamp_count ?? 0,
     recordedAt:   row.recorded_at,
     createdAt:    row.created_at,

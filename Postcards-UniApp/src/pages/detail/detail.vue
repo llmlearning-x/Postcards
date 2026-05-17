@@ -123,12 +123,12 @@
             <text class="action-main">收藏</text>
             <text class="action-sub">LOVE</text>
           </view>
-          <view class="action-btn" v-if="isOwner" @click="goToEdit">
+          <view class="action-btn" v-if="isOwner && !isSavedMailing" @click="goToEdit">
             <IconEdit :size="22" color="#8E8775" />
             <text class="action-main">编辑</text>
             <text class="action-sub">EDIT</text>
           </view>
-          <view class="action-btn" @click="goToSend">
+          <view class="action-btn" v-if="!isSavedMailing" @click="goToSend">
             <IconSend :size="22" color="#3C604D" />
             <text class="action-main" style="color:#3C604D;">寄出</text>
             <text class="action-sub">MAIL</text>
@@ -141,7 +141,7 @@
         </view>
 
         <!-- Public board toggle -->
-        <view class="public-toggle" :class="{ 'public-toggle-on': isPublic }" @click="togglePublic">
+        <view v-if="!isSavedMailing" class="public-toggle" :class="{ 'public-toggle-on': isPublic }" @click="togglePublic">
           <view class="public-toggle-left">
             <IconGlobe :size="22" :color="isPublic ? '#2E7D58' : '#8E8775'" />
             <view class="public-toggle-text">
@@ -283,6 +283,10 @@ const printInterestDone = ref(false)
 const isOwner = computed(() => {
   if (!postcard.value) return false
   return postcard.value.travelId !== null || authStore.user?.id === (postcard.value as any).author?.id
+})
+
+const isSavedMailing = computed(() => {
+  return postcard.value?.isSavedMailing === true
 })
 
 const travelTitle = computed(() => {

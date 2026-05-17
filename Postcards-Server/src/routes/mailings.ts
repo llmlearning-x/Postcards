@@ -186,8 +186,8 @@ export async function mailingRoutes(app: FastifyInstance) {
     const now = Date.now()
 
     await execute(
-      `INSERT INTO postcards (id, user_id, travel_id, photo_url, location_name, city, country, note, stamp_design, to_name, is_favorite, recorded_at, created_at, updated_at)
-       VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)`,
+      `INSERT INTO postcards (id, user_id, travel_id, photo_url, location_name, city, country, note, stamp_design, to_name, is_favorite, is_saved_mailing, recorded_at, created_at, updated_at)
+       VALUES (?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, 0, 1, ?, ?, ?)`,
       [
         newPostcardId, uid,
         snap.photoUrl || null,

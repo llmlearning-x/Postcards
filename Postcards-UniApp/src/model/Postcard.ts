@@ -10,6 +10,7 @@ export interface Postcard {
   stampDesign: string
   isFavorite: boolean
   isPublic: boolean
+  isSavedMailing: boolean
   stampCount: number
   recordedAt: number
   createdAt: number
