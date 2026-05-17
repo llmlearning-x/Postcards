@@ -21,7 +21,8 @@ jobs:
   deploy-backend:
     name: Deploy Backend API
     runs-on: ubuntu-latest
-    if: ${{ inputs.deploy_backend }}
+    # push tags 时自动部署；手动触发时根据 inputs 决定
+    if: ${{ github.event_name == 'push' || inputs.deploy_backend == true }}
     defaults:
       run:
         working-directory: Postcards-Server
@@ -77,7 +78,8 @@ jobs:
   deploy-frontend:
     name: Deploy Frontend H5
     runs-on: ubuntu-latest
-    if: ${{ inputs.deploy_frontend }}
+    # push tags 时自动部署；手动触发时根据 inputs 决定
+    if: ${{ github.event_name == 'push' || inputs.deploy_frontend == true }}
     defaults:
       run:
         working-directory: Postcards-UniApp
@@ -97,6 +99,15 @@ jobs:
 
       - name: Build H5
         run: npm run build:h5
+
+      - name: Clean old H5 on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USERNAME }}
+          key: ${{ secrets.PROD_DEPLOY_KEY }}
+          script: |
+            rm -rf /data/postcards/h5/assets /data/postcards/h5/static /data/postcards/h5/index.html
 
       - name: Deploy to production server
         uses: appleboy/scp-action@v0.1.7
