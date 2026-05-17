@@ -57,7 +57,7 @@ jobs:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USERNAME }}
           key: ${{ secrets.PROD_DEPLOY_KEY }}
-          source: "Postcards-Server/dist/,Postcards-Server/package.json,Postcards-Server/ecosystem.config.js"
+          source: "Postcards-Server/dist/,Postcards-Server/package.json,Postcards-Server/ecosystem.config.js,Postcards-Server/stamps/"
           target: "/data/postcards/"
           strip_components: 1
 
@@ -69,6 +69,7 @@ jobs:
           key: ${{ secrets.PROD_DEPLOY_KEY }}
           script: |
             cd /data/postcards
+            mkdir -p /data/postcards/uploads
             npm install --omit=dev
             pm2 reload postcards-api || pm2 start ecosystem.config.js
             pm2 save
