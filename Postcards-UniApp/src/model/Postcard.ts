@@ -1,5 +1,6 @@
 export interface Postcard {
   id: string
+  userId: string
   travelId: string | null
   photoUrl: string
   locationName: string

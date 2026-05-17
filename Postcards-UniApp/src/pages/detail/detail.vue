@@ -282,7 +282,7 @@ const printInterestDone = ref(false)
 
 const isOwner = computed(() => {
   if (!postcard.value) return false
-  return postcard.value.travelId !== null || authStore.user?.id === (postcard.value as any).author?.id
+  return authStore.user?.id === postcard.value.userId
 })
 
 const isSavedMailing = computed(() => {
@@ -362,10 +362,13 @@ function sharePostcard() {
 }
 
 function showMoreOptions() {
+  const items = isSavedMailing.value ? ['删除'] : ['编辑', '删除']
   uni.showActionSheet({
-    itemList: ['编辑', '删除'],
+    itemList: items,
     success: (res) => {
-      if (res.tapIndex === 0) {
+      if (isSavedMailing.value) {
+        confirmDelete()
+      } else if (res.tapIndex === 0) {
         goToEdit()
       } else {
         confirmDelete()
