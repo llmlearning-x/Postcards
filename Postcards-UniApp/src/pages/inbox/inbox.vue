@@ -55,16 +55,16 @@
 
             <!-- Photo thumb -->
             <view class="mail-thumb">
-              <image v-if="item.snapshot?.photoUrl" :src="item.snapshot.photoUrl" class="mail-thumb-img" mode="aspectFill" />
+              <image v-if="item.snapshot?.photoUrl" :src="item.snapshot.photoUrl" class="mail-thumb-img" mode="aspectFill" lazy-load />
               <view v-else class="mail-thumb-grad">
                 <view class="mail-stamp-badge" :style="{ borderColor: getStampColor(item.snapshot?.stampDesign || '') }">
-                  <image v-if="getStampImageUrl(item.snapshot?.stampDesign || '')" :src="getStampImageUrl(item.snapshot?.stampDesign || '')" class="badge-img" mode="aspectFill" />
+                  <image v-if="getStampImageUrl(item.snapshot?.stampDesign || '')" :src="getStampImageUrl(item.snapshot?.stampDesign || '')" class="badge-img" mode="aspectFill" lazy-load />
                   <view v-else class="badge-color" :style="{ background: getStampColor(item.snapshot?.stampDesign || '') }"></view>
                 </view>
               </view>
               <!-- Stamp overlay on photo -->
               <view v-if="item.snapshot?.photoUrl" class="mail-stamp-badge" :style="{ borderColor: getStampColor(item.snapshot?.stampDesign || '') }">
-                <image v-if="getStampImageUrl(item.snapshot?.stampDesign || '')" :src="getStampImageUrl(item.snapshot?.stampDesign || '')" class="badge-img" mode="aspectFill" />
+                <image v-if="getStampImageUrl(item.snapshot?.stampDesign || '')" :src="getStampImageUrl(item.snapshot?.stampDesign || '')" class="badge-img" mode="aspectFill" lazy-load />
                 <view v-else class="badge-color" :style="{ background: getStampColor(item.snapshot?.stampDesign || '') }"></view>
               </view>
             </view>
@@ -108,15 +108,15 @@
 
             <!-- Photo thumb -->
             <view class="mail-thumb">
-              <image v-if="item.snapshot?.photoUrl" :src="item.snapshot.photoUrl" class="mail-thumb-img" mode="aspectFill" />
+              <image v-if="item.snapshot?.photoUrl" :src="item.snapshot.photoUrl" class="mail-thumb-img" mode="aspectFill" lazy-load />
               <view v-else class="mail-thumb-grad">
                 <view class="mail-stamp-badge" :style="{ borderColor: getStampColor(item.snapshot?.stampDesign || '') }">
-                  <image v-if="getStampImageUrl(item.snapshot?.stampDesign || '')" :src="getStampImageUrl(item.snapshot?.stampDesign || '')" class="badge-img" mode="aspectFill" />
+                  <image v-if="getStampImageUrl(item.snapshot?.stampDesign || '')" :src="getStampImageUrl(item.snapshot?.stampDesign || '')" class="badge-img" mode="aspectFill" lazy-load />
                   <view v-else class="badge-color" :style="{ background: getStampColor(item.snapshot?.stampDesign || '') }"></view>
                 </view>
               </view>
               <view v-if="item.snapshot?.photoUrl" class="mail-stamp-badge" :style="{ borderColor: getStampColor(item.snapshot?.stampDesign || '') }">
-                <image v-if="getStampImageUrl(item.snapshot?.stampDesign || '')" :src="getStampImageUrl(item.snapshot?.stampDesign || '')" class="badge-img" mode="aspectFill" />
+                <image v-if="getStampImageUrl(item.snapshot?.stampDesign || '')" :src="getStampImageUrl(item.snapshot?.stampDesign || '')" class="badge-img" mode="aspectFill" lazy-load />
                 <view v-else class="badge-color" :style="{ background: getStampColor(item.snapshot?.stampDesign || '') }"></view>
               </view>
             </view>

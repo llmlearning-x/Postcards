@@ -53,13 +53,13 @@
                 <template v-if="album.cards.length >= 4">
                   <view class="cover-collage">
                     <view v-for="i in 4" :key="i" class="collage-cell">
-                      <image v-if="album.cards[i-1].photoUrl" :src="album.cards[i-1].photoUrl" class="collage-img" mode="aspectFill" />
+                      <image v-if="album.cards[i-1].photoUrl" :src="album.cards[i-1].photoUrl" class="collage-img" mode="aspectFill" lazy-load />
                       <view v-else class="collage-grad"></view>
                     </view>
                   </view>
                 </template>
                 <template v-else>
-                  <image v-if="album.cards[0].photoUrl" :src="album.cards[0].photoUrl" class="cover-single-img" mode="aspectFill" />
+                  <image v-if="album.cards[0].photoUrl" :src="album.cards[0].photoUrl" class="cover-single-img" mode="aspectFill" lazy-load />
                   <view v-else class="cover-single-grad"></view>
                 </template>
                 <view class="cover-count-badge">
@@ -120,7 +120,7 @@
                   class="mosaic-stamp"
                   :style="{ borderColor: stamp.color }"
                 >
-                  <image v-if="stamp.imageUrl" :src="stamp.imageUrl" class="mosaic-stamp-img" mode="aspectFill" />
+                  <image v-if="stamp.imageUrl" :src="stamp.imageUrl" class="mosaic-stamp-img" mode="aspectFill" lazy-load />
                   <view v-else class="mosaic-stamp-color" :style="{ background: stamp.color }"></view>
                 </view>
                 <view
@@ -177,7 +177,7 @@
               @click="viewPostcard(card)"
             >
               <view class="sheet-photo-wrap">
-                <image v-if="card.photoUrl" :src="card.photoUrl" class="sheet-photo" mode="aspectFill" />
+                <image v-if="card.photoUrl" :src="card.photoUrl" class="sheet-photo" mode="aspectFill" lazy-load />
                 <view v-else class="sheet-photo-grad"></view>
                 <view class="sheet-overlay">
                   <text class="sheet-loc">{{ card.locationName }}</text>

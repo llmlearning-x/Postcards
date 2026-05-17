@@ -389,4 +389,30 @@ export const UploadApi = {
       })
     })
   },
+  avatar: (filePath: string): Promise<{ url: string }> => {
+    const token = getToken()
+    return new Promise((resolve, reject) => {
+      uni.uploadFile({
+        url: `${API_BASE}/upload/avatar`,
+        filePath,
+        name: 'file',
+        header: token ? { Authorization: `Bearer ${token}` } : {},
+        timeout: REQUEST_TIMEOUT,
+        success: (res) => {
+          if (res.statusCode < 200 || res.statusCode >= 300) {
+            reject(new Error(`上传失败: HTTP ${res.statusCode}`))
+            return
+          }
+          try {
+            const data = JSON.parse(res.data as string)
+            if (data.url) resolve(data)
+            else reject(new Error(data.error || '上传失败'))
+          } catch {
+            reject(new Error('上传响应解析失败'))
+          }
+        },
+        fail: (err) => reject(new Error(err.errMsg || '上传失败')),
+      })
+    })
+  },
 }

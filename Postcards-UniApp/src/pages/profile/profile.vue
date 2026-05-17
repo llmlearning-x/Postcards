@@ -277,7 +277,7 @@ function changeAvatar() {
           const filePath = imgRes.tempFilePaths[0]
           uploadingAvatar.value = true
           try {
-            const up = await UploadApi.image(filePath)
+            const up = await UploadApi.avatar(filePath)
             await UserApi.update({ avatarUrl: up.url })
             authStore.updateUser({ avatarUrl: up.url })
             avatarUrl.value = up.url

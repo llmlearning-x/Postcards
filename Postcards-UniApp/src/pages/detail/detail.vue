@@ -14,11 +14,11 @@
     <scroll-view class="scroll-wrap" scroll-y>
       <!-- Full-bleed hero photo -->
       <view class="hero-wrap">
-        <image
+        <FadeImage
           v-if="postcard.photoUrl"
           :src="postcard.photoUrl"
-          class="hero-img"
           mode="aspectFill"
+          bg-color="#C9D2B6"
           @click="previewImage"
         />
         <view v-else class="hero-placeholder">
@@ -182,7 +182,7 @@
                 @click="viewPostcard(card)"
               >
                 <view class="journey-mini-thumb">
-                  <image v-if="card.photoUrl" :src="card.photoUrl" class="journey-mini-img" mode="aspectFill" />
+                  <image v-if="card.photoUrl" :src="card.photoUrl" class="journey-mini-img" mode="aspectFill" lazy-load />
                   <view v-else class="journey-mini-grad"></view>
                 </view>
                 <text class="journey-mini-loc">{{ card.locationName }}</text>
@@ -252,6 +252,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
+import FadeImage from '@/components/FadeImage.vue'
 import { usePostcardStore } from '@/stores/postcard'
 import { useAuthStore } from '@/stores/auth'
 import { UIUtil } from '@/utils/ui'

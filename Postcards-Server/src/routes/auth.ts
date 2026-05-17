@@ -45,7 +45,7 @@ export async function authRoutes(app: FastifyInstance) {
     return reply.code(201).send({
       accessToken,
       refreshToken,
-      user: { id, nickname: displayName, mailboxNo, points: REGISTER_BONUS },
+      user: { id, nickname: displayName, mailboxNo, avatarUrl: null, points: REGISTER_BONUS },
     })
   })
 
@@ -59,7 +59,7 @@ export async function authRoutes(app: FastifyInstance) {
     }
 
     const user = await queryOne<any>(
-      'SELECT id, nickname, mailbox_no, password_hash, points FROM users WHERE mailbox_no = ?',
+      'SELECT id, nickname, mailbox_no, avatar_url, password_hash, points FROM users WHERE mailbox_no = ?',
       [mailboxNo.trim().toUpperCase()]
     )
     if (!user) return reply.code(401).send({ error: '邮箱号或密码错误' })
@@ -73,7 +73,7 @@ export async function authRoutes(app: FastifyInstance) {
     return reply.send({
       accessToken,
       refreshToken,
-      user: { id: user.id, nickname: user.nickname, mailboxNo: user.mailbox_no, points: user.points ?? 0 },
+      user: { id: user.id, nickname: user.nickname, mailboxNo: user.mailbox_no, avatarUrl: user.avatar_url ?? null, points: user.points ?? 0 },
     })
   })
 

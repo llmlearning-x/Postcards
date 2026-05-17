@@ -32,6 +32,9 @@ export async function mailingRoutes(app: FastifyInstance) {
     const sender = await queryOne<any>(
       'SELECT id, nickname, mailbox_no, avatar_url FROM users WHERE id = ?', [uid]
     )
+    if (!sender) {
+      return reply.code(401).send({ error: '登录已过期，请重新登录' })
+    }
 
     // 快照：保存寄出时的明信片内容（即使原始被删除，收件人仍可查看）
     const snapshot = {
@@ -43,10 +46,10 @@ export async function mailingRoutes(app: FastifyInstance) {
       stampDesign:  postcard.stamp_design,
       recordedAt:   postcard.recorded_at,
       sender: {
-        id:        sender!.id,
-        nickname:  sender!.nickname,
-        mailboxNo: sender!.mailbox_no,
-        avatarUrl: sender!.avatar_url,
+        id:        sender.id,
+        nickname:  sender.nickname,
+        mailboxNo: sender.mailbox_no,
+        avatarUrl: sender.avatar_url,
       },
     }
 
