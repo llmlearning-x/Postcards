@@ -35,3 +35,7 @@ Android-SDK@*/
 
 # Temp files
 .playwright-mcp/
+.claude/
+
+# Screenshots / previews generated during dev
+/*.png

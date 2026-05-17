@@ -51,6 +51,14 @@ itunesconnect.properties
 # AI agent instructions
 AGENTS.md
 
+# Deployment docs (contains sensitive server info)
+.deploy/
+.env.deploy
+
+# Local deploy scripts
+*.deploy.sh
+!deploy.sh
+
 # HarmonyOS / DevEco Studio
 Postcards-Harmony/.hvigor/
 Postcards-Harmony/.idea/
