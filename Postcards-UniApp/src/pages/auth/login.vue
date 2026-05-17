@@ -45,7 +45,7 @@
         <text class="last-mailbox-value">{{ lastMailboxNo }}</text>
       </view>
 
-      <view class="form-section-title" style="margin-top: 36rpx;">
+      <view class="form-section-title" style="margin-top: 44rpx;">
         <text class="section-en">PASSWORD</text>
         <text class="section-cn">密码</text>
       </view>
@@ -62,8 +62,6 @@
           @blur="inputFocused = false"
         />
         <view class="password-toggle" @click="togglePasswordVisible">
-          <IconEyeSlash v-if="passwordVisible" :size="20" color="#706753" />
-          <IconEye v-else :size="20" color="#706753" />
           <text class="password-toggle-txt">{{ passwordVisible ? '隐藏' : '显示' }}</text>
         </view>
       </view>
@@ -94,7 +92,7 @@ import { AuthApi, StampApi } from '@/services/api'
 import { useAuthStore, FREE_STAMP_IDS } from '@/stores/auth'
 import { usePostcardStore } from '@/stores/postcard'
 import { StorageUtil } from '@/utils/storage'
-import { IconEye, IconEyeSlash } from '@/components/icons'
+
 
 const authStore = useAuthStore()
 const postcardStore = usePostcardStore()
@@ -140,15 +138,19 @@ async function doLogin() {
     )
     // 先清空旧邮票数据，防止跨用户残留
     authStore.setOwnedStamps([])
-    // 并行加载用户数据和邮票列表
-    const [, stampRes] = await Promise.allSettled([
+    // 并行加载用户数据、已拥有邮票、全量邮票列表
+    const [, stampRes, allStampsRes] = await Promise.allSettled([
       postcardStore.syncFromServer(),
       StampApi.my(),
+      StampApi.all(),
     ])
     if (stampRes.status === 'fulfilled') {
       authStore.setOwnedStamps(stampRes.value.map(s => s.id))
     } else {
       authStore.setOwnedStamps(FREE_STAMP_IDS)
+    }
+    if (allStampsRes.status === 'fulfilled') {
+      authStore.setAllStampUrls(allStampsRes.value)
     }
     StorageUtil.set(LAST_MAILBOX_KEY, res.user.mailboxNo)
     uni.switchTab({ url: '/pages/home/home' })
@@ -174,68 +176,54 @@ function goRegister() {
   overflow: hidden;
 }
 
-.page::before {
-  content: '';
-  position: absolute;
-  left: 32rpx;
-  right: 32rpx;
-  top: 300rpx;
-  height: 180rpx;
-  border-radius: 42rpx 42rpx 12rpx 12rpx;
-  background: linear-gradient(180deg, #D7C596 0%, $paper-beige 100%);
-  border: 2rpx solid $line-sepia;
-  box-shadow: $shadow-sm;
-  z-index: 0;
-}
+
 
 .header {
-  background: linear-gradient(165deg, $travel-blue 0%, $forest-green 100%);
-  padding: 100rpx 48rpx 72rpx;
+  padding: 80rpx 48rpx 40rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16rpx;
-  border-radius: 0 0 42rpx 42rpx;
   position: relative;
   z-index: 2;
-  box-shadow: $shadow-md;
 }
 
 .header-brand {
   display: flex;
-  align-items: baseline;
-  gap: 20rpx;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
 }
 
 .brand-title {
-  font-family: $font-family-display;
-  font-size: 72rpx;
-  font-weight: 400;
-  color: #F4EFE5;
-  letter-spacing: 2rpx;
+  font-family: $font-family-sans;
+  font-size: 56rpx;
+  font-weight: 500;
+  color: $forest-green;
+  letter-spacing: 3rpx;
 }
 
 .brand-sub {
   font-family: $font-family-action;
-  font-size: 22rpx;
-  letter-spacing: 1rpx;
-  color: rgba(244, 239, 229, 0.65);
+  font-size: 20rpx;
+  letter-spacing: 2rpx;
+  color: rgba($forest-green, 0.4);
 }
 
 .header-kicker {
   font-family: $font-family-action;
-  font-size: 24rpx;
-  letter-spacing: 0;
-  color: rgba(244, 239, 229, 0.6);
-  margin-top: 8rpx;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
+  color: rgba($forest-green, 0.35);
+  margin-top: 12rpx;
 }
 
 .form-card {
-  margin: 74rpx 40rpx 0;
+  margin: 64rpx 40rpx 0;
   background: linear-gradient(180deg, #FFFDF7 0%, #F7F0E3 100%);
   border: 3rpx solid $rule-color;
   border-radius: 28rpx 28rpx 16rpx 16rpx;
-  padding: 116rpx 36rpx 34rpx;
+  padding: 108rpx 36rpx 32rpx;
   box-shadow: $shadow-lg;
   position: relative;
   z-index: 1;
@@ -267,9 +255,12 @@ function goRegister() {
   top: -58rpx;
   height: 148rpx;
   border-radius: 90rpx 90rpx 24rpx 24rpx;
-  background: linear-gradient(180deg, #466B57 0%, $travel-blue 100%);
+  background: linear-gradient(180deg, #5A7D68 0%, $travel-blue 100%);
   border: 3rpx solid $rule-color;
-  box-shadow: inset 0 -12rpx 24rpx rgba(0, 0, 0, 0.12);
+  border-top: 2rpx solid rgba(255, 255, 255, 0.15);
+  box-shadow:
+    inset 0 -12rpx 24rpx rgba(0, 0, 0, 0.12),
+    0 6rpx 16rpx rgba(40, 30, 15, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -311,8 +302,8 @@ function goRegister() {
 
 .mailbox-flag {
   position: absolute;
-  right: -18rpx;
-  top: -24rpx;
+  right: -14rpx;
+  top: -20rpx;
   width: 92rpx;
   height: 132rpx;
   z-index: 3;
@@ -353,7 +344,7 @@ function goRegister() {
   font-family: $font-family-action;
   font-size: 18rpx;
   color: #FFFDF7;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .form-section-title {
@@ -377,8 +368,8 @@ function goRegister() {
 }
 
 .input-wrap {
-  border-bottom: 1rpx solid $line-sepia;
-  padding-bottom: 16rpx;
+  border-bottom: 2rpx solid rgba($line-sepia, 0.85);
+  padding-bottom: 14rpx;
   display: flex;
   align-items: center;
   gap: 14rpx;
@@ -453,20 +444,20 @@ function goRegister() {
 }
 
 .btn-primary {
-  margin-top: 52rpx;
+  margin-top: 48rpx;
   height: 88rpx;
-  background: $travel-blue;
-  border-radius: 6rpx;
+  background: $forest-green;
+  border-radius: 12rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 
   &.btn-dis {
-    opacity: 0.45;
+    opacity: 0.4;
   }
 
   &:active:not(.btn-dis) {
-    background: $forest-green;
+    background: $travel-blue;
   }
 }
 

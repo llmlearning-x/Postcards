@@ -243,6 +243,7 @@ async function loadData() {
       }).catch(() => {}),
     ])
     stamps.value = stampsRes
+    authStore.setAllStampUrls(stampsRes)
   } catch {}
   loading.value = false
 }
@@ -353,8 +354,8 @@ onShow(() => {
 }
 .ticket-amt {
   display: block;
-  font-family: $font-family-body;
-  font-size: 80rpx;
+  font-family: $font-family-mono;
+  font-size: 64rpx;
   color: $ink-black;
   line-height: 1;
   margin-bottom: 8rpx;

@@ -11,7 +11,7 @@
       <view class="form-wrap">
         <!-- Photo upload -->
         <view v-if="!photoPath" class="upload-zone" @click="selectImage">
-          <IconCamera :size="56" color="rgba(255,255,255,0.9)" />
+          <IconCamera :size="56" color="#2E7D58" />
           <text class="upload-title">点击拍照或选择照片</text>
           <text class="upload-meta">4:3 · MAX 5MB</text>
         </view>
@@ -441,13 +441,13 @@ const savedPostcardId = ref('')
 const sendTimers: number[] = []
 
 const canSubmit = computed(() =>
-  !!locationName.value.trim() && !!city.value.trim() && !!selectedTravelId.value
+  !!String(locationName.value || '').trim() && !!String(city.value || '').trim() && !!selectedTravelId.value
 )
 
 const submitHint = computed(() => {
   if (!selectedTravelId.value) return '选择一段旅程后就能保存'
-  if (!locationName.value.trim()) return '填写或定位一个具体位置'
-  if (!city.value.trim()) return '补上城市名称'
+  if (!String(locationName.value || '').trim()) return '填写或定位一个具体位置'
+  if (!String(city.value || '').trim()) return '补上城市名称'
   return photoPath.value ? '照片和地点都准备好了' : '没有照片也可以先保存文字明信片'
 })
 
@@ -775,7 +775,7 @@ onUnmounted(() => {
   font-size: 22rpx;
   letter-spacing: 0;
   color: $travel-blue;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .form-lbl-sep {
@@ -1065,7 +1065,7 @@ onUnmounted(() => {
 .tp-hd-kicker {
   font-family: $font-family-action;
   font-size: 24rpx;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0;
   color: $travel-blue;
 }
@@ -1180,7 +1180,7 @@ onUnmounted(() => {
   font-family: $font-family-action;
   font-size: 22rpx;
   letter-spacing: 0;
-  font-weight: 700;
+  font-weight: 500;
   color: $travel-blue;
   margin-bottom: 8rpx;
 }
@@ -1412,7 +1412,7 @@ onUnmounted(() => {
   font-size: 24rpx;
   letter-spacing: 2rpx;
   color: rgba(244, 239, 229, 0.95);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .pc-loc-code {
@@ -1454,7 +1454,7 @@ onUnmounted(() => {
 
 .pc-back-note {
   display: block;
-  font-family: $font-family-display;
+  font-family: $font-family-body;
   font-style: italic;
   font-size: 24rpx;
   color: $ink-black;
@@ -1961,8 +1961,8 @@ onUnmounted(() => {
   line-height: 1;
 }
 .send-ok-main {
-  font-family: $font-family-display;
-  font-size: 54rpx;
+  font-family: $font-family-body;
+  font-size: 44rpx;
   color: #F4EFE5;
   letter-spacing: 2rpx;
 }

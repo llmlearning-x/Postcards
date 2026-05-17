@@ -1,6 +1,13 @@
 import { StampDesigns } from '@/config/app'
+import { useAuthStore } from '@/stores/auth'
 
-const STAMPS_BASE = (import.meta.env.VITE_STAMPS_BASE_URL as string) || 'http://115.175.15.145/stamps'
+let STAMPS_BASE = 'https://115.175.15.145/stamps'
+try {
+  const envUrl = (import.meta as any).env?.VITE_STAMPS_BASE_URL
+  if (envUrl) STAMPS_BASE = envUrl
+} catch {
+  // App 端 import.meta 可能不存在，使用默认地址
+}
 
 /** 格式化时间戳为 月·日（如 05·15） */
 export function formatDotDate(ts: number): string {
@@ -33,8 +40,16 @@ export function getStampSeriesName(id: string): string {
   return StampDesigns.find(s => s.id === id)?.seriesName ?? '旅行'
 }
 
-/** 根据邮票 ID 返回图片完整 URL，找不到返回空字符串 */
+/**
+ * 根据邮票 ID 返回图片完整 URL。
+ * 优先使用服务端返回的 imageUrl（与商店同源），找不到时回退到本地路径。
+ */
 export function getStampImageUrl(id: string): string {
+  try {
+    const auth = useAuthStore()
+    const entry = auth.allStampUrls.find(s => s.id === id)
+    if (entry?.imageUrl) return entry.imageUrl
+  } catch {}
   const design = StampDesigns.find(s => s.id === id)
   if (!design?.imagePath) return ''
   const base = STAMPS_BASE.replace(/\/$/, '')

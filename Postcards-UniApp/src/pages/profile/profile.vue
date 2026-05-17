@@ -14,7 +14,7 @@
           </view>
           <view class="avatar-camera-badge" :class="{ 'badge-uploading': uploadingAvatar }">
             <view v-if="uploadingAvatar" class="avatar-spinner"></view>
-            <IconCamera v-else :size="18" color="#F4EFE5" />
+            <text v-else class="avatar-camera-icon">◎</text>
           </view>
         </view>
         <text class="hero-name">{{ userName }}</text>
@@ -101,7 +101,7 @@
             <view class="menu-item-pts">
               <text class="menu-pts-txt">{{ authStore.user?.points ?? 0 }} PT</text>
             </view>
-            <IconCaretRight :size="18" color="#B5AE9B" />
+            <text class="menu-arrow">›</text>
           </view>
           <view class="menu-rule"></view>
           <view class="menu-item" @click="goToContacts">
@@ -109,15 +109,15 @@
               <IconContacts :size="22" color="#5C5648" />
             </view>
             <text class="menu-item-text">我的通讯录</text>
-            <IconCaretRight :size="18" color="#B5AE9B" />
+            <text class="menu-arrow">›</text>
           </view>
           <view class="menu-rule"></view>
           <view class="menu-item" @click="goToInbox">
             <view class="menu-item-icon">
-              <IconInbox :size="22" color="#5C5648" />
+              <IconEnvelope :size="22" color="#5C5648" />
             </view>
             <text class="menu-item-text">我的收件箱</text>
-            <IconCaretRight :size="18" color="#B5AE9B" />
+            <text class="menu-arrow">›</text>
           </view>
         </view>
       </view>
@@ -134,7 +134,7 @@
               <IconCamera :size="22" color="#5C5648" />
             </view>
             <text class="menu-item-text">修改头像</text>
-            <IconCaretRight :size="18" color="#B5AE9B" />
+            <text class="menu-arrow">›</text>
           </view>
           <view class="menu-rule"></view>
           <view class="menu-item" @click="editNickname">
@@ -142,7 +142,7 @@
               <IconEdit :size="22" color="#5C5648" />
             </view>
             <text class="menu-item-text">编辑昵称</text>
-            <IconCaretRight :size="18" color="#B5AE9B" />
+            <text class="menu-arrow">›</text>
           </view>
           <view class="menu-rule"></view>
           <view class="menu-item" @click="doLogout">
@@ -150,7 +150,7 @@
               <IconSignOut :size="22" color="#A43B2D" />
             </view>
             <text class="menu-item-text" style="color: #A43B2D;">退出登录</text>
-            <IconCaretRight :size="18" color="#B5AE9B" />
+            <text class="menu-arrow">›</text>
           </view>
         </view>
       </view>
@@ -166,7 +166,7 @@
               <IconShield :size="22" color="#5C5648" />
             </view>
             <text class="menu-item-text">隐私协议</text>
-            <IconCaretRight :size="18" color="#B5AE9B" />
+            <text class="menu-arrow">›</text>
           </view>
           <view class="menu-rule"></view>
           <view class="menu-item" @click="showAgreement">
@@ -174,7 +174,7 @@
               <IconFileText :size="22" color="#5C5648" />
             </view>
             <text class="menu-item-text">用户协议</text>
-            <IconCaretRight :size="18" color="#B5AE9B" />
+            <text class="menu-arrow">›</text>
           </view>
           <view class="menu-rule"></view>
           <view class="menu-item" @click="showAbout">
@@ -182,7 +182,7 @@
               <IconInfo :size="22" color="#5C5648" />
             </view>
             <text class="menu-item-text">关于我们</text>
-            <IconCaretRight :size="18" color="#B5AE9B" />
+            <text class="menu-arrow">›</text>
           </view>
         </view>
       </view>
@@ -207,18 +207,11 @@ import { AppConfig, StampDesigns } from '@/config/app'
 import { getStampImageUrl } from '@/utils/stamp'
 import { StorageUtil } from '@/utils/storage'
 import {
-  IconCamera,
-  IconEdit,
-  IconReset,
-  IconShield,
-  IconFileText,
-  IconInfo,
-  IconCaretRight,
-  IconInbox,
-  IconSignOut,
-  IconShop,
-  IconContacts,
+  IconShop, IconContacts, IconEnvelope,
+  IconCamera, IconEdit, IconSignOut,
+  IconShield, IconFileText, IconInfo,
 } from '@/components/icons'
+
 
 const store = usePostcardStore()
 const authStore = useAuthStore()
@@ -501,6 +494,11 @@ onMounted(() => initProfileData())
   &.badge-uploading { background: $forest-green; }
 }
 
+.avatar-camera-icon {
+  font-size: 20rpx;
+  color: #F4EFE5;
+}
+
 .avatar-spinner {
   width: 20rpx;
   height: 20rpx;
@@ -517,8 +515,8 @@ onMounted(() => initProfileData())
 
 .hero-name {
   font-family: $font-family-body;
-  font-size: 44rpx;
-  font-weight: 400;
+  font-size: 40rpx;
+  font-weight: 500;
   color: #F4EFE5;
   letter-spacing: 1rpx;
   margin-bottom: 10rpx;
@@ -760,6 +758,17 @@ onMounted(() => initProfileData())
   font-size: 22rpx;
   letter-spacing: 1rpx;
   color: $travel-blue;
+}
+
+.menu-icon-txt {
+  font-size: 26rpx;
+  line-height: 1;
+}
+
+.menu-arrow {
+  font-size: 28rpx;
+  color: #B5AE9B;
+  line-height: 1;
 }
 
 .menu-rule {

@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
+import { useAuthStore } from '@/stores/auth'
+import { StampApi } from '@/services/api'
 
-onLaunch(() => {
-  console.log('App Launch')
+onLaunch(async () => {
+  const auth = useAuthStore()
+  if (auth.isLoggedIn) {
+    try {
+      const stamps = await StampApi.all()
+      auth.setAllStampUrls(stamps)
+    } catch {}
+  }
 })
 
-onShow(() => {
-  console.log('App Show')
-})
-
-onHide(() => {
-  console.log('App Hide')
-})
+onShow(() => {})
+onHide(() => {})
 </script>
 
 <style lang="scss">
