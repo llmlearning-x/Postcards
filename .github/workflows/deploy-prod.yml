@@ -1,6 +1,9 @@
 name: Deploy to Production Environment
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       deploy_backend:
