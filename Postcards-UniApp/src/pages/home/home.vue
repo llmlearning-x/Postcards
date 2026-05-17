@@ -15,7 +15,7 @@
 
     </view>
 
-    <scroll-view class="content" scroll-y>
+    <scroll-view class="content" scroll-y @scrolltolower="loadMore">
 
       <!-- Primary action -->
       <view class="focus-card">
@@ -27,29 +27,6 @@
         <view class="focus-action" @click="goPrimaryAction">
           <IconCamera :size="30" color="#F4EFE5" />
           <text class="focus-action-txt">{{ primaryActionText }}</text>
-        </view>
-      </view>
-
-      <!-- Stats row -->
-      <view class="hero-stats">
-        <view class="stat-item stat-item-tap" @click="goTravels">
-          <text class="stat-num">{{ store.travels.length }}</text>
-          <text class="stat-lbl">旅程</text>
-        </view>
-        <view class="stat-sep"></view>
-        <view class="stat-item stat-item-tap" @click="goPostcards">
-          <text class="stat-num">{{ store.postcards.length }}</text>
-          <text class="stat-lbl">明信片</text>
-        </view>
-        <view class="stat-sep"></view>
-        <view class="stat-item stat-item-tap" @click="goCollection">
-          <text class="stat-num">{{ favoriteCount }}</text>
-          <text class="stat-lbl">收藏</text>
-        </view>
-        <view class="stat-sep"></view>
-        <view class="stat-item stat-item-tap" @click="goPoints">
-          <text class="stat-num stat-num-points">{{ user?.points ?? 0 }}</text>
-          <text class="stat-lbl">积分</text>
         </view>
       </view>
 
@@ -94,66 +71,87 @@
         </view>
       </view>
 
-      <!-- Recent postcards -->
-      <view class="section" v-if="recentPostcards.length > 0">
+      <!-- Board feed -->
+      <view class="section">
         <view class="section-hd">
-          <text class="section-kicker">RECENT · 最近记录</text>
+          <text class="section-kicker">BULLETIN BOARD · 旅行公告栏</text>
           <view class="section-rule"></view>
-          <text class="section-more" @click="goTimeline">全部 ›</text>
-        </view>
-        <scroll-view scroll-x class="pc-scroll">
-          <view class="pc-track">
-            <view
-              v-for="pc in recentPostcards"
-              :key="pc.id"
-              class="pc-card"
-              @click="goDetail(pc.id)"
-            >
-              <view class="pc-photo" :style="{ background: getStampColor(pc.stampDesign) + '22' }">
-                <image v-if="pc.photoUrl" :src="pc.photoUrl" class="pc-img" mode="aspectFill" />
-                <image v-else-if="getStampImageUrl(pc.stampDesign)" :src="getStampImageUrl(pc.stampDesign)" class="pc-img" mode="aspectFill" />
-                <text v-else class="pc-stamp-glyph">✦</text>
-              </view>
-              <view class="pc-card-body">
-                <text class="pc-loc">{{ pc.locationName }}</text>
-                <text class="pc-city">{{ pc.city }}</text>
-                <text class="pc-date">{{ formatDate(pc.recordedAt) }}</text>
-              </view>
-            </view>
+          <view class="board-refresh" :class="{ 'board-refresh-spin': boardLoading }" @click="refreshBoard">
+            <IconReset :size="18" color="#2E7D58" />
           </view>
-        </scroll-view>
-      </view>
-
-      <!-- Board banner -->
-      <view class="board-banner" @click="goBoard">
-        <view class="board-banner-left">
-          <text class="board-banner-kicker">BULLETIN BOARD · 公告栏</text>
-          <text class="board-banner-title">旅行公告栏</text>
-          <text class="board-banner-sub">看看旅行者们都在哪里</text>
+          <text class="section-more" v-if="!hasMore && boardCards.length > 0">— 到底了 —</text>
+          <text class="section-more" v-else-if="boardCards.length > 0">滑动加载更多</text>
         </view>
-        <text class="board-banner-link">查看 ›</text>
-      </view>
 
-      <!-- All travels list (when no current travel or as secondary) -->
-      <view class="section" v-if="store.travels.length > 0">
-        <view class="section-hd">
-          <text class="section-kicker">TRAVELS · 旅程记录</text>
-          <view class="section-rule"></view>
+        <!-- Loading skeleton -->
+        <view class="board-grid" v-if="boardLoading && boardCards.length === 0">
+          <view v-for="i in 4" :key="i" class="board-skeleton shimmer"></view>
         </view>
-        <view class="travel-list">
+
+        <!-- Empty -->
+        <view class="board-empty" v-else-if="!boardLoading && boardCards.length === 0">
+          <text class="board-empty-txt">公告栏还没有内容</text>
+        </view>
+
+        <!-- Card grid -->
+        <view class="board-grid" v-else>
           <view
-            v-for="t in recentTravels"
-            :key="t.id"
-            class="travel-row"
-            @click="goTravel(t.id)"
+            v-for="card in boardCards"
+            :key="card.id"
+            class="board-card"
+            @click="openBoardCard(card)"
           >
-            <view class="travel-row-dot" :class="`status-${t.status}`"></view>
-            <view class="travel-row-info">
-              <text class="travel-row-title">{{ t.title }}</text>
-              <text class="travel-row-dest">{{ t.destination }} · {{ postcardCountForTravel(t.id) }} 张</text>
+            <view class="board-card-photo">
+              <image
+                v-if="card.photoUrl"
+                :src="card.photoUrl"
+                class="board-card-img"
+                mode="aspectFill"
+                lazy-load
+              />
+              <view v-else class="board-card-grad"></view>
+              <view class="board-card-pm">
+                <text class="board-card-pm-city">{{ card.city.slice(0, 4).toUpperCase() }}</text>
+              </view>
             </view>
-            <text class="travel-row-arr">›</text>
+            <view class="board-card-body">
+              <view class="board-card-top">
+                <view class="board-card-avatar">
+                  <text class="board-card-initial">{{ card.author.nickname.slice(0, 1) }}</text>
+                </view>
+                <view class="board-card-stamp" :style="{ borderColor: getStampColor(card.stampDesign) }">
+                  <image
+                    v-if="getStampImageUrl(card.stampDesign)"
+                    :src="getStampImageUrl(card.stampDesign)"
+                    class="board-card-stamp-img"
+                    mode="aspectFill"
+                  />
+                  <view v-else class="board-card-stamp-dot" :style="{ background: getStampColor(card.stampDesign) }"></view>
+                </view>
+              </view>
+              <text class="board-card-loc">{{ card.locationName }}</text>
+              <text class="board-card-city">{{ card.city }}</text>
+              <view class="board-card-footer">
+                <view
+                  class="board-card-stamp-btn"
+                  :class="{ 'board-card-stamp-active': stampedIds.has(card.id) }"
+                  @click.stop="doStamp(card.id)"
+                >
+                  <text class="board-card-stamp-icon">✦</text>
+                  <text class="board-card-stamp-count">{{ card.stampCount }}</text>
+                </view>
+                <text class="board-card-mailbox">{{ card.author.mailboxNo }}</text>
+              </view>
+            </view>
           </view>
+        </view>
+
+        <!-- Load more -->
+        <view class="board-load-more" v-if="loadingMore">
+          <text class="board-load-more-txt">加载中…</text>
+        </view>
+        <view class="board-load-more" v-else-if="!hasMore && boardCards.length > 0">
+          <text class="board-load-more-txt">— 到底了 —</text>
         </view>
       </view>
 
@@ -169,6 +167,113 @@
 
       <view class="btm-gap"></view>
     </scroll-view>
+  </view>
+
+  <!-- ── 明信片预览弹窗（底部弹出）── -->
+  <view class="modal-mask" v-if="activeCard" @click="closeFlipModal">
+    <view class="modal-card" @click.stop>
+      <!-- Photo area with flip -->
+      <view class="modal-photo" @click="toggleFlip">
+        <view class="modal-photo-inner" :class="{ flipped: isFlipped }">
+          <!-- Front: photo -->
+          <view class="modal-photo-face modal-photo-front">
+            <image
+              v-if="activeCard.photoUrl"
+              :src="activeCard.photoUrl"
+              class="modal-photo-img"
+              mode="aspectFill"
+            />
+            <view v-else class="modal-photo-grad"></view>
+            <view class="modal-photo-fade"></view>
+            <view class="modal-postmark" style="transform: rotate(-8deg);">
+              <text class="modal-pm-city">{{ activeCard.city.slice(0, 4).toUpperCase() }}</text>
+              <text class="modal-pm-date">{{ formatModalDate(activeCard.recordedAt) }}</text>
+            </view>
+            <view class="modal-flip-hint">
+              <text class="modal-flip-hint-txt">点击翻转背面</text>
+            </view>
+          </view>
+          <!-- Back: postcard back -->
+          <view class="modal-photo-face modal-photo-back">
+            <view class="modal-back-inner">
+              <view class="modal-back-header">
+                <text class="modal-back-label">POSTCARD · 明信片</text>
+                <view class="modal-back-stamp" :style="{ borderColor: getStampColor(activeCard.stampDesign) }">
+                  <image
+                    v-if="getStampImageUrl(activeCard.stampDesign)"
+                    :src="getStampImageUrl(activeCard.stampDesign)"
+                    class="modal-back-stamp-img"
+                    mode="aspectFill"
+                  />
+                  <view v-else class="modal-back-stamp-dot" :style="{ background: getStampColor(activeCard.stampDesign) }"></view>
+                </view>
+              </view>
+              <view class="modal-back-divider"></view>
+              <view class="modal-back-body">
+                <view class="modal-back-msg">
+                  <text class="modal-back-note">{{ activeCard.note || '此刻，无言。' }}</text>
+                </view>
+                <view class="modal-back-addr">
+                  <text class="modal-back-to">致 {{ activeCard.toName || '旅途中的自己' }}</text>
+                  <text class="modal-back-loc">{{ activeCard.locationName }}</text>
+                  <text class="modal-back-city">{{ activeCard.city }}{{ activeCard.country ? ', ' + activeCard.country : '' }}</text>
+                  <view class="modal-back-pm">
+                    <text class="modal-back-pm-city">{{ activeCard.city.toUpperCase().slice(0, 6) }}</text>
+                    <view class="modal-back-pm-rule"></view>
+                    <text class="modal-back-pm-date">{{ formatModalDate(activeCard.recordedAt) }}</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- Info body -->
+      <view class="modal-body">
+        <view class="modal-sender">
+          <view class="modal-avatar">
+            <text class="modal-initial">{{ activeCard.author.nickname.slice(0, 1) }}</text>
+          </view>
+          <view class="modal-sender-info">
+            <text class="modal-nickname">{{ activeCard.author.nickname }}</text>
+            <text class="modal-mailbox">{{ activeCard.author.mailboxNo }}</text>
+          </view>
+        </view>
+
+        <view class="modal-rule"></view>
+
+        <text class="modal-loc">{{ activeCard.locationName }}</text>
+        <text class="modal-city">{{ activeCard.city }} · {{ activeCard.country }}</text>
+        <text class="modal-note" v-if="activeCard.note">"{{ activeCard.note }}"</text>
+
+        <view class="modal-rule" style="margin-top: 24rpx;"></view>
+
+        <view class="modal-actions">
+          <view
+            class="modal-stamp-btn"
+            :class="{ 'modal-stamp-active': stampedIds.has(activeCard.id) }"
+            @click="doStamp(activeCard.id)"
+          >
+            <text class="modal-stamp-icon">✦</text>
+            <text class="modal-stamp-txt">{{ stampedIds.has(activeCard.id) ? '已盖章' : '盖章' }} · {{ activeCard.stampCount }}</text>
+          </view>
+
+          <view
+            v-if="!activeCard.author.isContact && activeCard.author.id !== authStore.user?.id"
+            class="modal-add-btn"
+            @click="addContact(activeCard.author.id)"
+          >
+            <text class="modal-add-txt">+ 加为联系人</text>
+          </view>
+          <view v-else-if="activeCard.author.isContact" class="modal-added-tag">
+            <text class="modal-added-txt">✓ 已是联系人</text>
+          </view>
+        </view>
+      </view>
+
+      <text class="modal-close" @click="closeFlipModal">关闭</text>
+    </view>
   </view>
 
   <!-- ── 新用户引导 ── -->
@@ -210,10 +315,12 @@ import { ref, computed, onMounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { usePostcardStore } from '@/stores/postcard'
 import { useAuthStore } from '@/stores/auth'
-import { MailApi } from '@/services/api'
+import { MailApi, PostcardApi, ContactsApi, type BoardPostcard } from '@/services/api'
 import { StorageUtil } from '@/utils/storage'
 import { getStampColor, getStampImageUrl } from '@/utils/stamp'
-import { IconCamera, IconInbox, IconSend, IconContacts } from '@/components/icons'
+
+import { IconCamera, IconInbox, IconSend, IconContacts, IconReset } from '@/components/icons'
+
 
 const store     = usePostcardStore()
 const authStore = useAuthStore()
@@ -277,11 +384,94 @@ const dateMonth  = String(now.getMonth() + 1).padStart(2, '0') + ' 月'
 const dateDay    = String(now.getDate()).padStart(2, '0')
 
 // ── Computed data ─────────────────────────────────────────────────
-const favoriteCount = computed(() => store.postcards.filter(p => p.isFavorite).length)
+const boardCards    = ref<BoardPostcard[]>([])
+const boardLoading  = ref(true)
+const loadingMore   = ref(false)
+const boardPage     = ref(1)
+const hasMore       = ref(true)
+const activeCard    = ref<BoardPostcard | null>(null)
+const isFlipped     = ref(false)
+const stampedIds    = ref<Set<string>>(new Set())
 
-const recentPostcards = computed(() => store.sortedPostcards.slice(0, 8))
+function toggleFlip() {
+  isFlipped.value = !isFlipped.value
+}
 
-const recentTravels = computed(() => store.sortedTravels.slice(0, 5))
+function openBoardCard(card: BoardPostcard) {
+  activeCard.value = card
+  isFlipped.value = false
+}
+
+function closeFlipModal() {
+  activeCard.value = null
+  isFlipped.value = false
+}
+
+const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+function formatModalDate(ts: number): string {
+  const d = new Date(ts)
+  return `${String(d.getDate()).padStart(2,'0')} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`
+}
+
+async function doStamp(id: string) {
+  if (stampedIds.value.has(id)) return
+  try {
+    const res = await PostcardApi.stamp(id)
+    const card = boardCards.value.find(c => c.id === id)
+    if (card) card.stampCount = res.stampCount
+    stampedIds.value = new Set([...stampedIds.value, id])
+  } catch {
+    uni.showToast({ title: '盖章失败', icon: 'none' })
+  }
+}
+
+async function addContact(authorId: string) {
+  try {
+    await ContactsApi.add(authorId)
+    const card = boardCards.value.find(c => c.author.id === authorId)
+    if (card) card.author.isContact = true
+    if (activeCard.value && activeCard.value.author.id === authorId) {
+      activeCard.value = { ...activeCard.value, author: { ...activeCard.value.author, isContact: true } }
+    }
+    uni.showToast({ title: '已添加为联系人', icon: 'success' })
+  } catch (e: any) {
+    uni.showToast({ title: e.message || '添加失败', icon: 'none' })
+  }
+}
+
+async function loadBoard(reset = false) {
+  if (reset) {
+    boardPage.value = 1
+    hasMore.value   = true
+    boardCards.value = []
+    boardLoading.value = true
+  }
+  try {
+    const data = await PostcardApi.board(boardPage.value)
+    if (data.length < 20) hasMore.value = false
+    boardCards.value = reset ? data : [...boardCards.value, ...data]
+  } catch {
+    // non-critical
+  } finally {
+    boardLoading.value = false
+    loadingMore.value  = false
+  }
+}
+
+async function refreshBoard() {
+  if (boardLoading.value) return
+  await loadBoard(true)
+  uni.showToast({ title: '已刷新', icon: 'none' })
+}
+
+async function loadMore() {
+  if (!hasMore.value || loadingMore.value || boardLoading.value) return
+  loadingMore.value = true
+  boardPage.value++
+  await loadBoard()
+}
+
+
 
 const focusTitle = computed(() =>
   store.currentTravel ? `记录「${store.currentTravel.title}」` : '先创建你的第一段旅程'
@@ -301,11 +491,6 @@ function postcardCountForTravel(travelId: string): number {
   return store.postcards.filter(p => p.travelId === travelId).length
 }
 
-function formatDate(ts: number): string {
-  const d = new Date(ts)
-  return `${d.getMonth() + 1}/${d.getDate()}`
-}
-
 // ── Navigation ────────────────────────────────────────────────────
 function goPrimaryAction() {
   if (store.currentTravel || store.travels.length > 0) {
@@ -317,15 +502,8 @@ function goPrimaryAction() {
 
 function goRecord()     { uni.switchTab({ url: '/pages/record/record' }) }
 function goCreateTravel() { uni.navigateTo({ url: '/pages/travel/travel' }) }
-function goTravels()    { uni.navigateTo({ url: '/pages/travels/travels' }) }
-function goPostcards()  { uni.navigateTo({ url: '/pages/postcards/postcards' }) }
-function goPoints()     { uni.navigateTo({ url: '/pages/points/points' }) }
-function goTimeline()   { uni.switchTab({ url: '/pages/timeline/timeline' }) }
 function goInbox()      { uni.navigateTo({ url: '/pages/inbox/inbox' }) }
 function goContacts()   { uni.navigateTo({ url: '/pages/contacts/contacts' }) }
-function goCollection() { uni.navigateTo({ url: '/pages/collection/collection' }) }
-function goShop()       { uni.navigateTo({ url: '/pages/shop/shop' }) }
-function goDetail(id: string) { uni.navigateTo({ url: `/pages/detail/detail?id=${id}` }) }
 function goTravel(id: string) { uni.navigateTo({ url: `/pages/travel/travel?id=${id}` }) }
 
 function goBoard()      { uni.navigateTo({ url: '/pages/board/board' }) }
@@ -361,6 +539,7 @@ async function loadUnread() {
 
 onMounted(() => {
   store.initData()
+  loadBoard(true)
   if (StorageUtil.get<boolean>('is_new_user', false)) {
     showOnboarding.value = true
     obStep.value = 0
@@ -405,8 +584,9 @@ onShow(() => {
 
 .hero-name {
   display: block;
-  font-family: $font-family-display;
-  font-size: 48rpx;
+  font-family: $font-family-body;
+  font-size: 40rpx;
+  font-weight: 500;
   color: #F4EFE5;
 }
 
@@ -425,8 +605,8 @@ onShow(() => {
 
 .date-day {
   display: block;
-  font-family: $font-family-display;
-  font-size: 72rpx;
+  font-family: $font-family-mono;
+  font-size: 64rpx;
   color: rgba(244,239,229,0.9);
   line-height: 1;
 }
@@ -462,7 +642,7 @@ onShow(() => {
   display: block;
   font-family: $font-family-body;
   font-size: 34rpx;
-  font-weight: 700;
+  font-weight: 500;
   color: $ink-black;
   line-height: 1.25;
   overflow: hidden;
@@ -496,53 +676,6 @@ onShow(() => {
   font-size: 28rpx;
   color: #F4EFE5;
   white-space: nowrap;
-}
-
-.hero-stats {
-  display: flex;
-  align-items: center;
-  background: $card-bg;
-  border: 2rpx solid $line-sepia;
-  border-radius: 12rpx;
-  padding: 20rpx 24rpx;
-  margin: 22rpx 32rpx 0;
-  box-shadow: $shadow-sm;
-}
-
-.stat-item {
-  flex: 1;
-  text-align: center;
-}
-
-.stat-item-tap {
-  border-radius: 8rpx;
-  &:active { opacity: 0.7; }
-}
-
-.stat-num {
-  display: block;
-  font-family: $font-family-body;
-  font-size: 30rpx;
-  color: $ink-black;
-  margin-bottom: 4rpx;
-}
-
-.stat-num-points {
-  color: $travel-blue;
-}
-
-.stat-lbl {
-  display: block;
-  font-family: $font-family-action;
-  font-size: 22rpx;
-  letter-spacing: 0;
-  color: $mute-text;
-}
-
-.stat-sep {
-  width: 1rpx;
-  height: 40rpx;
-  background: $line-sepia;
 }
 
 // ── Content ───────────────────────────────────────────────────────
@@ -606,55 +739,203 @@ onShow(() => {
   color: #F4EFE5;
 }
 
-// ── Board banner ──────────────────────────────────────────────────
-.board-banner {
-  margin: 26rpx 32rpx 0;
-  background: rgba($travel-blue, 0.07);
-  border: 2rpx solid rgba($travel-blue, 0.22);
-  border-radius: 12rpx;
+// ── Board feed grid ───────────────────────────────────────────────
+.board-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+}
+
+.board-skeleton {
+  height: 280rpx;
+  border-radius: 8rpx;
+  background: $line-sepia;
+  opacity: 0.35;
+}
+
+.shimmer {
+  background: linear-gradient(90deg, $line-sepia 25%, #E8E0D0 50%, $line-sepia 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.board-empty {
+  padding: 48rpx 0;
+  text-align: center;
+}
+
+.board-empty-txt {
+  font-family: $font-family-body;
+  font-size: 26rpx;
+  color: $mute-text;
+}
+
+.board-card {
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  border-radius: 8rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(40,30,15,0.08);
+  &:active { opacity: 0.92; }
+}
+
+.board-card-photo {
+  width: 100%;
+  height: 200rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.board-card-img {
+  width: 100%;
+  height: 100%;
+}
+
+.board-card-grad {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #C9D2B6 0%, #3C604D 100%);
+}
+
+.board-card-pm {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+  background: rgba(20,15,10,0.5);
+  border: 1rpx solid rgba(244,239,229,0.4);
+  border-radius: 4rpx;
+  padding: 4rpx 10rpx;
+}
+
+.board-card-pm-city {
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+  color: rgba(244,239,229,0.9);
+}
+
+.board-card-body {
+  padding: 14rpx 16rpx 14rpx;
+}
+
+.board-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.board-card-avatar {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $travel-blue, $forest-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.board-card-initial {
+  font-family: $font-family-body;
+  font-size: 22rpx;
+  color: #F4EFE5;
+}
+
+.board-card-stamp {
+  width: 36rpx;
+  height: 36rpx;
+  border: 1rpx solid currentColor;
+  border-radius: 2rpx;
+  overflow: hidden;
+  background: $paper-beige;
+}
+
+.board-card-stamp-img { width: 100%; height: 100%; }
+.board-card-stamp-dot { width: 100%; height: 100%; opacity: 0.8; }
+
+.board-card-loc {
+  display: block;
+  font-family: $font-family-body;
+  font-size: 24rpx;
+  color: $ink-black;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 2rpx;
+}
+
+.board-card-city {
+  display: block;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
+  color: $mute-text;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 12rpx;
+}
+
+.board-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24rpx 26rpx;
-  overflow: hidden;
-  position: relative;
-
-  &:active { opacity: 0.88; }
 }
 
-.board-banner-left { flex: 1; }
+.board-card-stamp-btn {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 4rpx;
+  border: 1rpx solid $line-sepia;
+  background: transparent;
+  &:active { opacity: 0.7; }
+}
 
-.board-banner-kicker {
-  display: block;
-  font-family: $font-family-action;
+.board-card-stamp-active {
+  background: rgba($travel-blue, 0.1);
+  border-color: $travel-blue;
+  .board-card-stamp-icon, .board-card-stamp-count { color: $travel-blue; }
+}
+
+.board-card-stamp-icon {
   font-size: 22rpx;
-  letter-spacing: 0;
-  color: $mute-text;
-  margin-bottom: 8rpx;
-}
-
-.board-banner-title {
-  display: block;
-  font-family: $font-family-body;
-  font-size: 30rpx;
-  color: $ink-black;
-  margin-bottom: 6rpx;
-}
-
-.board-banner-sub {
-  display: block;
-  font-family: $font-family-body;
-  font-size: 24rpx;
-  letter-spacing: 0;
   color: $mute-text;
 }
 
-.board-banner-link {
-  font-family: $font-family-action;
+.board-card-stamp-count {
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  color: $mute-text;
+}
+
+.board-card-mailbox {
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
+  color: $mute-text;
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-load-more {
+  padding: 32rpx 0;
+  text-align: center;
+}
+
+.board-load-more-txt {
+  font-family: $font-family-body;
   font-size: 24rpx;
-  letter-spacing: 0;
-  color: $travel-blue;
-  flex-shrink: 0;
+  color: $mute-text;
 }
 
 // ── Section ───────────────────────────────────────────────────────
@@ -674,7 +955,7 @@ onShow(() => {
 .section-kicker {
   font-family: $font-family-action;
   font-size: 24rpx;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0;
   color: $travel-blue;
   white-space: nowrap;
@@ -692,6 +973,27 @@ onShow(() => {
   letter-spacing: 0;
   color: $mute-text;
   flex-shrink: 0;
+}
+
+.board-refresh {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: 12rpx;
+  border-radius: 50%;
+  &:active { background: rgba(46, 125, 88, 0.08); }
+}
+
+.board-refresh-spin {
+  animation: board-spin 0.8s linear infinite;
+}
+
+@keyframes board-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
 // ── Current travel card ───────────────────────────────────────────
@@ -766,143 +1068,6 @@ onShow(() => {
   color: $mute-text;
   padding: 0 20rpx;
   align-self: center;
-}
-
-// ── Recent postcards carousel ─────────────────────────────────────
-.pc-scroll {
-  width: 100%;
-  white-space: nowrap;
-}
-
-.pc-track {
-  display: inline-flex;
-  gap: 16rpx;
-  padding-bottom: 8rpx;
-}
-
-.pc-card {
-  display: inline-flex;
-  flex-direction: column;
-  width: 200rpx;
-  background: $card-bg;
-  border: 2rpx solid $line-sepia;
-  border-radius: 8rpx;
-  overflow: hidden;
-  flex-shrink: 0;
-
-  &:active { opacity: 0.85; }
-}
-
-.pc-photo {
-  width: 200rpx;
-  height: 160rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.pc-img {
-  width: 200rpx;
-  height: 160rpx;
-}
-
-.pc-stamp-glyph {
-  font-size: 48rpx;
-  color: rgba(244,239,229,0.6);
-}
-
-.pc-card-body {
-  padding: 14rpx 16rpx;
-}
-
-.pc-loc {
-  display: block;
-  font-family: $font-family-body;
-  font-size: 24rpx;
-  color: $ink-black;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin-bottom: 4rpx;
-}
-
-.pc-city {
-  display: block;
-  font-family: $font-family-body;
-  font-size: 22rpx;
-  letter-spacing: 0;
-  letter-spacing: 1rpx;
-  color: $mute-text;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin-bottom: 4rpx;
-}
-
-.pc-date {
-  display: block;
-  font-family: $font-family-code;
-  font-size: 22rpx;
-  color: $mute-text;
-}
-
-// ── Travel list ───────────────────────────────────────────────────
-.travel-list {
-  background: $card-bg;
-  border: 2rpx solid $line-sepia;
-  border-radius: 12rpx;
-  overflow: hidden;
-  box-shadow: $shadow-sm;
-}
-
-.travel-row {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  padding: 24rpx;
-  border-bottom: 1rpx solid $line-sepia;
-
-  &:last-child { border-bottom: none; }
-  &:active { background: rgba($travel-blue, 0.04); }
-}
-
-.travel-row-dot {
-  width: 14rpx; height: 14rpx;
-  border-radius: 50%;
-  flex-shrink: 0;
-
-  &.status-ongoing   { background: $travel-blue; }
-  &.status-planned   { background: $mute-text; }
-  &.status-completed { background: #7A7264; }
-  &.status-cancelled { background: #A43B2D; }
-}
-
-.travel-row-info { flex: 1; min-width: 0; }
-
-.travel-row-title {
-  display: block;
-  font-family: $font-family-body;
-  font-size: 28rpx;
-  color: $ink-black;
-  margin-bottom: 4rpx;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.travel-row-dest {
-  display: block;
-  font-family: $font-family-code;
-  font-size: 22rpx;
-  letter-spacing: 1rpx;
-  color: $mute-text;
-}
-
-.travel-row-arr {
-  font-family: $font-family-body;
-  font-size: 40rpx;
-  color: $mute-text;
 }
 
 // ── Empty state ───────────────────────────────────────────────────
@@ -991,7 +1156,7 @@ onShow(() => {
 }
 
 .ob-stamp-char {
-  font-family: $font-family-display;
+  font-family: $font-family-body;
   font-size: 56rpx;
   color: $travel-blue;
 }
@@ -1072,6 +1237,402 @@ onShow(() => {
   letter-spacing: 0;
   color: $mute-text;
 }
+
+// ── Modal (bottom sheet) ──────────────────────────────────────────
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(12,9,5,0.85);
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fade-in 0.2s ease;
+}
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.modal-card {
+  width: 100%;
+  max-height: 90vh;
+  background: $page-background;
+  border-radius: 32rpx 32rpx 0 0;
+  overflow: hidden;
+  animation: slide-up 0.28s cubic-bezier(0.34,1.56,0.64,1);
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+// Photo with 3D flip
+.modal-photo {
+  width: 100%;
+  height: 460rpx;
+  position: relative;
+  flex-shrink: 0;
+  perspective: 900px;
+  cursor: pointer;
+}
+
+.modal-photo-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-photo-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.modal-photo-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.modal-photo-back {
+  transform: rotateY(180deg);
+  background: $card-bg;
+}
+
+.modal-photo-img { width: 100%; height: 100%; }
+
+.modal-photo-grad {
+  width: 100%; height: 100%;
+  background: linear-gradient(165deg, $travel-blue, $forest-green);
+}
+
+.modal-photo-fade {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 200rpx;
+  background: linear-gradient(transparent, $page-background);
+}
+
+.modal-postmark {
+  position: absolute;
+  top: 24rpx; right: 32rpx;
+  background: rgba(20,15,10,0.45);
+  border: 1rpx solid rgba(244,239,229,0.5);
+  border-radius: 6rpx;
+  padding: 8rpx 16rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-pm-city {
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
+  color: rgba(244,239,229,0.9);
+}
+
+.modal-pm-date {
+  font-family: $font-family-body;
+  font-size: 24rpx;
+  color: rgba(244,239,229,0.95);
+}
+
+.modal-flip-hint {
+  position: absolute;
+  bottom: 20rpx;
+  left: 0; right: 0;
+  text-align: center;
+}
+
+.modal-flip-hint-txt {
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+  color: rgba(244,239,229,0.7);
+}
+
+// Back face design
+.modal-back-inner {
+  width: 100%;
+  height: 100%;
+  padding: 24rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.modal-back-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.modal-back-label {
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+  color: $mute-text;
+}
+
+.modal-back-stamp {
+  width: 56rpx; height: 72rpx;
+  border: 1rpx dashed currentColor;
+  border-radius: 3rpx;
+  background: $paper-beige;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  transform: rotate(-3deg);
+}
+
+.modal-back-stamp-img { width: 100%; height: 100%; }
+.modal-back-stamp-dot { width: 100%; height: 100%; opacity: 0.7; }
+
+.modal-back-divider {
+  height: 1rpx;
+  background: $line-sepia;
+  margin-bottom: 16rpx;
+}
+
+.modal-back-body {
+  flex: 1;
+  display: flex;
+  gap: 24rpx;
+}
+
+.modal-back-msg {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.modal-back-note {
+  font-family: $font-family-display;
+  font-style: italic;
+  font-size: 26rpx;
+  color: $body-text;
+  line-height: 1.7;
+}
+
+.modal-back-addr {
+  width: 200rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  border-left: 1rpx dashed $line-sepia;
+  padding-left: 20rpx;
+}
+
+.modal-back-to {
+  font-family: $font-family-body;
+  font-size: 24rpx;
+  color: $ink-black;
+}
+
+.modal-back-loc {
+  font-family: $font-family-body;
+  font-size: 22rpx;
+  color: $mute-text;
+}
+
+.modal-back-city {
+  font-family: $font-family-code;
+  font-size: 20rpx;
+  letter-spacing: 1rpx;
+  color: $mute-text;
+}
+
+.modal-back-pm {
+  margin-top: auto;
+  border: 2rpx solid rgba(164, 59, 45, 0.35);
+  border-radius: 50%;
+  width: 120rpx;
+  height: 120rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-end;
+  transform: rotate(-12deg);
+}
+
+.modal-back-pm-city {
+  font-family: $font-family-code;
+  font-size: 20rpx;
+  letter-spacing: 1rpx;
+  color: rgba(164, 59, 45, 0.8);
+}
+
+.modal-back-pm-rule {
+  width: 60rpx;
+  height: 1rpx;
+  background: rgba(164, 59, 45, 0.35);
+  margin: 4rpx 0;
+}
+
+.modal-back-pm-date {
+  font-family: $font-family-body;
+  font-size: 18rpx;
+  color: rgba(164, 59, 45, 0.7);
+}
+
+// Modal body (info section)
+.modal-body {
+  padding: 0 40rpx 24rpx;
+  margin-top: -40rpx;
+  position: relative;
+  z-index: 2;
+  overflow-y: auto;
+}
+
+.modal-sender {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.modal-avatar {
+  width: 64rpx; height: 64rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $travel-blue, $forest-green);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  border: 3rpx solid $page-background;
+}
+
+.modal-initial {
+  font-family: $font-family-body;
+  font-size: 28rpx;
+  color: #F4EFE5;
+}
+
+.modal-sender-info { flex: 1; }
+
+.modal-nickname {
+  display: block;
+  font-family: $font-family-body;
+  font-size: 28rpx;
+  color: $ink-black;
+}
+
+.modal-mailbox {
+  display: block;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+  color: $travel-blue;
+}
+
+.modal-rule {
+  height: 1rpx;
+  background: $line-sepia;
+  margin-bottom: 20rpx;
+}
+
+.modal-loc {
+  display: block;
+  font-family: $font-family-body;
+  font-size: 36rpx;
+  color: $ink-black;
+  margin-bottom: 6rpx;
+}
+
+.modal-city {
+  display: block;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+  color: $mute-text;
+  margin-bottom: 16rpx;
+}
+
+.modal-note {
+  display: block;
+  font-family: $font-family-body;
+  font-style: italic;
+  font-size: 26rpx;
+  color: $body-text;
+  line-height: 1.7;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 16rpx;
+  align-items: center;
+  margin-top: 8rpx;
+}
+
+.modal-stamp-btn {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  height: 72rpx;
+  padding: 0 28rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid $line-sepia;
+  background: $card-bg;
+  flex-shrink: 0;
+  &:active { opacity: 0.8; }
+}
+
+.modal-stamp-active {
+  background: rgba($travel-blue, 0.08);
+  border-color: $travel-blue;
+  .modal-stamp-icon, .modal-stamp-txt { color: $travel-blue; }
+}
+
+.modal-stamp-icon { font-size: 24rpx; color: $mute-text; }
+
+.modal-stamp-txt {
+  font-family: $font-family-body;
+  font-size: 26rpx;
+  color: $mute-text;
+}
+
+.modal-add-btn {
+  flex: 1;
+  height: 72rpx;
+  background: $travel-blue;
+  border-radius: 8rpx;
+  display: flex; align-items: center; justify-content: center;
+  &:active { opacity: 0.85; }
+}
+
+.modal-add-txt {
+  font-family: $font-family-body;
+  font-size: 26rpx;
+  color: #F4EFE5;
+  letter-spacing: 2rpx;
+}
+
+.modal-added-tag {
+  flex: 1;
+  height: 72rpx;
+  border: 1rpx solid $line-sepia;
+  border-radius: 8rpx;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.modal-added-txt {
+  font-family: $font-family-code;
+  font-size: 24rpx;
+  letter-spacing: 2rpx;
+  color: $mute-text;
+}
+
+.modal-close {
+  display: block;
+  text-align: center;
+  font-family: $font-family-code;
+  font-size: 22rpx;
+  letter-spacing: 1rpx;
+  color: $mute-text;
+  padding: 16rpx 0 32rpx;
+  flex-shrink: 0;
+}
 </style>
-  box-shadow: $shadow-sm;
-  box-shadow: $shadow-sm;
