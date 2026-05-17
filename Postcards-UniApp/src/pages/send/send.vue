@@ -9,7 +9,7 @@
     <scroll-view class="content" scroll-y>
 
       <!-- ── Mode A: postcardId given, pick recipient ── -->
-      <template v-if="mode === 'pick-recipient'">
+      <template v-if="mode === 'pick-recipient' || mode === 'select-postcard-first'">
         <!-- Postcard preview strip -->
         <view class="postcard-preview" v-if="postcard">
           <view class="preview-thumb">
@@ -28,8 +28,59 @@
           <text class="preview-tag">即将寄出</text>
         </view>
 
-        <!-- Step 1: Pick recipient -->
-        <view class="section" v-if="!recipient">
+        <!-- Step 1: Pick postcard (only for select-postcard-first mode) -->
+        <view class="section" v-if="mode === 'select-postcard-first' && !postcard">
+          <view class="section-hd" style="margin-top: 8rpx;">
+            <text class="section-kicker">POSTCARD · 选择明信片</text>
+            <view class="section-rule"></view>
+          </view>
+
+          <view class="pc-empty" v-if="allPostcards.length === 0">
+            <text class="pc-empty-kicker">NO POSTCARDS</text>
+            <text class="pc-empty-title">还没有可寄出的明信片</text>
+            <text class="pc-empty-txt">先记录一张明信片，再回来寄给好友。</text>
+            <view class="pc-empty-btn" @click="goRecord">
+              <text class="pc-empty-btn-txt">去记录明信片 ›</text>
+            </view>
+          </view>
+
+          <view class="pc-list" v-else>
+            <view
+              v-for="pc in allPostcards"
+              :key="pc.id"
+              class="pc-row"
+              @click="postcard = pc"
+            >
+              <view class="pc-thumb">
+                <image
+                  v-if="pc.photoUrl"
+                  :src="pc.photoUrl"
+                  class="pc-thumb-img"
+                  mode="aspectFill"
+                />
+                <view v-else class="pc-thumb-grad"></view>
+                <view class="pc-stamp-badge" :style="{ borderColor: getStampColor(pc.stampDesign) }">
+                  <image
+                    v-if="getStampImageUrl(pc.stampDesign)"
+                    :src="getStampImageUrl(pc.stampDesign)"
+                    class="pc-stamp-badge-img"
+                    mode="aspectFill"
+                  />
+                  <view v-else class="pc-stamp-badge-color" :style="{ background: getStampColor(pc.stampDesign) }"></view>
+                </view>
+              </view>
+              <view class="pc-info">
+                <text class="pc-loc">{{ pc.locationName }}</text>
+                <text class="pc-sub">{{ pc.city }} · {{ pc.country }}</text>
+                <text class="pc-date">{{ formatPostmarkDate(pc.recordedAt) }}</text>
+              </view>
+              <text class="pc-arr">›</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- Step 2: Pick recipient -->
+        <view class="section" v-if="!recipient && (postcard || mode === 'pick-recipient')">
 
           <!-- Contacts list -->
           <view class="section-hd">
