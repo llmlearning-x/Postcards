@@ -189,6 +189,32 @@
       .screenshot-row { flex-direction: column; align-items: center; }
       .screenshot-row .screenshot { max-width: 100%; }
     }
+    .stamp-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    .stamp-item {
+      text-align: center;
+    }
+    .stamp-item img {
+      width: 100%;
+      max-width: 200px;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    .stamp-item .stamp-name {
+      font-size: 0.85em;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+    .stamp-series {
+      margin: 32px 0;
+    }
+    .stamp-series h4 {
+      margin-bottom: 16px;
+    }
   </style>
 </head>
 <body>
@@ -504,6 +530,79 @@
   <li><strong>邮戳标记</strong>：圆形邮戳样式，用于标记城市、日期</li>
   <li><strong>Boarding Pass</strong>：旅程卡片采用登机牌设计，带撕裂线效果</li>
 </ul>
+
+<h4>邮票设计素材</h4>
+<p>应用内置 5 个系列共 22 枚虚拟邮票，采用复古铜版画风格，每枚邮票对应不同的旅行主题。用户在记录明信片时可选择对应邮票进行贴附，增添旅行仪式感。</p>
+
+<div class="stamp-series">
+  <h4>系列一：旅行印记</h4>
+  <div class="stamp-gallery">
+    <div class="stamp-item">
+      <img src="../assets/stamps/serie-i-classic.png" alt="经典之旅">
+      <div class="stamp-name">经典之旅</div>
+    </div>
+    <div class="stamp-item">
+      <img src="../assets/stamps/serie-i-city.png" alt="城市漫步">
+      <div class="stamp-name">城市漫步</div>
+    </div>
+  </div>
+</div>
+
+<div class="stamp-series">
+  <h4>系列二：世界遗产</h4>
+  <div class="stamp-gallery">
+    <div class="stamp-item">
+      <img src="../assets/stamps/serie-ii-greatwall.png" alt="万里长城">
+      <div class="stamp-name">万里长城</div>
+    </div>
+    <div class="stamp-item">
+      <img src="../assets/stamps/serie-ii-terracotta.png" alt="兵马俑">
+      <div class="stamp-name">兵马俑</div>
+    </div>
+  </div>
+</div>
+
+<div class="stamp-series">
+  <h4>系列三：四季风光</h4>
+  <div class="stamp-gallery">
+    <div class="stamp-item">
+      <img src="../assets/stamps/serie-iii-spring.png" alt="春日樱花">
+      <div class="stamp-name">春日樱花</div>
+    </div>
+    <div class="stamp-item">
+      <img src="../assets/stamps/serie-iii-autumn.png" alt="秋日红叶">
+      <div class="stamp-name">秋日红叶</div>
+    </div>
+  </div>
+</div>
+
+<div class="stamp-series">
+  <h4>系列四：二十四节气</h4>
+  <div class="stamp-gallery">
+    <div class="stamp-item">
+      <img src="../assets/stamps/serie-iv-qingming.png" alt="清明">
+      <div class="stamp-name">清明</div>
+    </div>
+    <div class="stamp-item">
+      <img src="../assets/stamps/serie-iv-dahan.png" alt="大寒">
+      <div class="stamp-name">大寒</div>
+    </div>
+  </div>
+</div>
+
+<div class="stamp-series">
+  <h4>系列五：远方</h4>
+  <div class="stamp-gallery">
+    <div class="stamp-item">
+      <img src="../assets/stamps/serie-v-desert.png" alt="沙漠驼铃">
+      <div class="stamp-name">沙漠驼铃</div>
+    </div>
+    <div class="stamp-item">
+      <img src="../assets/stamps/serie-v-snow.png" alt="雪山之巅">
+      <div class="stamp-name">雪山之巅</div>
+    </div>
+  </div>
+</div>
 
 <h3>4.2 交互设计</h3>
 

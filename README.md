@@ -1,4 +1,12 @@
-# 旅行邮箱
+<p align="center">
+  <img src="docs/assets/app-icon.png" width="120" alt="旅行邮箱 App Icon">
+</p>
+
+<h1 align="center">旅行邮箱</h1>
+
+<p align="center">
+  <img src="docs/assets/brand-logo.png" width="400" alt="旅行邮箱 Brand Logo">
+</p>
 
 > 记录旅途，寄往远方。一款旅行明信片记录应用。
 
@@ -10,6 +18,11 @@
 |------|------|------|
 | H5 | ✅ 已上线 | [http://115.190.7.207](http://115.190.7.207) |
 | Android App | ✅ 已发布 | [下载 APK](https://github.com/llmlearning-x/Postcards/releases/download/v1.0.0/default.apk) |
+
+<p align="center">
+  <img src="docs/assets/android-preview.png" width="280" alt="Android 桌面预览">
+  <img src="docs/assets/android-icon-mask.png" width="380" alt="Android 自适应图标">
+</p>
 | 微信小程序 | 🚧 计划中 | — |
 | iOS App | 🚧 计划中 | — |
 | HarmonyOS | 🚧 计划中 | — |

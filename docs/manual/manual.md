@@ -357,6 +357,40 @@
 - **邮戳标记**：圆形邮戳样式，用于标记城市、日期
 - **Boarding Pass**：旅程卡片采用登机牌设计，带撕裂线效果
 
+#### 邮票设计素材
+
+应用内置 5 个系列共 22 枚虚拟邮票，采用复古铜版画风格，每枚邮票对应不同的旅行主题。用户在记录明信片时可选择对应邮票进行贴附，增添旅行仪式感。
+
+**系列一：旅行印记**
+
+| 经典之旅 | 城市漫步 |
+|:--:|:--:|
+| ![经典之旅](../assets/stamps/serie-i-classic.png) | ![城市漫步](../assets/stamps/serie-i-city.png) |
+
+**系列二：世界遗产**
+
+| 万里长城 | 兵马俑 |
+|:--:|:--:|
+| ![万里长城](../assets/stamps/serie-ii-greatwall.png) | ![兵马俑](../assets/stamps/serie-ii-terracotta.png) |
+
+**系列三：四季风光**
+
+| 春日樱花 | 秋日红叶 |
+|:--:|:--:|
+| ![春日樱花](../assets/stamps/serie-iii-spring.png) | ![秋日红叶](../assets/stamps/serie-iii-autumn.png) |
+
+**系列四：二十四节气**
+
+| 清明 | 大寒 |
+|:--:|:--:|
+| ![清明](../assets/stamps/serie-iv-qingming.png) | ![大寒](../assets/stamps/serie-iv-dahan.png) |
+
+**系列五：远方**
+
+| 沙漠驼铃 | 雪山之巅 |
+|:--:|:--:|
+| ![沙漠驼铃](../assets/stamps/serie-v-desert.png) | ![雪山之巅](../assets/stamps/serie-v-snow.png) |
+
 ### 4.2 交互设计
 
 #### 底部 Tab 导航
