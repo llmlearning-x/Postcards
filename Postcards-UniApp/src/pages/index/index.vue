@@ -43,11 +43,14 @@ onMounted(async () => {
   const postcardStore = usePostcardStore()
 
   if (authStore.isLoggedIn) {
+    // 已登录：并行预加载数据，splash 停留 1.2s 保证品牌曝光
     postcardStore.syncFromServer().catch(() => {})
     StampApi.my().then(stamps => authStore.setOwnedStamps(stamps.map(s => s.id))).catch(() => {})
+    await new Promise(r => setTimeout(r, 1200))
     uni.switchTab({ url: '/pages/home/home' })
   } else {
-    await new Promise(r => setTimeout(r, 650))
+    // 未登录：首次/重要时刻，多停 300ms 加深品牌印象
+    await new Promise(r => setTimeout(r, 1500))
     uni.redirectTo({ url: '/pages/auth/login' })
   }
 })
@@ -189,7 +192,7 @@ onMounted(async () => {
 .right-perf { right: 0; }
 
 .brand-title {
-  font-family: $font-family-display;
+  font-family: $font-family-body;
   font-weight: 400;
   font-size: 104rpx;
   letter-spacing: 2rpx;
