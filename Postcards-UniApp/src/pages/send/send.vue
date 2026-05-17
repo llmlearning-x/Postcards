@@ -35,18 +35,32 @@
             <view class="section-rule"></view>
           </view>
 
-          <view class="pc-empty" v-if="allPostcards.length === 0">
+          <!-- Search -->
+          <view class="search-bar">
+            <text class="search-icon">🔍</text>
+            <input
+              v-model="searchQuery"
+              class="search-input"
+              placeholder="搜索地点、城市…"
+              placeholder-style="color:#B5AE9B"
+              confirm-type="search"
+              @confirm="onSearch"
+            />
+            <text v-if="searchQuery" class="search-clear" @click="searchQuery = ''; onSearch()">✕</text>
+          </view>
+
+          <view class="pc-empty" v-if="!pcLoading && postcardList.length === 0">
             <text class="pc-empty-kicker">NO POSTCARDS</text>
-            <text class="pc-empty-title">还没有可寄出的明信片</text>
-            <text class="pc-empty-txt">先记录一张明信片，再回来寄给好友。</text>
-            <view class="pc-empty-btn" @click="goRecord">
+            <text class="pc-empty-title">{{ searchQuery ? '没有找到匹配的明信片' : '还没有可寄出的明信片' }}</text>
+            <text class="pc-empty-txt">{{ searchQuery ? '换个关键词试试' : '先记录一张明信片，再回来寄给好友。' }}</text>
+            <view v-if="!searchQuery" class="pc-empty-btn" @click="goRecord">
               <text class="pc-empty-btn-txt">去记录明信片 ›</text>
             </view>
           </view>
 
-          <view class="pc-list" v-else>
+          <view class="pc-list" v-if="postcardList.length > 0">
             <view
-              v-for="pc in allPostcards"
+              v-for="pc in postcardList"
               :key="pc.id"
               class="pc-row"
               @click="postcard = pc"
@@ -76,6 +90,17 @@
               </view>
               <text class="pc-arr">›</text>
             </view>
+          </view>
+
+          <!-- Load more -->
+          <view v-if="pcHasMore && !pcLoading" class="load-more" @click="loadMore">
+            <text class="load-more-txt">加载更多 ›</text>
+          </view>
+          <view v-if="pcLoading" class="load-more">
+            <text class="load-more-txt">加载中…</text>
+          </view>
+          <view v-if="!pcHasMore && postcardList.length > 0" class="load-more">
+            <text class="load-more-txt">— 共 {{ pcTotal }} 张 —</text>
           </view>
         </view>
 
@@ -301,7 +326,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { MailApi, ContactsApi, type ApiUser, type ContactItem } from '@/services/api'
+import { MailApi, ContactsApi, PostcardApi, type ApiUser, type ContactItem } from '@/services/api'
 import { usePostcardStore } from '@/stores/postcard'
 import type { Postcard } from '@/model/Postcard'
 import PostalHeader from '@/components/PostalHeader.vue'
@@ -352,8 +377,53 @@ function selectContact(c: ContactItem) {
   }
 }
 
-// 只能寄出自己创建的明信片，保存的来信不能邮寄
-const allPostcards = computed(() => store.postcards.filter(pc => !pc.isSavedMailing))
+// ── 明信片列表（分页 + 搜索）─────────────────────────────────────
+const postcardList   = ref<Postcard[]>([])
+const searchQuery    = ref('')
+const pcOffset       = ref(0)
+const pcHasMore      = ref(true)
+const pcLoading      = ref(false)
+const pcTotal        = ref(0)
+const PAGE_SIZE      = 20
+
+async function loadPostcards(append = false) {
+  if (pcLoading.value) return
+  pcLoading.value = true
+  try {
+    const [items, countRes] = await Promise.all([
+      PostcardApi.list({
+        q: searchQuery.value || undefined,
+        limit: PAGE_SIZE,
+        offset: append ? pcOffset.value : 0,
+      }),
+      PostcardApi.count({ q: searchQuery.value || undefined }),
+    ])
+    pcTotal.value = countRes.total
+    const filtered = items.filter(pc => !pc.isSavedMailing)
+    if (append) {
+      postcardList.value.push(...filtered)
+    } else {
+      postcardList.value = filtered
+    }
+    pcOffset.value = postcardList.value.length
+    pcHasMore.value = pcOffset.value < pcTotal.value
+  } catch (e: any) {
+    uni.showToast({ title: e.message || '加载失败', icon: 'none' })
+  } finally {
+    pcLoading.value = false
+  }
+}
+
+function onSearch() {
+  pcOffset.value = 0
+  pcHasMore.value = true
+  loadPostcards(false)
+}
+
+function loadMore() {
+  if (!pcHasMore.value || pcLoading.value) return
+  loadPostcards(true)
+}
 
 function selectRecipient(u: ApiUser) {
   recipient.value = u
@@ -405,6 +475,9 @@ onMounted(() => {
   }
   if (mode.value === 'pick-recipient' || mode.value === 'select-postcard-first') {
     loadContacts()
+  }
+  if (mode.value === 'select-postcard-first') {
+    loadPostcards(false)
   }
 })
 </script>
@@ -816,4 +889,44 @@ onMounted(() => {
 }
 
 .btm-gap { height: 120rpx; }
+
+// ── Search bar ───────────────────────────────────────────────────
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  background: $card-bg;
+  border: 1rpx solid $line-sepia;
+  border-radius: 8rpx;
+  padding: 16rpx 24rpx;
+  margin-bottom: 20rpx;
+}
+.search-icon {
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+.search-input {
+  flex: 1;
+  font-family: $font-family-body;
+  font-size: 28rpx;
+  color: $ink-black;
+  height: 44rpx;
+}
+.search-clear {
+  font-size: 24rpx;
+  color: $mute-text;
+  padding: 8rpx;
+}
+
+// ── Load more ────────────────────────────────────────────────────
+.load-more {
+  padding: 24rpx 0;
+  text-align: center;
+}
+.load-more-txt {
+  font-family: $font-family-code;
+  font-size: 24rpx;
+  letter-spacing: 1rpx;
+  color: $mute-text;
+}
 </style>

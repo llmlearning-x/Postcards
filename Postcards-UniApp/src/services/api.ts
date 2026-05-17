@@ -229,8 +229,21 @@ export interface BoardPostcard extends PostcardDto {
 }
 
 export const PostcardApi = {
-  list: (since?: number) =>
-    request<PostcardDto[]>('GET', since ? `/postcards?since=${since}` : '/postcards'),
+  list: (params?: { since?: number; q?: string; limit?: number; offset?: number }) => {
+    const qs = new URLSearchParams()
+    if (params?.since)  qs.set('since', String(params.since))
+    if (params?.q)      qs.set('q', params.q)
+    if (params?.limit)  qs.set('limit', String(params.limit))
+    if (params?.offset) qs.set('offset', String(params.offset))
+    const query = qs.toString()
+    return request<PostcardDto[]>('GET', query ? `/postcards?${query}` : '/postcards')
+  },
+  count: (params?: { q?: string }) => {
+    const qs = new URLSearchParams()
+    if (params?.q) qs.set('q', params.q)
+    const query = qs.toString()
+    return request<{ total: number }>('GET', query ? `/postcards/count?${query}` : '/postcards/count')
+  },
   create: (data: Omit<PostcardDto, 'id' | 'createdAt'>) =>
     request<PostcardDto>('POST', '/postcards', data),
   update: (id: string, data: Partial<Omit<PostcardDto, 'id' | 'createdAt'>>) =>

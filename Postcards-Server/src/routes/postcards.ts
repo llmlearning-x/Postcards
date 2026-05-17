@@ -7,9 +7,11 @@ import { addPoints, RECORD_BONUS } from '../utils/points'
 
 export async function postcardRoutes(app: FastifyInstance) {
 
-  // ── 获取我的明信片（支持增量同步 + 旅程筛选）────────────────────
+  // ── 获取我的明信片（支持增量同步 + 旅程筛选 + 分页 + 搜索）──────
   app.get('/postcards', { preHandler: requireAuth }, async (req, reply) => {
-    const { since, travelId } = req.query as { since?: string; travelId?: string }
+    const { since, travelId, q, limit, offset } = req.query as {
+      since?: string; travelId?: string; q?: string; limit?: string; offset?: string
+    }
     const uid = userId(req)
 
     let sql = 'SELECT * FROM postcards WHERE user_id = ?'
@@ -17,10 +19,38 @@ export async function postcardRoutes(app: FastifyInstance) {
 
     if (travelId) { sql += ' AND travel_id = ?';  vals.push(travelId) }
     if (since)    { sql += ' AND updated_at > ?';  vals.push(parseInt(since)) }
+    if (q) {
+      sql += ' AND (location_name LIKE ? OR city LIKE ? OR country LIKE ? OR note LIKE ?)'
+      const like = `%${q}%`
+      vals.push(like, like, like, like)
+    }
     sql += ' ORDER BY recorded_at DESC'
+
+    const take = limit  ? Math.min(50, parseInt(limit))  : 50
+    const skip = offset ? parseInt(offset) : 0
+    sql += ` LIMIT ${take} OFFSET ${skip}`
 
     const rows = await query(sql, vals)
     return reply.send(rows.map(toCamel))
+  })
+
+  // ── 获取我的明信片总数（用于分页 UI）────────────────────────────
+  app.get('/postcards/count', { preHandler: requireAuth }, async (req, reply) => {
+    const { travelId, q } = req.query as { travelId?: string; q?: string }
+    const uid = userId(req)
+
+    let sql = 'SELECT COUNT(*) as total FROM postcards WHERE user_id = ?'
+    const vals: any[] = [uid]
+
+    if (travelId) { sql += ' AND travel_id = ?';  vals.push(travelId) }
+    if (q) {
+      sql += ' AND (location_name LIKE ? OR city LIKE ? OR country LIKE ? OR note LIKE ?)'
+      const like = `%${q}%`
+      vals.push(like, like, like, like)
+    }
+
+    const row = await queryOne<any>(sql, vals)
+    return reply.send({ total: row?.total ?? 0 })
   })
 
   // ── 创建明信片 ───────────────────────────────────────────────────
