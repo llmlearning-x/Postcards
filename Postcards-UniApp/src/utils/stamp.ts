@@ -1,13 +1,10 @@
 import { StampDesigns } from '@/config/app'
 import { useAuthStore } from '@/stores/auth'
 
-let STAMPS_BASE = 'http://115.190.7.207/stamps'
-try {
-  const envUrl = (import.meta as any).env?.VITE_STAMPS_BASE_URL
-  if (envUrl) STAMPS_BASE = envUrl
-} catch {
-  // App 端 import.meta 可能不存在，使用默认地址
-}
+// 使用 __STAMPS_BASE_URL__ 全局变量（vite.config.ts define 注入）
+declare const __STAMPS_BASE_URL__: string
+
+let STAMPS_BASE = (typeof __STAMPS_BASE_URL__ !== 'undefined' ? __STAMPS_BASE_URL__ : '') || 'http://115.190.7.207/stamps'
 
 /** 格式化时间戳为 月·日（如 05·15） */
 export function formatDotDate(ts: number): string {

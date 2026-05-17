@@ -1,15 +1,15 @@
-/**
- * 环境配置
- *
- * 构建时通过 .env 文件注入 VITE_ 前缀变量。
- * H5 使用相对路径 /api，由 nginx 反向代理。
- * App 使用完整 URL，通过 .env.production / .env.test 切换。
- */
+// 使用 __API_BASE_URL__ / __STAMPS_BASE_URL__ 全局变量（vite.config.ts define 注入）
+// uni-app alpha 版 import.meta.env 替换有 bug，改用此方式
 
-// Vite statically replaces import.meta.env.VITE_API_BASE_URL with the literal string at build time.
-// @ts-ignore — uni-app vite environment
-const rawUrl: string = (import.meta.env.VITE_API_BASE_URL as string) || ''
-const rawStamps: string = (import.meta.env.VITE_STAMPS_BASE_URL as string) || ''
+declare const __API_BASE_URL__: string
 
+const rawUrl: string = (typeof __API_BASE_URL__ !== 'undefined' ? __API_BASE_URL__ : '') || ''
+
+// #ifndef H5
+export const API_BASE_URL: string = rawUrl.startsWith('http')
+  ? rawUrl
+  : `http://115.190.7.207${rawUrl}`
+// #endif
+// #ifdef H5
 export const API_BASE_URL: string = rawUrl
-export const STAMPS_BASE_URL: string = rawStamps
+// #endif
